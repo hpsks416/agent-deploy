@@ -1,0 +1,27 @@
+{
+  "commandcode": {
+    "name": "Command Code",
+    "openai_base_url": "https://api.commandcode.ai/provider/v1",
+    "anthropic_base_url": null,
+    "api_key_env": "COMMANDCODE_API_KEY",
+    "models": {
+      "deepseek-v4-pro": "deepseek/deepseek-v4-pro",
+      "deepseek-v4-flash": "deepseek/deepseek-v4-flash",
+      "deepseek-v4.1-flash": "deepseek/deepseek-v4.1-flash",
+      "kimi-k2.7-code": "moonshotai/Kimi-K2.7-Code",
+      "claude-sonnet-4-6": "claude-sonnet-4-6"
+    },
+    "default_model": "deepseek-v4-pro"
+  },
+  "deepseek": {
+    "name": "DeepSeek 官方",
+    "openai_base_url": "https://api.deepseek.com",
+    "anthropic_base_url": "https://api.deepseek.com/anthropic",
+    "api_key_env": "DEEPSEEK_API_KEY",
+    "models": {
+      "deepseek-v4-pro": "deepseek-v4-pro",
+      "deepseek-flash": "deepseek-flash"
+    },
+    "default_model": "deepseek-v4-pro"
+  }
+}

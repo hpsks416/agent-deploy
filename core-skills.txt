@@ -1,0 +1,18 @@
+# AGENT 框架核心 skill 清单
+# 格式：<skill名> | <耦合等级> | <备注>
+# 耦合等级：none=框架无关 / light=工具名需替换 / env=环境硬编码 / heavy=机制不同需重写 / hardcode=owner硬编码
+
+agent-workflow-orchestration | light | subagent/session_query/board_*/skillmgr_* 等 DSH 工具名
+skill-lifecycle-manager | none | 框架无关，具体工具操作委托给对应 skill
+skill-evaluator | light | skillmgr_get 读取 skill 全文
+skill-optimizer | light | skillmgr_get 读取 skill 全文
+open-source-scout | none | 框架无关
+secret-scan | hardcode | owner hpsks416 硬编码（SKILL.md + 脚本）
+secure-push-workflow | none | 编排逻辑框架无关
+github-ready-packager | none | 框架无关
+acp-studio | env | proxy 7897 + sslBackend + owner + GITEE_* 凭据（环境硬编码）
+resume-conversation-full | heavy | session_query + ~/.dsh/sessions + projcache + .zstd
+resume-conversation-brief | heavy | session_query + projcache + .zstd
+migrate-conversation-prompt | none | 框架无关
+agents-md-skill-layering | none | 框架无关
+long-sentence-structurizer | none | 框架无关
