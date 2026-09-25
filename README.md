@@ -1,6 +1,7 @@
 # agent-deploy
 
 > 📖 **想看整个框架的地图？先读 [FRAMEWORK.md](FRAMEWORK.md)** —— 8 层架构 + 15 核心 skill + 元认知闭环 + 完整仓库结构。
+> 🔍 **想知道这套框架和别的轮子差在哪？读 [COMPARISON.md](COMPARISON.md)** —— 框架级 + 23 个 skill 逐个对比。
 
 AGENT 框架的跨框架部署器：**换框架 / 换中间商 / 换模型，一键铺到位**。
 
@@ -56,6 +57,7 @@ pwsh deploy.ps1 -Framework codex -Source gitee
 ```text
 agent-deploy/
 ├── FRAMEWORK.md            # 框架总览（总领全文，先读这个）
+├── COMPARISON.md           # 框架及各 skill 与其他轮子的区别（逐级/逐个对比）
 ├── deploy.ps1              # 跨框架部署器
 ├── providers.json          # 中间商 + 模型目录
 ├── core-skills.txt         # 15 个核心 skill 清单（含耦合等级）

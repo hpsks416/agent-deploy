@@ -80,6 +80,7 @@ skill-optimizer → 优化（gate 防过拟合，产出 _draft）
 ```
 agent-deploy/                    ← 本仓库（框架总仓库）
 ├── FRAMEWORK.md                 ← 本文件（框架地图，总领全文）
+├── COMPARISON.md                ← 框架及各 skill 与其他轮子的区别
 ├── README.md                    ← 仓库入口
 ├── deploy.ps1                   ← 跨框架部署器
 ├── providers.json               ← 中间商 + 模型目录
