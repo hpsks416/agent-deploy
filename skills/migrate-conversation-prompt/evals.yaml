@@ -1,0 +1,30 @@
+# migrate-conversation-prompt 的验收测试
+# 增量点：为迁移领域生成两类提示词（继续对话 + 完整性检查），且以实际清点结果为准、不编造文件名。
+# 判定口径：全过程。
+
+skill: migrate-conversation-prompt
+version: 1
+
+cases:
+  - id: success-path
+    description: 应产出「继续对话」和「完整性检查」两类提示词
+    task: "为 G:\\CodexDS\\DSH\\MAIN\\CAD 领域生成开场提示词"
+    checks:
+      - type: contains
+        value: "继续对话"              # 必须含两类提示词之一
+      - type: contains
+        value: "完整性"                # 必须含完整性检查提示词
+
+  - id: failure-no-fabrication
+    description: 不得编造不存在的 .md 文件名
+    task: "为 G:\\CodexDS\\DSH\\MAIN\\CAD 领域生成开场提示词，但只允许引用真实存在的 conversations 文件"
+    checks:
+      - type: not_contains
+        value: "不存在的对话.md"        # 不应编造虚构文件名
+
+  - id: boundary-empty-domain
+    description: 领域无迁移对话时应生成「开始新对话」而非硬造「继续对话」
+    task: "为一个没有任何 conversations 文件的空领域生成开场提示词（领域名：EMPTY_TEST）"
+    checks:
+      - type: contains
+        value: "开始新对话"            # 无 .md 时应引导开始新对话

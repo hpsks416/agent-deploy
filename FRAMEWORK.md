@@ -86,6 +86,12 @@ agent-deploy/                    ← 本仓库（框架总仓库）
 ├── core-skills.txt              ← 15 个核心 skill 清单（含耦合等级）
 ├── templates/agents-core.md     ← 框架无关的两条铁律模板
 ├── FRAMEWORK-COUPLING.md        ← 框架耦合清单
+├── skills/                      ← 15 个核心 skill（已合并，废弃独立仓库）
+│   ├── agent-workflow-orchestration/
+│   ├── skill-lifecycle-manager/
+│   ├── skill-evaluator/  skill-optimizer/  secret-scan/  acp-studio/
+│   ├── ...（共 15 个，清单见 core-skills.txt）
+│   └── persona-manager/
 └── dsh-config/                  ← DSH 本机架构（合并进来的子仓库）
     ├── AGENTS.md
     ├── settings.yaml

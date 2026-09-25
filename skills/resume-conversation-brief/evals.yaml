@@ -1,0 +1,31 @@
+# resume-conversation-brief 的验收测试
+# 核心增量：定位 .md → map-reduce 精炼 → 快照每结论引用来源 → 只读不搬移。
+
+skill: resume-conversation-brief
+version: 1
+
+cases:
+  - id: success-traceable-snapshot
+    description: 快照应含结构化主干且每结论标注来源
+    task: "/resume-conversation-brief 3D管线"
+    checks:
+      - type: contains
+        value: "3D管线"                # 定位到对话
+      - type: contains
+        value: "待办"                  # 快照结构含待办
+      - type: contains
+        value: "据"                    # 结论引用来源（每结论可追溯）
+
+  - id: failure-not-full-detail
+    description: 主干版不应输出完整细节，应提示用 full 版
+    task: "/resume-conversation-brief 3D管线"
+    checks:
+      - type: contains
+        value: "resume-conversation-full"   # 应提示细节版入口
+
+  - id: boundary-not-found
+    description: 对话名不存在时报告未找到
+    task: "/resume-conversation-brief 不存在的对话名xyz"
+    checks:
+      - type: contains
+        value: "未找到"

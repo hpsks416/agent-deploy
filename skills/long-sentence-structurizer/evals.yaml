@@ -1,0 +1,34 @@
+# long-sentence-structurizer 的验收测试
+# 增量点：把长难句拆成四段结构化模板（核心目标/前置条件/步骤/验证标准）。
+# 判定口径：全过程。
+
+skill: long-sentence-structurizer
+version: 1
+
+cases:
+  - id: success-path
+    description: 长难句应产出四段结构化模板
+    task: "把这句话结构化成提示词：可切换到可选中机器人上的零件以进行简单配置的第一人称视角的意思是，通过选中机器人上的零件对第一人称视角进行简单配置（相机默认放在选中零件的几何中心，然后可以细调相机位置，调整相机方向，在第三人称中这样编辑后切换到第一人称验证，不合适则切回第三人称再调）"
+    checks:
+      - type: contains
+        value: "核心目标"              # 必须含四段模板的关键段
+      - type: contains
+        value: "前置条件"
+      - type: contains
+        value: "验证标准"
+
+  - id: failure-semantic-loss
+    description: 结构化后不得丢失「作用对象是相机而非零件材质」这一关键语义
+    task: "把这句话结构化成提示词：可切换到可选中机器人上的零件以进行简单配置的第一人称视角的意思是，通过选中机器人上的零件对第一人称视角进行简单配置（相机默认放在选中零件的几何中心，然后可以细调相机位置，调整相机方向，在第三人称中这样编辑后切换到第一人称验证，不合适则切回第三人称再调）"
+    checks:
+      - type: contains
+        value: "相机"                  # 关键对象（相机）不能被丢掉
+      - type: not_contains
+        value: "材质"                  # 不应把「配置视角」误解成「配置材质」
+
+  - id: boundary-ambiguous-input
+    description: 语义极度缺失时应标注待确认，不瞎猜
+    task: "把它结构化成提示词：那个东西要能那样做，然后这样那样。"
+    checks:
+      - type: contains
+        value: "待确认"                # 模糊处应显式标出，而不是编造

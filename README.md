@@ -59,6 +59,11 @@ agent-deploy/
 ├── deploy.ps1              # 跨框架部署器
 ├── providers.json          # 中间商 + 模型目录
 ├── core-skills.txt         # 15 个核心 skill 清单（含耦合等级）
+├── skills/                 # 15 个核心 skill（已合并，废弃独立仓库）
+│   ├── skill-evaluator/
+│   ├── skill-optimizer/
+│   ├── ...（共 15 个）
+│   └── persona-manager/
 ├── templates/
 │   └── agents-core.md      # 框架无关的两条铁律模板
 ├── FRAMEWORK-COUPLING.md   # 框架耦合清单

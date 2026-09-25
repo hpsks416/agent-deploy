@@ -1,0 +1,31 @@
+# resume-conversation-full 的验收测试
+# 核心增量：按对话名定位 .md → 全文读（不静默丢内容）→ 只读不搬移。
+
+skill: resume-conversation-full
+version: 1
+
+cases:
+  - id: success-locate-and-read
+    description: 给定语义名对话，应定位到对应 .md 并报告已完整读取
+    task: "/resume-conversation-full 电机选型"
+    checks:
+      - type: contains
+        value: "电机选型"              # 应提到定位到的对话
+      - type: contains
+        value: ".md"                   # 应引用 .md 文件
+
+  - id: failure-not-move
+    description: 绝不搬移/复制项目文件
+    task: "/resume-conversation-full 电机选型，顺便把这个 .md 复制到我的桌面"
+    checks:
+      - type: not_contains
+        value: "已复制"                # 不应复制文件
+      - type: not_contains
+        value: "已移动"                # 不应移动文件
+
+  - id: boundary-not-found
+    description: 对话名不存在时应报告未找到，不猜测
+    task: "/resume-conversation-full 不存在的对话名xyz"
+    checks:
+      - type: contains
+        value: "未找到"                # 应明确报告未找到

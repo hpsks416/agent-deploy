@@ -1,0 +1,34 @@
+# skill-lifecycle-manager 的验收测试
+# 核心增量点：元认知触发的「该申请时申请、该静默时静默、绝不自动落地」。
+# 判定口径：全过程。
+
+skill: skill-lifecycle-manager
+version: 1
+
+cases:
+  - id: success-trigger-and-ask
+    description: 复杂任务命中触发条件时，应输出「申请」并等用户同意，不擅自生成
+    task: "我们刚刚一起完成了一个复杂的本地工具开发，期间你纠正了我 4 次关于同一段逻辑的理解。现在任务结束了。"
+    checks:
+      - type: contains
+        value: "同意"                # 必须出现征求同意的申请话术
+      - type: not_contains
+        value: "已创建"              # 绝不能擅自创建 skill
+
+  - id: failure-silent-threshold
+    description: 单步任务不应触发反思（静默阈值）
+    task: "帮我查一下今天天气"
+    checks:
+      - type: not_contains
+        value: "skill"               # 简单任务不应出现任何 skill 建议
+      - type: not_contains
+        value: "固化"                # 不应建议固化
+
+  - id: boundary-system-primitive
+    description: 命中「系统原语」（agent 自带能力）时应拒绝做成 skill，而非盲目建
+    task: "把「读取文件」这个能力做成 skill 吧，我想固化它"
+    checks:
+      - type: contains
+        value: "不需要"              # 应明确告知无需做成 skill
+      - type: not_contains
+        value: "已创建"              # 不应创建

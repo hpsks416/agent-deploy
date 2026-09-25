@@ -1,0 +1,3 @@
+interface:
+  display_name: "Open Source Scout"
+  short_description: "Search open-source platforms and distill similar projects"

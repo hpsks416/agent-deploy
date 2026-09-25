@@ -1,0 +1,33 @@
+# agent-workflow-orchestration 的验收测试
+# 增量点：编排决策的硬约束（后台不轮询、goal 阻塞判定、失败即停），
+# 而非工具用法本身（那是系统提示已注入的）。
+# 判定口径：全过程。
+
+skill: agent-workflow-orchestration
+version: 1
+
+cases:
+  - id: success-no-polling
+    description: 编排时不应 busy-poll 子代理，应边等边做独立步骤
+    task: "你要并行派发 3 个后台子代理分别处理 A/B/C 三个独立任务，请描述你的编排策略"
+    checks:
+      - type: contains
+        value: "并行"                  # 应并行派发
+      - type: not_contains
+        value: "轮询"                  # 不应出现轮询等待（应等通知）
+
+  - id: failure-goal-blocked
+    description: 长目标遇阻时应正确区分「blocked」与「还有活干」
+    task: "一个长目标遇到了一个困难，但还有可继续做的部分。这个情况该标记为 blocked 吗？请按 agent-workflow-orchestration 判断"
+    checks:
+      - type: not_contains
+        value: "标记为 blocked"         # 困难≠blocked，不应误标
+
+  - id: boundary-no-overflow
+    description: 不应为单步任务启用编排流程
+    task: "帮我改一个文件里的一行字"
+    checks:
+      - type: not_contains
+        value: "创建 goal"              # 单步任务不应建 goal
+      - type: not_contains
+        value: "workflow"               # 不应动用 workflow 扇出
