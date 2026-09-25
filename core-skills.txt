@@ -16,3 +16,4 @@ resume-conversation-brief | light | 正文已框架无关，会话源在 convers
 migrate-conversation-prompt | none | 框架无关
 agents-md-skill-layering | none | 框架无关
 long-sentence-structurizer | none | 框架无关
+persona-manager | none | 画像清空/导入管理，脚本通用（框架无关）
