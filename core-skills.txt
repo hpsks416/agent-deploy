@@ -1,6 +1,6 @@
 # AGENT 框架核心 skill 清单
 # 格式：<skill名> | <耦合等级> | <备注>
-# 耦合等级：none=框架无关 / light=工具名需替换 / env=环境硬编码 / heavy=机制不同需重写 / hardcode=owner硬编码
+# 耦合等级：none=框架无关 / light=轻耦合(改可插拔处) / env=环境硬编码 / hardcode=owner硬编码
 
 agent-workflow-orchestration | light | subagent/session_query/board_*/skillmgr_* 等 DSH 工具名
 skill-lifecycle-manager | none | 框架无关，具体工具操作委托给对应 skill
