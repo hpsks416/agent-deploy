@@ -11,8 +11,8 @@ secret-scan | hardcode | owner hpsks416 硬编码（SKILL.md + 脚本）
 secure-push-workflow | none | 编排逻辑框架无关
 github-ready-packager | none | 框架无关
 acp-studio | env | proxy 7897 + sslBackend + owner + GITEE_* 凭据（环境硬编码）
-resume-conversation-full | heavy | session_query + ~/.dsh/sessions + projcache + .zstd
-resume-conversation-brief | heavy | session_query + projcache + .zstd
+resume-conversation-full | light | 正文已框架无关，会话源在 conversation-sources 注册表（可插拔）
+resume-conversation-brief | light | 正文已框架无关，会话源在 conversation-sources 注册表（可插拔）
 migrate-conversation-prompt | none | 框架无关
 agents-md-skill-layering | none | 框架无关
 long-sentence-structurizer | none | 框架无关

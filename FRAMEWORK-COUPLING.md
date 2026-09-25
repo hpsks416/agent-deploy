@@ -11,10 +11,9 @@ skill 资产本身是**框架无关**的 AgentSkills 格式（`SKILL.md` + front
 | 等级 | 含义 | 处理 |
 |------|------|------|
 | `none` | 框架无关 | 直接用，零改动 |
-| `light` | 工具名需替换 | 换框架后把 DSH 工具名换成目标框架等价机制 |
+| `light` | 轻耦合（工具名/会话源在可插拔处） | 换框架后改可插拔处（工具名 / `conversation-sources` 注册表），正文不动 |
 | `env` | 环境硬编码 | 换机器/换网络/换 owner 时改（与框架无关） |
 | `hardcode` | owner 硬编码 | 换 owner 时改 |
-| `heavy` | 机制不同，需重写 | DSH 会话机制 ≠ Codex/Claude 会话机制，换框架后基本重写 |
 
 ## 逐项清单
 
@@ -30,13 +29,15 @@ skill 资产本身是**框架无关**的 AgentSkills 格式（`SKILL.md` + front
 | `agents-md-skill-layering` | AGENTS.md vs skill 分层决策 |
 | `long-sentence-structurizer` | 长难句结构化 |
 
-### light —— 工具名需替换
+### light —— 轻耦合（换框架时改可插拔处，正文不动）
 
-| skill | DSH 工具名 | 目标框架等价 |
-|-------|-----------|-------------|
-| `skill-evaluator` | `skillmgr_get` | 框架「目录即加载」，直接用 `SKILL.md` 路径读正文 |
+| skill | 框架相关点 | 处理 |
+|-------|-----------|------|
+| `skill-evaluator` | `skillmgr_get` | 框架「目录即加载」，直接读 `SKILL.md` 路径 |
 | `skill-optimizer` | `skillmgr_get` | 同上 |
-| `agent-workflow-orchestration` | `subagent`/`subagent_fork`/`list_agents`/`send_message`/`session_call`/`session_query`/`board_*`/`skillmgr_*` | Codex 的 subagent、Claude 的 Task/subagent + 各自的跨会话机制；`skillmgr_*` → 目录即加载 |
+| `agent-workflow-orchestration` | `subagent`/`subagent_fork`/`list_agents`/`send_message`/`session_call`/`session_query`/`board_*`/`skillmgr_*` | 换成目标框架的多智能体机制；`skillmgr_*` → 目录即加载 |
+| `resume-conversation-full` | 会话源在 `conversation-sources` 注册表 | 换框架 = 在注册表追加目标框架源（如 `codex-native`），正文不动 |
+| `resume-conversation-brief` | 同上 | 同上 |
 
 ### env —— 环境硬编码（换机器/网络/owner 时改）
 
@@ -50,18 +51,11 @@ skill 资产本身是**框架无关**的 AgentSkills 格式（`SKILL.md` + front
 |-------|---------|
 | `secret-scan` | owner `hpsks416`（SKILL.md 第 20、54 行 + `scripts/scan_secrets.py`） |
 
-### heavy —— 机制不同，需重写
-
-| skill | 依赖 | 换框架后 |
-|-------|------|---------|
-| `resume-conversation-full` | `session_query` + `~/.dsh\sessions\*\session.v3.jsonl.zstd` + projcache JSON | DSH 会话机制，Codex/Claude 有各自的会话存储，三级回退逻辑需按目标框架重写 |
-| `resume-conversation-brief` | `session_query` + projcache JSON + `.zstd` | 同上 |
-
 ## 换框架操作建议
 
 1. 跑 `deploy.ps1 -Framework <codex|claude> ...` 铺目录 + 配置。
-2. 按上表核对 `light` 档：把 DSH 工具名换成目标框架等价机制（通常是「目录即加载」替代 `skillmgr_*`）。
-3. `heavy` 档（resume-conversation-*）在非 DSH 框架下建议先跳过，等真的要在该框架「继承对话」时再重写。
+2. 按上表核对 `light` 档：`skillmgr_*` → 目录即加载；多智能体工具 → 目标框架等价机制。
+3. `resume-conversation-*` 正文已框架无关，换框架时在 `conversation-sources.md` 注册表追加目标框架会话源（如 `codex-native`）即可，正文不动。
 4. `env`/`hardcode` 档与框架无关，只在换机器/换网络/换 owner 时改。
 
 ## 换模型（模型特异）
