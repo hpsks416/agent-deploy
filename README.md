@@ -10,10 +10,11 @@ AGENT 框架的跨框架部署器：**换框架 / 换中间商 / 换模型，一
 2. 铺铁律到目标框架的全局指令文件（`AGENTS.md` / `CLAUDE.md`）
 3. 生成目标框架的中间商/模型配置（`config.toml` / env / `settings.yaml`）
 
-## 适用对象
+## 环境依赖
 
-- 想把自己的 AGENT 框架（skill 生态 + 铁律 + 画像）跨框架 / 跨机器部署的人
-- 需要在 Codex / Claude Code / DSH 之间切换、或换中间商 / 换模型的人
+- 操作系统：Windows
+- 运行时：PowerShell（pwsh）+ git
+- 目标框架：Codex / Claude Code / DSH（任选其一）
 
 ## 三个维度独立可换
 
