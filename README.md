@@ -1,5 +1,7 @@
 # agent-deploy
 
+> 📖 **想看整个框架的地图？先读 [FRAMEWORK.md](FRAMEWORK.md)** —— 8 层架构 + 15 核心 skill + 元认知闭环 + 完整仓库结构。
+
 AGENT 框架的跨框架部署器：**换框架 / 换中间商 / 换模型，一键铺到位**。
 
 核心资产（15 个元能力链 skill + 两条铁律 + 用户画像）是框架无关的 AgentSkills 格式；本部署器只做三件「薄壳」适配：
@@ -52,12 +54,15 @@ pwsh deploy.ps1 -Framework codex -Source gitee
 
 ```text
 agent-deploy/
-├── deploy.ps1             # 部署器
-├── providers.json         # 中间商 + 模型目录
-├── core-skills.txt        # 15 个核心 skill 清单（含耦合等级）
+├── FRAMEWORK.md            # 框架总览（总领全文，先读这个）
+├── deploy.ps1              # 跨框架部署器
+├── providers.json          # 中间商 + 模型目录
+├── core-skills.txt         # 15 个核心 skill 清单（含耦合等级）
 ├── templates/
-│   └── agents-core.md     # 框架无关的两条铁律模板
-├── FRAMEWORK-COUPLING.md  # 框架耦合清单
+│   └── agents-core.md      # 框架无关的两条铁律模板
+├── FRAMEWORK-COUPLING.md   # 框架耦合清单
+├── dsh-config/             # DSH 本机架构（合并进来的子仓库）
+│   └── install.ps1         # DSH 本机一键恢复
 └── README.md
 ```
 
