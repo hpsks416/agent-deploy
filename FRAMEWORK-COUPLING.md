@@ -63,3 +63,12 @@ skill 资产本身是**框架无关**的 AgentSkills 格式（`SKILL.md` + front
 2. 按上表核对 `light` 档：把 DSH 工具名换成目标框架等价机制（通常是「目录即加载」替代 `skillmgr_*`）。
 3. `heavy` 档（resume-conversation-*）在非 DSH 框架下建议先跳过，等真的要在该框架「继承对话」时再重写。
 4. `env`/`hardcode` 档与框架无关，只在换机器/换网络/换 owner 时改。
+
+## 换模型（模型特异）
+
+skill 不仅「框架特异」，还**「模型特异」**——元认知是索引性的，它依赖「自己是谁、能力边界在哪」，而这个信息是模型自己的运行状态，不随 skill 迁移。
+
+- `description` 的触发依赖模型的「描述匹配能力」：同一个 description，DS v4 能正确触发，换到 Claude/Kimi 后匹配率可能下降或误触发。
+- skill 的 lift（A/B 基线）是**相对某个模型**的：在 DS v4 上「有没有都一样」的 skill，换到更强/更弱的模型后 lift 可能翻转为有效或无效。
+
+所以**换模型后要重估，不能假设原 skill 的触发和 lift 依然成立**：跑一遍 `skill-evaluator` 的静态体检 + A/B（新模型下的新基线），`skill-optimizer` 的 gate 集也要按新模型重新标定。
