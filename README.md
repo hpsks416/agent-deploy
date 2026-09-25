@@ -2,11 +2,16 @@
 
 AGENT 框架的跨框架部署器：**换框架 / 换中间商 / 换模型，一键铺到位**。
 
-核心资产（14 个元能力链 skill + 两条铁律）是框架无关的 AgentSkills 格式；本部署器只做三件「薄壳」适配：
+核心资产（15 个元能力链 skill + 两条铁律 + 用户画像）是框架无关的 AgentSkills 格式；本部署器只做三件「薄壳」适配：
 
 1. 铺 skill 到目标框架的全局 skill 目录
 2. 铺铁律到目标框架的全局指令文件（`AGENTS.md` / `CLAUDE.md`）
 3. 生成目标框架的中间商/模型配置（`config.toml` / env / `settings.yaml`）
+
+## 适用对象
+
+- 想把自己的 AGENT 框架（skill 生态 + 铁律 + 画像）跨框架 / 跨机器部署的人
+- 需要在 Codex / Claude Code / DSH 之间切换、或换中间商 / 换模型的人
 
 ## 三个维度独立可换
 
@@ -49,7 +54,7 @@ pwsh deploy.ps1 -Framework codex -Source gitee
 agent-deploy/
 ├── deploy.ps1             # 部署器
 ├── providers.json         # 中间商 + 模型目录
-├── core-skills.txt        # 14 个核心 skill 清单（含耦合等级）
+├── core-skills.txt        # 15 个核心 skill 清单（含耦合等级）
 ├── templates/
 │   └── agents-core.md     # 框架无关的两条铁律模板
 ├── FRAMEWORK-COUPLING.md  # 框架耦合清单
