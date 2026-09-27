@@ -54,7 +54,7 @@ description: Evaluate whether an existing skill actually helps, using static che
 ### 阶段 2 — 准备 evals（动态评估的前置）
 
 - 若目标 skill 自带 `evals.yaml`，直接采用。
-- 若没有，**不自动生成**——报告「该 skill 缺少 evals，无法动态评估」，并把「补 evals」列为下一步建议。生成 evals 是另一个动作（需要人类指定「什么算成功」），不能由评估器替用户臆造成功标准。
+- 若没有，**不自动生成**——报告「该 skill 缺少 evals，无法动态评估」，并把「补 evals」列为下一步建议。生成 evals 是另一个动作（需要人类指定「什么算成功」），不能由评估器替用户臆造成功标准。但 Agent 可**辅助生成 evals 草案**（提议「什么算成功」的可验证检查），**成功标准由人类终审**、不替用户臆造，同意后才转正（借鉴 DSec 的「Agent 构建环境→检查→投入」闭环）。
 - **每个 eval 用例必须可验证（客观可判定）**：通过标准必须是「可机器判定的客观检查」（`contains` / `not_contains` / `regex` / `json_schema` / 代码执行 / 数值比对），不能是「主观好不好」。「这个 skill 写得不错」这类主观判断不可验证，不能作为 eval 用例（借鉴 BigBang 的「任务必须可验证」铁律——不可验证，自进化无从谈起）。
 
 ### 阶段 3 — 隔离 A/B 对照（仅在 evals 存在时）
@@ -75,6 +75,8 @@ description: Evaluate whether an existing skill actually helps, using static che
 判定：对每组拼接后的全过程文本，运行用例里声明的检查（`contains` / `not_contains` / `regex` / `json_schema`），得到 pass/fail。
 
 **质量维度（借鉴小米炼丹）**：不只记 pass/fail，还记「干净通过」vs「硬编码通过」——「改 3 行干净解决」和「塞几百行兼容分支 + 吞异常才过」虽然都 pass，但质量天差地别。用 token 数、步骤数、是否吞异常/硬编码作为辅助质量信号。
+
+**作弊检测（借鉴 DSec，防作弊是基础设施级）**：判定时内置「捷径检测」——skill 若靠「硬编码答案」「记住测试用例」「找意外信息通道（读答案/绕过检查）」来 pass，判为「作弊通过」，lift 无效、不算真有效。防作弊是 A/B 判定的**内置环节**，不靠 optimizer 自觉（DeepSeek 把防作弊做进沙盒平台本身，同理做进评估判定本身）。
 
 **可追溯失败时间线（借鉴索辰）**：失败用例记录「在哪个步骤/哪条指令处偏离、何时开始失败」，不只记「没过」——把「可验证」升级为「可定位失败点」。
 
