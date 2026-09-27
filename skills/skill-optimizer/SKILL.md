@@ -28,7 +28,8 @@ description: Optimize an existing skill's SKILL.md through a rollout→reflect�
 3. **防过拟合：gate 集与 rollout 集分离**：evals 的用例拆成 rollout 集（训练信号）和 gate 集（留出验证）。gate 集只在最后验证时用，绝不参与 reflect/edit 的分析。改进必须让 gate 集严格变好，才防「只对训练用例有效的假改进」。
 4. **有界迭代 + 原则性回退**：rollout→reflect→edit→gate 最多跑 2 轮。超过则停下，把「优化未收敛」上报人类终审——人是更强的判断力（SOFAI-LM 的 Principled Fallback），不降标准、不硬撑、不假装成功。
 5. **文本学习率**：每轮 edit 最多改 3 处（add/delete/replace 各算一处）。小步修改保证稳定，防止一次大改引入新问题。
-6. **防表面反思**：edit 必须产生可判定的行为差异——gate 集通过率或 lift 必须真实变化。纯改措辞、加「以上内容可能存在局限」式免责声明、改标点都不算改进（「礼貌性免责声明」陷阱：文本在反思但行为没变）。
+6. **防表面反思**：edit 必须产生可判定的行为差异——gate 集通过率或 lift 必须真实变化。纯改措辞、加「以上内容可能存在局限」式免责声明、改标点都不算改进（「礼貌性免责声明」陷阱：文本在反思但行为没变）。**判据（借鉴诺因 GLOW）**：提炼的是「任务要达到的目标/关系/约束」这类不变式，还是「表面轨迹的复述」——只改表面措辞不算，改了底层原则才算。
+7. **防捷径（Reward Hacking）**：优化会钻空子——skill 可能通过「硬编码过测试」「塞兼容分支吞异常」「记住测试用例」来让 gate 假通过，而非真正变好。edit 前先自检「这个改动是靠真本事过了 gate，还是钻了检查的空子」；发现捷径立即归零，并把该捷径沉淀为 `skill-evaluator` evals 里的 hack 回归用例（借鉴米哈游 Hack Agent + 小米红队）。
 
 ## 工作流
 
@@ -52,8 +53,11 @@ description: Optimize an existing skill's SKILL.md through a rollout→reflect�
 派一个独立 subagent，输入：
 - 当前 skill 正文
 - rollout 集里**失败用例**的 task + 输出 + 哪个 check 没过
+- **失败时的状态证据**（日志 / 快照 / 报错原文）
 
 要求它输出：失败用例暴露了 skill 的哪条规则缺失/错误/含糊。**只看失败，不改成功通过的用例逻辑**（成功用例的规则是「不能动的资产」）。
+
+**先取证再归因**（借鉴 Kimi 浏览器插件）：reflect 前先采集失败现场证据，区分「环境假设变了（外部依赖/路径/配置）」vs「skill 本身缺陷」——环境变了不该改 skill 正文，否则会把环境变化过拟合进 skill。
 
 ### 阶段 3 — Edit（小步修改）
 
@@ -70,6 +74,7 @@ description: Optimize an existing skill's SKILL.md through a rollout→reflect�
 
 - 用独立 subagent 跑 **gate 集**用例（注入 `_draft` 正文），判定 pass/fail。
 - **严格优于基线**：gate 集通过率 > 原版在 gate 集的通过率，且 rollout 集不能退化。
+- **评分隔离**（借鉴 MM-Future 的 stop-gradient）：gate 评分时，`_draft` 只按自身上下文打分，不拿别的候选/原版结果交叉比对；编辑者（阶段 3）不得看到 gate 集内容、不得为通过 gate 反向调整输出——生成器与评分器严格隔离，防「为过 gate 而改」。
 - 通过 → 报告 `_draft` 与前后对比数据，请用户终审。
 - 不通过 → 报告「优化被 gate 拒绝」，不声称成功，不覆盖。
 
