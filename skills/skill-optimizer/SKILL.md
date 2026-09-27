@@ -75,6 +75,8 @@ description: Optimize an existing skill's SKILL.md through a rollout→reflect�
 - 用独立 subagent 跑 **gate 集**用例（注入 `_draft` 正文），判定 pass/fail。
 - **严格优于基线**：gate 集通过率 > 原版在 gate 集的通过率，且 rollout 集不能退化。
 - **评分隔离**（借鉴 MM-Future 的 stop-gradient）：gate 评分时，`_draft` 只按自身上下文打分，不拿别的候选/原版结果交叉比对；编辑者（阶段 3）不得看到 gate 集内容、不得为通过 gate 反向调整输出——生成器与评分器严格隔离，防「为过 gate 而改」。
+- **不可写面（借鉴 MetaRSI 定律四）**：evals 判定脚本 + gate 集由**人类/外部固定**，optimizer 只能改 skill 正文、**绝不能改 evals 标准或 gate 集**——否则「放宽成功标准」和「真变强」得分相同，从闭环内部无法察觉、也无法靠统计纠正。可信度由「optimizer 不可写的验证面」度量。
+- **增益来源标注（借鉴 MetaRSI 定律五）**：报告里分清两部分——哪些是「放大已有能力」（内部重组/激发），哪些是「外部新引入」（检索轮子/新知识）。自改进不凭空创造能力，标注来源才不把「激发」误报成「创造」。
 - 通过 → 报告 `_draft` 与前后对比数据，请用户终审。
 - 不通过 → 报告「优化被 gate 拒绝」，不声称成功，不覆盖。
 
@@ -82,6 +84,7 @@ description: Optimize an existing skill's SKILL.md through a rollout→reflect�
 
 - 只报告 `_draft` 路径 + gate 前后对比数据（事实），不替用户决定是否替换。
 - 用户同意后，才把 `_draft` 替换为正式 SKILL.md。
+- **重标定自我认知（借鉴 MetaRSI 定律二）**：skill 正文被优化后，其能力边界已变——若优化改变了 skill 的触发范围/能力，必须同步重标定 frontmatter 的 `description`（触发条件）和 evals（能力边界），否则旧的「自我描述」随即失效，后续触发会错。
 
 ## 边界
 
