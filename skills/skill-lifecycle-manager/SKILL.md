@@ -57,6 +57,15 @@ description: Manage the full lifecycle of skills with metacognition — after a 
 
 **跨 skill 脚本引用规则**：写 SKILL.md 时若需引用**不属于本目录**的脚本/资产，不能写成相对本目录的路径（如「运行 `scripts/` 下的 judge 脚本」这种写法）——那会让执行者在本 skill 目录里找不到文件、触发静态体检「坏引用」。正确做法：按**协作 skill 名称**引用（如「运行 skill-evaluator 提供的 judge 脚本」），并说明来源；若确要内置，先复制进本目录再写相对路径。写完必须跑静态体检确认无坏引用。
 
+### 阶段三.5 — 声明与现有轮子的区别（防重复造轮子）
+
+建 skill 前，先按铁律一检索现有轮子，判定「复用 / 借鉴 / 自写」，并在 SKILL.md 里声明区别：
+
+1. **检索**：有没有现成开源项目/库/工具做同样的事（用 `open-source-scout` 或 web_search）。
+2. **判重**：必须读到版本/规格差异——同名不同版是最隐蔽的误判源（本机 hatch-pet 是 v2 升级版，非重复）。
+3. **三分类**：复用（直接用轮子，如 cross-spawn）/ 借鉴（吸收思想 + 本机适配，如 SkillOpt、gitleaks）/ 自写（本机契约无轮子覆盖，如 acp-studio 的 ff-only 门禁）。
+4. **声明**：在 SKILL.md 正文开头写一句「本 skill 与 XX 轮子的区别是 YY（复用/借鉴/自写）」，让后人一眼看清不是重复造轮子。
+
 ## 阶段四：脚本化迁移（先预测 token，再判断，再申请）
 
 建 skill 时，主动判断「哪些内容该下沉到本地脚本」。判断顺序：**先量化 token 消耗，再定性质，最后申请**。
