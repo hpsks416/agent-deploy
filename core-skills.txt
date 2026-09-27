@@ -17,3 +17,4 @@ migrate-conversation-prompt | none | 框架无关
 agents-md-skill-layering | none | 框架无关
 long-sentence-structurizer | none | 框架无关
 persona-manager | none | 画像清空/导入管理，脚本通用（框架无关）
+directed-article-learning | none | 定向学习文章→框架查缺补漏，借鉴 paper-to-agent
