@@ -69,6 +69,7 @@ description: Optimize an existing skill's SKILL.md through a rollout→reflect�
 - 最多改 3 处（add/delete/replace）。
 - 只针对失败用例暴露的问题，不重构成功路径。
 - 保持 frontmatter 的 name 不变。
+- **可编辑面声明（借鉴 PhysicalRSI 的 editable 四元组）**：编辑前显式声明「能改什么、不能改什么」——可改：正文 / 脚本 / references / evals；不可改：frontmatter 的 `name`、evals 判定标准、gate 集（这些是「不可写面」，见阶段 4）。不越界改不可写面。
 
 ### 阶段 4 — Gate（留出验证，防过拟合）
 
@@ -89,6 +90,7 @@ description: Optimize an existing skill's SKILL.md through a rollout→reflect�
 ## 边界
 
 - 优化器不创建新 skill、不删 skill、不自动覆盖。
+- **版本谱系管理（借鉴 PhysicalRSI）**：每次迭代保留 `_draft` 历史（版本号 + 谁淘汰谁 + 选择依据），让「能力提升」可追溯到具体版本、交互记录、选择过程——不覆盖式迭代，谱系可回溯。
 - 没有 evals 或 evals 用例 < 2 时，无法做 gate 拆分，退化说明「防过拟合门控不可用」，如实告知。
 - 2 轮未收敛就停，不陪它无限递归。
 
