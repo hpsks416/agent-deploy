@@ -41,7 +41,16 @@
 
 ## 三、非核心 skill（8 个，专业领域/个人，不参与框架迁移）
 
-`web-3d-asset-pipeline`(3D) · `rust-refactor-local-projects`(重构) · `browser-viz-local-scripts`(可视化) · `homophone-pun-analysis`(谐音梗) · `hpsks416`(个人透镜) · `windows-node-spawn-cli`(DSH/Windows) · `dsh-plugin-lazy-adapter-resolution`(DSH 插件) · `hatch-pet`(已退役，本地保留)
+| skill | 领域 |
+|---|---|
+| `web-3d-asset-pipeline` | 3D |
+| `rust-refactor-local-projects` | 重构 |
+| `browser-viz-local-scripts` | 可视化 |
+| `homophone-pun-analysis` | 谐音梗 |
+| `hpsks416` | 个人透镜 |
+| `windows-node-spawn-cli` | DSH/Windows |
+| `dsh-plugin-lazy-adapter-resolution` | DSH 插件 |
+| `hatch-pet` | 已退役，本地保留 |
 
 ---
 
@@ -114,6 +123,13 @@ agent-deploy/                    ← 本仓库（框架总仓库）
 
 ## 附：这一路建了什么（时间线）
 
-23 个 skill 集合 → 两条铁律 + 画像 → skill 生命周期链（评估/优化）→ 跨框架部署器 → 会话源可插拔 → persona 画像 + 管理 → 全套 README 开源化 → dsh-config 并入总仓库。
+- 23 个 skill 集合
+- 两条铁律 + 画像
+- skill 生命周期链（评估/优化）
+- 跨框架部署器
+- 会话源可插拔
+- persona 画像 + 管理
+- 全套 README 开源化
+- dsh-config 并入总仓库
 
 **核心一句话**：23 个 skill + 两条规则 + 画像文件 + 部署脚本，一键装到 Codex/Claude Code/DSH；改动前先检索、收尾时判断固化。
