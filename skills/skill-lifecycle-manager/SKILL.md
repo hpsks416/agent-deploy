@@ -5,7 +5,7 @@ description: Manage the full lifecycle of skills with metacognition — after a 
 
 # Skill Lifecycle Manager
 
-一套贯穿 skill 生老病死的自我改进闭环。它不干具体业务，只做五件事：**触发判断 → 申请建立 → 分层 → 脚本化迁移 → 使用后迭代**。每一步的关键是「**先申请、后执行**」——绝不自动落地，人类始终是裁决者。
+一套贯穿 skill 生老病死的自我改进闭环。它不干具体业务，只做五件事：**触发判断 → 申请建立 → 分层 → 脚本化迁移 → 使用后迭代**。每一步的关键是「**先申请、后执行**」——绝不自动落地，始终由用户确认。
 
 ## 何时用
 
