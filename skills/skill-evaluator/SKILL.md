@@ -53,7 +53,7 @@ description: Evaluate whether an existing skill actually helps, using static che
 ### 阶段 2 — 准备 evals（动态评估的前置）
 
 - 若目标 skill 自带 `evals.yaml`，直接采用。
-- 若没有，**不自动生成**——报告「该 skill 缺少 evals，无法动态评估」，并把「补 evals」列为下一步建议。生成 evals 是另一个动作（需要人类指定「什么算成功」），不能由评估器替用户臆造成功标准。但 Agent 可**辅助生成 evals 草案**（提议「什么算成功」的可验证检查），**成功标准由人类终审**、不替用户臆造，同意后才转正。
+- 若没有，**不自动生成**——报告「该 skill 缺少 evals，无法动态评估」，并把「补 evals」列为下一步建议。生成 evals 是另一个动作（需要人类指定「什么算成功」），不能由评估器替用户臆造成功标准。但 Agent 可**辅助生成 evals 草案**（提议「什么算成功」的可验证检查），**成功标准由用户终审**、不替用户臆造，同意后才转正。
 - **每个 eval 用例必须可验证（客观可判定）**：通过标准必须是「可机器判定的客观检查」（`contains` / `not_contains` / `regex` / `json_schema` / 代码执行 / 数值比对），不能是「主观好不好」。「这个 skill 写得不错」这类主观判断不可验证，不能作为 eval 用例。
 
 ### 阶段 3 — 隔离 A/B 对照（仅在 evals 存在时）

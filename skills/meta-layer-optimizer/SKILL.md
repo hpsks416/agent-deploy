@@ -22,7 +22,7 @@ description: Optimize the meta layer (铁律 in AGENTS.md + persona.md) through 
 
 ## 铁律（违反即失效）
 
-1. **只产出草案，绝不覆盖原文件**：所有 edit 产出 `AGENTS_v2_draft.md` / `persona_v2_draft.md`，人类终审通过才替换。优化器自己不落地。
+1. **只产出草案，绝不覆盖原文件**：所有 edit 产出 `AGENTS_v2_draft.md` / `persona_v2_draft.md`，用户终审通过才替换。优化器自己不落地。
 2. **隔离编辑者**：reflect 和 edit 用独立 subagent，编辑者不能是「写过这条铁律/画像」的同一上下文。
 3. **evaluate 只认可判定信号**：违规率/偏离率来自 `eval_drift.py` 解析日志的计数，不来自「我觉得最近表现还行」这类自我评价。
 4. **防假改进：gate 集与 rollout 集分离**：日志里的违规案例拆成 rollout 集（归因用）和 gate 集（验证用）。gate 集只在验证时用，绝不参与 reflect/edit。
@@ -71,10 +71,10 @@ description: Optimize the meta layer (铁律 in AGENTS.md + persona.md) through 
 
 - **结构门（脚本可判定，先跑）**：`_draft` 不得触碰不可写面（枚举/gate 集/已否决条目）、改动 ≤3 处、未新增违规类型。
 - **行为门（LLM 判定）**：用 gate 集违规案例「重放」——把 `_draft` 铁律/画像代入，判定「若当时用新版，这条违规是否会被避免」，且「不会引入新的违规类型」。
-- **诚实局限（必须向用户声明）**：元层没有能力层那种「跑 evals 出 pass/fail」的确定性执行面——行为门是 LLM 判定，**比 skill 层的 gate 弱**。因此元层的最终 gate 是**人类终审**，不是脚本。这是元层自我改进天生的不对称，不掩盖。
+- **诚实局限（必须向用户声明）**：元层没有能力层那种「跑 evals 出 pass/fail」的确定性执行面——行为门是 LLM 判定，**比 skill 层的 gate 弱**。因此元层的最终 gate 是**用户终审**，不是脚本。这是元层自我改进天生的不对称，不掩盖。
 - 通过 → 报告 `_draft` + 前后对比，请用户终审。不通过 → 报告「被 gate 拒绝」，不覆盖、不声称成功。
 
-### 阶段 5 — 人类终审
+### 阶段 5 — 用户终审
 
 - 只报告 `_draft` 路径 + 违规率前后对比（事实），不替用户决定。
 - 用户同意后，才把 `_draft` 替换为正式 AGENTS.md/persona.md（并同步 `agent-deploy/dsh-config/` 副本）。
@@ -84,7 +84,7 @@ description: Optimize the meta layer (铁律 in AGENTS.md + persona.md) through 
 
 - 不创建新 skill、不删铁律、不自动覆盖、不清空日志。
 - **版本谱系管理**：每次迭代保留 `_draft` 历史（版本号 + 谁淘汰谁 + 选择依据），可回溯。
-- 违规案例 < 2 条时无法做 gate 拆分，退化为「只有结构门 + 人类终审」，如实告知防假改进检查不可用。
+- 违规案例 < 2 条时无法做 gate 拆分，退化为「只有结构门 + 用户终审」，如实告知防假改进检查不可用。
 - 2 轮未收敛就停，不陪它无限递归。
 
 ## References
