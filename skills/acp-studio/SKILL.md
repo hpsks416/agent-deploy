@@ -74,6 +74,15 @@ quirks worth handling in the push command:
 - The panel reads `GITHUB_TOKEN` from the environment; its `start.cmd` sources `secrets.cmd`, so run the panel via
   `start.cmd` (or export the variable) to make newly added tokens take effect.
 
+## secrets-link（token 连接面板）
+
+把 `secrets.cmd` 里的 token 明文改成「引用 G:\KEY 文件内容」：换 token 只改文件内容，不再手改 secrets.cmd。
+
+- token 存在 `G:\KEY\GITHUB token\*.txt` / `G:\KEY\GITEE token\*.txt` 的**文件内容**里（不依赖文件名）。
+- `secrets.cmd` 只引用路径（batch `for /f` 运行时读内容），不含明文。
+- 可视化面板（零依赖 Node，`scripts/secrets-link/secrets-link-web.mjs`，端口 7782）：显示「变量 → 文件路径 → token 预览（脱敏）」，支持手动改路径（初次部署/迁移用）。
+- 首次使用：复制 `scripts/secrets-link/links.json.example` → `links.json`，填入真实 token 文件路径。`links.json` 含真实路径，需 gitignore，不入库。
+
 ## Types and emoji
 
 | type | emoji | use when |
@@ -104,7 +113,7 @@ When creating or initializing a repository without a specified license, default 
 - Never force-push (`--force`, `-f`) unless the user explicitly asked.
 - Never commit secrets, `.env`, credentials, or large binaries; report them instead.
 - Credentials come from `GITEE_USERNAME`/`GITEE_TOKEN` and `GITHUB_TOKEN` (or `gh auth token`); never write them into repo config, and redact them from output.
-- New Gitee repositories default to public + MIT; after creating, verify visibility and PATCH `private=false` if Gitee returned private.
+- **Gitee create-repo API 的 `public` 字段不接受布尔值** — 显式传 `public: true` 会返回 HTTP 400 `"public" is invalid`；正确做法是**省略 `public` 字段**（Gitee 默认就是 public，创建成功返回 201），不要显式传布尔值。新仓库默认 public + MIT；创建后用 GET 验证可见性，若 Gitee 返回了 private 再 PATCH `private=false`。
 - **Deleting a GitHub repo needs `delete_repo` scope** — a classic PAT with only `repo` scope returns `403 Must have admin rights` on `DELETE /repos/{owner}/{repo}`. Delete requires a PAT with `delete_repo` (plus `repo` for push). Gitee delete (`DELETE /repos/{owner}/{repo}`) works with the normal token. Deleting is irreversible — confirm the exact repo before running.
 - The sync script is fast-forward only and never force-pushes; diverged branches are reported and skipped.
 - Sync is one-way by default (`github-to-gitee`); choose `gitee-to-github` for the reverse direction, or `both` to run the two one-way directions in one pass.

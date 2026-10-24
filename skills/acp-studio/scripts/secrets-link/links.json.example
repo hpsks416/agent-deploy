@@ -1,0 +1,10 @@
+{
+  "tokens": [
+    { "var": "GITHUB_TOKEN", "file": "G:\\KEY\\GITHUB token\\YOUR_GITHUB_TOKEN.txt" },
+    { "var": "GITEE_TOKEN", "file": "G:\\KEY\\GITEE token\\YOUR_GITEE_TOKEN.txt" }
+  ],
+  "extra": {
+    "GITEE_USERNAME": "hpsks416"
+  },
+  "target": "C:\\path\\to\\acp-studio\\secrets.cmd"
+}
