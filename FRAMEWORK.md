@@ -8,7 +8,7 @@
 
 | 层 | 载体 | 职责 |
 |----|------|------|
-| ① 铁律层 | `AGENTS.md` | 三条常驻触发：优先检索轮子 + 自我反思 + 画像积累 |
+| ① 铁律层 | `AGENTS.md` | 两条铁律（先检索、收尾反思）+ 画像积累 |
 | ② 画像层 | `persona.md` + `persona-manager` | 记「用户是谁、怎么想」（六维），一键清空/导入 |
 | ③ skill 生命周期链 | 3 个 skill | skill 的生老病死：建 → 测 → 优 → 检查 |
 | ④ 编排层 | `agent-workflow-orchestration` | 复杂任务分解 / 并行 / 收敛 |
@@ -114,6 +114,6 @@ agent-deploy/                    ← 本仓库（框架总仓库）
 
 ## 附：这一路建了什么（时间线）
 
-22 个 skill 集合 → 三条铁律 + 画像 → skill 生命周期链（评估/优化）→ 跨框架部署器 → 会话源可插拔 → persona 画像 + 管理 → 全套 README 开源化 → dsh-config 并入总仓库。
+23 个 skill 集合 → 两条铁律 + 画像 → skill 生命周期链（评估/优化）→ 跨框架部署器 → 会话源可插拔 → persona 画像 + 管理 → 全套 README 开源化 → dsh-config 并入总仓库。
 
-**核心一句话**：22 个 skill + 三条规则 + 画像文件 + 部署脚本，一键装到 Codex/Claude Code/DSH；改动前先检索、收尾时判断固化。
+**核心一句话**：23 个 skill + 两条规则 + 画像文件 + 部署脚本，一键装到 Codex/Claude Code/DSH；改动前先检索、收尾时判断固化。

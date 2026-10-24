@@ -65,7 +65,7 @@ description: Evaluate whether an existing skill actually helps, using static che
 
 两组用相同的模型、相同的用例、相同的判定脚本。
 
-**固定种子配对（借鉴索辰 RoboTwin-Phys）**：A/B 两臂必须用**完全相同的任务实例、相同输入、相同 seed**，只差「是否注入 skill 正文」——消除随机方差，让 lift 差异只归因于 skill 本身，而不是运气。
+**固定种子配对（借鉴索辰 RoboTwin-Phys）**：A/B 两臂必须用**完全相同的任务实例、相同输入、相同 seed**，只差「是否注入 skill 正文」——消除随机方差，让 lift（提升）差异只归因于 skill 本身，而不是运气。
 
 **评分隔离**：A/B 各自独立评分，不交叉比对；判定脚本只看该组的全过程文本，不拿另一组结果作参照。
 
