@@ -1,7 +1,7 @@
 #!/usr/bin/env pwsh
 # ============================================================================
 # DSH 本机架构一键恢复脚本（换机 / 迁移用）
-# 从 dsh-config 仓库恢复：全局指令、配置、web profile、dsh-skill-studio 修复版，
+# 从 dsh-config 仓库恢复：全局指令、配置、web profile、5 个 link 插件，
 # 并批量 clone 全部 skill（21 个，已退役的 hatch-pet 除外）到 ~/.dsh/skills/。
 #
 # 用法（在 dsh-config 仓库根目录运行）：
@@ -88,30 +88,40 @@ if (-not $SkipConfig) {
   Backup-And-Restore-File (Join-Path $scriptRoot 'profile-web\cordis.yml') (Join-Path $dshHome 'profiles\web\cordis.yml')
   Backup-And-Restore-File (Join-Path $scriptRoot 'profile-web\pnpm-workspace.yaml') (Join-Path $dshHome 'profiles\web\pnpm-workspace.yaml')
 
-  # package.json：先复制，再重接 dsh-skill-studio 的 link 到稳定路径
+  # package.json：先复制，再重接所有 link 插件的 link 到稳定路径
   Backup-And-Restore-File (Join-Path $scriptRoot 'profile-web\package.json') (Join-Path $dshHome 'profiles\web\package.json')
 
-  # dsh-skill-studio-patched：复制到 ~/.dsh/ 下稳定路径（不依赖仓库 clone 位置）
-  $patchedDst = Join-Path $dshHome 'dsh-skill-studio-patched'
-  if (Test-Path $patchedDst) {
-    $bak = Join-Path $backupRoot 'dsh-skill-studio-patched'
-    New-Item -ItemType Directory -Force -Path $bak | Out-Null
-    Copy-Item $patchedDst $bak -Recurse -Force
-    Write-Host '    备份旧 dsh-skill-studio-patched' -ForegroundColor DarkGray
+  # link 插件：依赖名 → 源码目录名（源码在本仓库内，复制到 ~/.dsh/ 后重接 link）
+  $linkedPlugins = [ordered]@{
+    'dsh-skill-studio'       = 'dsh-skill-studio-patched'
+    'dsh-goat-vision'        = 'dsh-goat-vision'
+    'dsh-retrieval-guard'    = 'dsh-retrieval-guard'
+    'dsh-secure-push-guard'  = 'dsh-secure-push-guard'
+    'dsh-session-sync-flush' = 'dsh-session-sync-flush'
   }
-  Copy-Item (Join-Path $scriptRoot 'dsh-skill-studio-patched') $patchedDst -Recurse -Force
-  Write-Host '    恢复 ~/.dsh/dsh-skill-studio-patched' -ForegroundColor Green
 
-  # 重接 link：把 link:G:/... 换成 link:<home 前斜杠>/.dsh/dsh-skill-studio-patched
   $pkgPath = Join-Path $dshHome 'profiles\web\package.json'
   $fsHome = $env:USERPROFILE.Replace('\', '/')
   $pkgText = Get-Content $pkgPath -Raw
-  $pkgText = $pkgText -replace '"dsh-skill-studio"\s*:\s*"link:[^"]*"', "`"dsh-skill-studio`": `"link:$fsHome/.dsh/dsh-skill-studio-patched`""
+
+  foreach ($dep in $linkedPlugins.Keys) {
+    $srcDir = $linkedPlugins[$dep]
+    $dstDir = Join-Path $dshHome $srcDir
+    if (Test-Path $dstDir) {
+      $bak = Join-Path $backupRoot $srcDir
+      New-Item -ItemType Directory -Force -Path $bak | Out-Null
+      Copy-Item $dstDir $bak -Recurse -Force
+      Write-Host "    备份旧 $srcDir" -ForegroundColor DarkGray
+    }
+    Copy-Item (Join-Path $scriptRoot $srcDir) $dstDir -Recurse -Force
+    Write-Host "    恢复 ~/.dsh/$srcDir" -ForegroundColor Green
+    $pkgText = $pkgText -replace ('"' + [regex]::Escape($dep) + '"\s*:\s*"link:[^"]*"'), ("`"$dep`": `"link:$fsHome/.dsh/$srcDir`"")
+  }
   Set-Content -Path $pkgPath -Value $pkgText -Encoding utf8
-  Write-Host '    重接 package.json 的 dsh-skill-studio link' -ForegroundColor Green
+  Write-Host '    重接 package.json 的 link 插件路径' -ForegroundColor Green
 
   # 检测其它 link: 依赖（未打包，需手动恢复）
-  $otherLinks = [regex]::Matches($pkgText, '"([^"]+)"\s*:\s*"link:[^"]*"') | ForEach-Object { $_.Groups[1].Value } | Where-Object { $_ -ne 'dsh-skill-studio' }
+  $otherLinks = [regex]::Matches($pkgText, '"([^"]+)"\s*:\s*"link:[^"]*"') | ForEach-Object { $_.Groups[1].Value } | Where-Object { $linkedPlugins.Keys -notcontains $_ }
   if ($otherLinks) {
     Write-Host ''
     Write-Host '  ⚠ 以下依赖仍是本地 link、且未包含在本仓库中，需手动恢复：' -ForegroundColor Magenta

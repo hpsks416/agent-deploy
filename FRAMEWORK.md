@@ -108,7 +108,10 @@ agent-deploy/                    ← 本仓库（框架总仓库）
     ├── install.ps1              ← DSH 本机一键恢复
     ├── profile-web/
     ├── dsh-skill-studio-patched/
-    └── dsh-goat-vision/         ← 视觉桥插件（图片转文本，双链路 GOAT/官方）
+    ├── dsh-goat-vision/         ← 视觉桥插件（图片转文本，双链路 GOAT/官方）
+    ├── dsh-retrieval-guard/     ← 动手前先检索 + 门控
+    ├── dsh-secure-push-guard/   ← push 前安检
+    └── dsh-session-sync-flush/  ← 关键事件后落盘
 ```
 
 ---
@@ -117,6 +120,7 @@ agent-deploy/                    ← 本仓库（框架总仓库）
 
 - **22 个 skill 仓库** + `agent-deploy`（本仓库），全部双推 GitHub + Gitee、MIT 开源、Gitee 公开
 - `dsh-config` 已合并进本仓库的 `dsh-config/` 子目录
+- **仓库管理约定**：与框架相关的子仓库（dsh-config、dsh-goat-vision、dsh-skill-studio-patched、dsh-retrieval-guard、dsh-secure-push-guard、dsh-session-sync-flush）**仅保留初版、不再独立更新，后续改动只进本仓库**；新建与总框架相关的子仓库后即废弃、纳入本仓库
 - 隐私文件（`persona.md`、`secrets.cmd`、`.credentials.yaml`）不进公开仓库
 
 ---

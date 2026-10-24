@@ -1,0 +1,23 @@
+{
+  "name": "dsh-retrieval-guard",
+  "version": "0.1.0",
+  "description": "DSH 插件：写代码/装依赖前，要求本轮已检索（web_search/open-source-scout），未检索弹确认框。",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./cordis.patch.yml": "./cordis.patch.yml"
+  },
+  "files": ["lib", "scripts", "cordis.patch.yml"],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "compatibility": {
+      "dsh": "^0.1.5-rc.2",
+      "dshReleases": {
+        "0.1.5-rc.2": "compatible"
+      }
+    }
+  }
+}

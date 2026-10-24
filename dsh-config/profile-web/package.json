@@ -10,7 +10,10 @@
     "dsh-goat-vision": "link:G:/CodexDS/DSH/INTRO/dsh-goat-vision",
     "dsh-session-ref": "0.2.0",
     "dsh-skill-importer": "0.2.5",
-    "dsh-skill-studio": "link:G:/CodexDS/DSH/INTRO/dsh-skill-studio-patched"
+    "dsh-skill-studio": "link:G:/CodexDS/DSH/INTRO/dsh-skill-studio-patched",
+    "dsh-retrieval-guard": "link:G:/CodexDS/DSH/INTRO/dsh-retrieval-guard",
+    "dsh-secure-push-guard": "link:G:/CodexDS/DSH/INTRO/dsh-secure-push-guard",
+    "dsh-session-sync-flush": "link:G:/CodexDS/DSH/INTRO/dsh-session-sync-flush"
   },
   "dsh": {
     "profile": {
@@ -23,7 +26,10 @@
         "dsh-skill-studio",
         "@jie-rong-214/dsh-file-explorer",
         "dsh-skill-importer",
-        "dsh-goat-vision"
+        "dsh-goat-vision",
+        "dsh-retrieval-guard",
+        "dsh-secure-push-guard",
+        "dsh-session-sync-flush"
       ],
       "patchReload": "live"
     }

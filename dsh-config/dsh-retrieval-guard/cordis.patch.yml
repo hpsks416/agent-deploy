@@ -1,0 +1,4 @@
+# dsh-retrieval-guard bundle patch: mount this package as one composition row.
+- insert:
+    - id: retrieval-guard
+      name: 'dsh-retrieval-guard'

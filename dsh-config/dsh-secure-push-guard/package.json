@@ -1,0 +1,23 @@
+{
+  "name": "dsh-secure-push-guard",
+  "version": "0.1.0",
+  "description": "DSH 插件：git push 前要求已跑 secret-scan 安检、且未直接读 token 文件，未满足弹确认框。",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./cordis.patch.yml": "./cordis.patch.yml"
+  },
+  "files": ["lib", "cordis.patch.yml"],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "compatibility": {
+      "dsh": "^0.1.5-rc.2",
+      "dshReleases": {
+        "0.1.5-rc.2": "compatible"
+      }
+    }
+  }
+}

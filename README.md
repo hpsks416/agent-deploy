@@ -58,6 +58,10 @@ DSH 本机一键恢复：`pwsh dsh-config/install.ps1`
 
 skill 正文里有少量框架相关引用（DSH 工具名、会话路径、owner 硬编码），按 `FRAMEWORK-COUPLING.md` 核对即可。
 
+## 仓库管理约定
+
+与总框架相关的子仓库（`dsh-config/` 下的 dsh-goat-vision、dsh-skill-studio-patched、dsh-retrieval-guard、dsh-secure-push-guard、dsh-session-sync-flush）**仅保留初版、不再独立更新**；后续改动只进本仓库。新建与总框架相关的子仓库后即废弃、纳入 `dsh-config/`。
+
 ## License
 
 [MIT](LICENSE)
