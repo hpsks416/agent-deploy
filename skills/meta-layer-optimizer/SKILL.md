@@ -3,9 +3,9 @@ name: meta-layer-optimizer
 description: Optimize the meta layer (铁律 in AGENTS.md + persona.md) through an evaluate→reflect→edit→gate loop, using the violation/drift log (~/.dsh/meta-drift-log.md) as the score signal and a held-out gate set plus human final review to prevent overfitting. Use when the agent repeatedly violates its own iron laws, drifts from its persona, or the user asks to improve the framework's behavior rules. Not for editing skills or one-off rule tweaks.
 ---
 
-# Meta-Layer Optimizer（元层自我改进四环）
+# Meta-Layer Optimizer（自我改进四环）
 
-对称 `skill-optimizer`（能力层四环），把 evaluate→reflect→edit→gate 从「skill 文档」抬升到「元层资产」——**铁律（AGENTS.md）+ 画像（persona.md）**。核心：元层和能力层是同一个「认知资产自我改进四环」抽象的两个实例，唯一区别在 evaluate 信号源——能力层看任务 A/B 表现，元层看**违规率 / 漂移率 / 画像一致性**（来自 `~/.dsh/meta-drift-log.md`）。
+对称 `skill-optimizer`（能力层四环），把 evaluate→reflect→edit→gate 从「skill 文档」抬升到「规则资产」——**铁律（AGENTS.md）+ 画像（persona.md）**。核心：元层和能力层是同一个「认知资产自我改进四环」抽象的两个实例，唯一区别在 evaluate 信号源——能力层看任务 A/B 表现，元层看**违规率 / 漂移率 / 画像一致性**（来自 `~/.dsh/meta-drift-log.md`）。
 
 
 ## 何时用
@@ -90,5 +90,5 @@ description: Optimize the meta layer (铁律 in AGENTS.md + persona.md) through 
 ## References
 
 - `scripts/eval_drift.py` — 解析 `~/.dsh/meta-drift-log.md` 计数（read-only，stdlib）。
-- `references/meta-evals-schema.md` — 违规/漂移日志的 schema 与 8 类枚举规范（元层版 evals）。
+- `references/meta-evals-schema.md` — 违规/漂移日志的 schema 与 8 类枚举规范（框架规则版 evals）。
 - 能力层对应物：`skill-optimizer`（四环范式）、`skill-evaluator`（判定脚本复用思路）。

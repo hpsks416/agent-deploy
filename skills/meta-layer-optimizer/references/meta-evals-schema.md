@@ -1,4 +1,4 @@
-# meta-evals-schema —— 违规/漂移日志规范（元层版 evals）
+# meta-evals-schema —— 违规/漂移日志规范（框架规则版 evals）
 
 > 对应能力层 skill 的 `evals.yaml`；元层（铁律/画像）的「可判定成功标准」载体是 `~/.dsh/meta-drift-log.md`。
 > 本文件定义它的 schema 与 8 类枚举，是 meta-layer-optimizer 的**不可写面**——optimizer 不得改本规范。
