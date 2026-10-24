@@ -5,7 +5,7 @@ description: Optimize an existing skill's SKILL.md through a rollout→reflect�
 
 # Skill Optimizer
 
-轻量版 SkillOpt：把「skill 文档当可训练参数」，用 rollout→reflect→edit→gate 四步循环自动改进一个 skill 的正文。核心是**用验证门控防过拟合**——只有能通过留出验证集的改进才被接受。产出永远是 `_draft`，人类终审。
+轻量版 SkillOpt：把「skill 文档当可训练参数」，用 rollout→reflect→edit→gate 四步循环自动改进一个 skill 的正文。核心是**用验证检查防假改进**——只有能通过留出验证集的改进才被接受。产出永远是 `_draft`，人类终审。
 
 
 ## 何时用
@@ -24,7 +24,7 @@ description: Optimize an existing skill's SKILL.md through a rollout→reflect�
 
 1. **只产出草案，绝不覆盖原文件**：所有 edit 产出 `SKILL_v2_draft.md`（或 `_draft`），人类审查通过才替换。优化器自己不落地。
 2. **隔离编辑者**：reflect 和 edit 必须用独立 subagent 执行——编辑者不能是写这个 skill 的同一个上下文，创作者给自己放水是系统性偏差。
-3. **防过拟合：gate 集与 rollout 集分离**：evals 的用例拆成 rollout 集（训练信号）和 gate 集（留出验证）。gate 集只在最后验证时用，绝不参与 reflect/edit 的分析。改进必须让 gate 集严格变好，才防「只对训练用例有效的假改进」。
+3. **防假改进：gate 集与 rollout 集分离**：evals 的用例拆成 rollout 集（训练信号）和 gate 集（留出验证）。gate 集只在最后验证时用，绝不参与 reflect/edit 的分析。改进必须让 gate 集严格变好，才防「只对训练用例有效的假改进」。
 4. **有界迭代 + 原则性回退**：rollout→reflect→edit→gate 最多跑 2 轮。超过则停下，把「优化未收敛」上报人类终审——人是更强的判断力（SOFAI-LM 的 Principled Fallback），不降标准、不硬撑、不假装成功。
 5. **文本学习率**：每轮 edit 最多改 3 处（add/delete/replace 各算一处）。小步修改保证稳定，防止一次大改引入新问题。
 6. **防表面反思**：edit 必须产生可判定的行为差异——gate 集通过率或 lift 必须真实变化。纯改措辞、加「以上内容可能存在局限」式免责声明、改标点都不算改进（「礼貌性免责声明」陷阱：文本在反思但行为没变）。**判据（借鉴诺因 GLOW）**：提炼的是「任务要达到的目标/关系/约束」这类不变式，还是「表面轨迹的复述」——只改表面措辞不算，改了底层原则才算。
@@ -56,7 +56,7 @@ description: Optimize an existing skill's SKILL.md through a rollout→reflect�
 
 要求它输出：失败用例暴露了 skill 的哪条规则缺失/错误/含糊。**只看失败，不改成功通过的用例逻辑**（成功用例的规则是「不能动的资产」）。
 
-**先取证再归因**（借鉴 Kimi 浏览器插件）：reflect 前先采集失败现场证据，区分「环境假设变了（外部依赖/路径/配置）」vs「skill 本身缺陷」——环境变了不该改 skill 正文，否则会把环境变化过拟合进 skill。
+**先取证再归因**：reflect 前先采集失败现场证据，区分「环境假设变了（外部依赖/路径/配置）」vs「skill 本身缺陷」——环境变了不该改 skill 正文，否则会把环境变化过拟合进 skill。
 
 ### 阶段 3 — Edit（小步修改）
 
@@ -68,15 +68,15 @@ description: Optimize an existing skill's SKILL.md through a rollout→reflect�
 - 最多改 3 处（add/delete/replace）。
 - 只针对失败用例暴露的问题，不重构成功路径。
 - 保持 frontmatter 的 name 不变。
-- **可编辑面声明（借鉴 PhysicalRSI 的 editable 四元组）**：编辑前显式声明「能改什么、不能改什么」——可改：正文 / 脚本 / references / evals；不可改：frontmatter 的 `name`、evals 判定标准、gate 集（这些是「不可写面」，见阶段 4）。不越界改不可写面。
+- **可编辑面声明**：编辑前显式声明「能改什么、不能改什么」——可改：正文 / 脚本 / references / evals；不可改：frontmatter 的 `name`、evals 判定标准、gate 集（这些是「不可写面」，见阶段 4）。不越界改不可写面。
 
-### 阶段 4 — Gate（留出验证，防过拟合）
+### 阶段 4 — Gate（留出验证，防假改进）
 
 - 用独立 subagent 跑 **gate 集**用例（注入 `_draft` 正文），判定 pass/fail。
 - **严格优于基线**：gate 集通过率 > 原版在 gate 集的通过率，且 rollout 集不能退化。
-- **评分隔离**（借鉴 MM-Future 的 stop-gradient）：gate 评分时，`_draft` 只按自身上下文打分，不拿别的候选/原版结果交叉比对；编辑者（阶段 3）不得看到 gate 集内容、不得为通过 gate 反向调整输出——生成器与评分器严格隔离，防「为过 gate 而改」。
-- **不可写面（借鉴 MetaRSI 定律四）**：evals 判定脚本 + gate 集由**人类/外部固定**，optimizer 只能改 skill 正文、**绝不能改 evals 标准或 gate 集**——否则「放宽成功标准」和「真变强」得分相同，从闭环内部无法察觉、也无法靠统计纠正。可信度由「optimizer 不可写的验证面」度量。
-- **增益来源标注（借鉴 MetaRSI 定律五）**：报告里分清两部分——哪些是「放大已有能力」（内部重组/激发），哪些是「外部新引入」（检索轮子/新知识）。自改进不凭空创造能力，标注来源才不把「激发」误报成「创造」。
+- **评分隔离**：gate 评分时，`_draft` 只按自身上下文打分，不拿别的候选/原版结果交叉比对；编辑者（阶段 3）不得看到 gate 集内容、不得为通过 gate 反向调整输出——生成器与评分器严格隔离，防「为过 gate 而改」。
+- **不可写面**：evals 判定脚本 + gate 集由**人类/外部固定**，optimizer 只能改 skill 正文、**绝不能改 evals 标准或 gate 集**——否则「放宽成功标准」和「真变强」得分相同，从闭环内部无法察觉、也无法靠统计纠正。可信度由「optimizer 不可写的验证面」度量。
+- **增益来源标注**：报告里分清两部分——哪些是「放大已有能力」（内部重组/激发），哪些是「外部新引入」（检索轮子/新知识）。自改进不凭空创造能力，标注来源才不把「激发」误报成「创造」。
 - 通过 → 报告 `_draft` 与前后对比数据，请用户终审。
 - 不通过 → 报告「优化被 gate 拒绝」，不声称成功，不覆盖。
 
@@ -84,13 +84,13 @@ description: Optimize an existing skill's SKILL.md through a rollout→reflect�
 
 - 只报告 `_draft` 路径 + gate 前后对比数据（事实），不替用户决定是否替换。
 - 用户同意后，才把 `_draft` 替换为正式 SKILL.md。
-- **重标定自我认知（借鉴 MetaRSI 定律二）**：skill 正文被优化后，其能力边界已变——若优化改变了 skill 的触发范围/能力，必须同步重标定 frontmatter 的 `description`（触发条件）和 evals（能力边界），否则旧的「自我描述」随即失效，后续触发会错。
+- **重标定自我认知**：skill 正文被优化后，其能力边界已变——若优化改变了 skill 的触发范围/能力，必须同步重标定 frontmatter 的 `description`（触发条件）和 evals（能力边界），否则旧的「自我描述」随即失效，后续触发会错。
 
 ## 边界
 
 - 优化器不创建新 skill、不删 skill、不自动覆盖。
-- **版本谱系管理（借鉴 PhysicalRSI）**：每次迭代保留 `_draft` 历史（版本号 + 谁淘汰谁 + 选择依据），让「能力提升」可追溯到具体版本、交互记录、选择过程——不覆盖式迭代，谱系可回溯。
-- 没有 evals 或 evals 用例 < 2 时，无法做 gate 拆分，退化说明「防过拟合门控不可用」，如实告知。
+- **版本谱系管理**：每次迭代保留 `_draft` 历史（版本号 + 谁淘汰谁 + 选择依据），让「能力提升」可追溯到具体版本、交互记录、选择过程——不覆盖式迭代，谱系可回溯。
+- 没有 evals 或 evals 用例 < 2 时，无法做 gate 拆分，退化说明「防假改进检查不可用」，如实告知。
 - 2 轮未收敛就停，不陪它无限递归。
 
 ## References

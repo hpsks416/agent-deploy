@@ -5,7 +5,7 @@ description: Orchestrate the full "package → security scan → push" pipeline 
 
 # Secure Push Workflow
 
-把「打包 → 安检 → 推送」这条链固化为一个显式的策略编排层。它自己不做任何底层脏活，只做**调度 + 决策 + 门控**：按顺序调用三个底层 skill，并在安检不通过时硬性停住。
+把「打包 → 安检 → 推送」这条链固化为一个显式的策略编排层。它自己不做任何底层脏活，只做**调度 + 决策 + 检查**：按顺序调用三个底层 skill，并在安检不通过时硬性停住。
 
 ## 何时用
 
@@ -20,7 +20,7 @@ description: Orchestrate the full "package → security scan → push" pipeline 
 - 只想打包成 zip 不发布 → 直接用 `github-ready-packager`。
 - 只想做 GitHub↔Gitee 双向同步（无安检）→ 直接用 `acp-studio` 的 sync。
 
-## 铁律（门控，违反即失效）
+## 铁律（检查，违反即失效）
 
 1. **安检不过，绝不推送**：`secret-scan` 发现任何真实凭据泄露（非 false positive），必须停下，报告脱敏后的发现，并明确「未推送」。绝不带着发现继续 push。
 2. **只调度，不重造**：本 skill 不复制三个底层 skill 的脚本或逻辑，只通过它们的既有接口调用。底层脚本的路径、参数、行为以各底层 SKILL.md 为准。
@@ -42,7 +42,7 @@ description: Orchestrate the full "package → security scan → push" pipeline 
 - 校验信号：zip 产出 + 语法/烟测通过（以 github-ready-packager 的 SKILL.md 校验项为准）。
 - 若用户已整理好、无需打包，跳过本阶段，直接进安检。
 
-### 阶段 2 — 安检（门控，不可跳过）
+### 阶段 2 — 安检（检查，不可跳过）
 
 **调用 `secret-scan` 技能**，扫描**打包产物目录**（不是原始工作目录的散落文件）：
 
@@ -63,7 +63,7 @@ description: Orchestrate the full "package → security scan → push" pipeline 
 ### 阶段 4 — 汇报（只报事实）
 
 - 打包：zip 路径 + 校验结果。
-- 安检：findings 计数 + 门控结果（通过 / 拦截）。
+- 安检：findings 计数 + 检查结果（通过 / 拦截）。
 - 推送：commit hash / 平台 / 分支。
 - 若在安检被拦截，明确写出「**未推送**」和脱敏后的发现列表。
 
@@ -72,7 +72,7 @@ description: Orchestrate the full "package → security scan → push" pipeline 
 | 底层 skill | 本层如何调用 | 在本链中的角色 |
 |---|---|---|
 | `github-ready-packager` | 调用该技能，读其 SKILL.md 执行 | 打包（可跳过）|
-| `secret-scan` | 调用该技能，读其 SKILL.md 执行 | 安检门控（不可跳过）|
+| `secret-scan` | 调用该技能，读其 SKILL.md 执行 | 安检检查（不可跳过）|
 | `acp-studio` | 调用该技能，读其 SKILL.md 执行 | 提交 + 推送 |
 
 ## 边界

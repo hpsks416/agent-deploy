@@ -10,7 +10,7 @@
 |----|------|------|
 | ① 铁律层 | `AGENTS.md` | 三条常驻触发：优先检索轮子 + 自我反思反射 + 画像积累 |
 | ② 画像层 | `persona.md` + `persona-manager` | 记「用户是谁、怎么想」（六维），一键清空/导入 |
-| ③ skill 生命周期链 | 3 个 skill | skill 的生老病死：建 → 测 → 优 → 门控 |
+| ③ skill 生命周期链 | 3 个 skill | skill 的生老病死：建 → 测 → 优 → 检查 |
 | ④ 编排层 | `agent-workflow-orchestration` | 复杂任务分解 / 并行 / 收敛 |
 | ⑤ 检索层 | `open-source-scout` | 铁律一的支柱（找现成轮子） |
 | ⑥ 安全发布层 | 4 个 skill | 打包 → 安检 → 推送，强制检查 |
@@ -26,7 +26,7 @@
 | 画像 | `persona-manager` | 画像一键清空/导入 |
 | 自我反思 | `skill-lifecycle-manager` | 判断「要不要做成 skill」+ 建/分层/脚本化 |
 | 自我反思 | `skill-evaluator` | 测量 skill 是否有效（静态+A/B+lift） |
-| 自我反思 | `skill-optimizer` | 自动优化 skill（rollout→reflect→edit→gate 防过拟合） |
+| 自我反思 | `skill-optimizer` | 自动优化 skill（rollout→reflect→edit→gate 防假改进） |
 | 编排 | `agent-workflow-orchestration` | 元工作流：拆解/并行/验证/收敛 |
 | 检索 | `open-source-scout` | 找现成开源项目 + 对比 |
 | 安全 | `secret-scan` | 扫描密钥泄露（只读、脱敏报告） |
@@ -68,7 +68,7 @@ skill-lifecycle-manager → 建 / 分层 / 脚本化
         ↓
 skill-evaluator → 测量（只报数据，不给裁决）
         ↓
-skill-optimizer → 优化（gate 防过拟合，产出 _draft）
+skill-optimizer → 优化（gate 防假改进，产出 _draft）
         ↓
 人类终审 → 永远是裁决者
 ```

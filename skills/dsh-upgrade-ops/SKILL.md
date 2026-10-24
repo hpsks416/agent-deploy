@@ -112,19 +112,19 @@ pnpm dlx dsh-replay --file <file> --stats                              # JSON �
 
 ### 核心教训
 
-- **铁律执行力 = 部署形态**：C（提示词学习）最易跳过铁律；B（原生部署）次之；A（常驻注入 + harness 强制检查）最强。要「保证」先检索，必须 harness 门控，不能靠提示词。
+- **铁律执行力 = 部署形态**：C（提示词学习）最易跳过铁律；B（原生部署）次之；A（常驻注入 + harness 强制检查）最强。要「保证」先检索，必须 harness 检查，不能靠提示词。
 - **「医者无法自医」**：agent 崩溃/无 LLM 时无法自述，必须有无模型 API 依赖的离线日志查看器兜底。
 - **检索保底**：`web_search` / `open-source-scout` 为主；不可用时 `web_fetch` 百度搜索（`www.baidu.com/s?wd=`）或人工检索兜底。文心（`wenxin.baidu.com/search`）是 AI 助手界面，web_fetch 只能拿标题、**不能自动化检索**，仅作人工保底。
 
 ### 三能力跨机落地状态
 
-1. **事前强制（先检索门控）**：A 已实现（`dsh-retrieval-guard`，`tools/pre-execute` + `{kind:"ask"}` 弹窗 + 轮次级）；B 可适配——Codex 有 hook 机制（官方 `codex-hooks.md`、`vinctor-codex-hook`），用 PreToolUse hook 实现同款「未检索拦截」；C 无法（未部署，无 harness）。
+1. **事前强制（先检索检查）**：A 已实现（`dsh-retrieval-guard`，`tools/pre-execute` + `{kind:"ask"}` 弹窗 + 轮次级）；B 可适配——Codex 有 hook 机制（官方 `codex-hooks.md`、`vinctor-codex-hook`），用 PreToolUse hook 实现同款「未检索拦截」；C 无法（未部署，无 harness）。
 2. **日志查看**：A 已实现（dsh-replay 保底：解码 v3 + 引导页 + 桌面一键）；B 待适配（Codex 日志格式/位置不同）；C 无本地日志。
 3. **引导部署（桌面一键 + 引导导入）**：A 已实现（`launch-dsh-log-viewer.ps1` + 桌面快捷方式「DSH 日志查看器」）；B/C 待做。
 
 ## 0.1.5-rc.2 稳定态约束（本机实测，勿破坏）
 
-- **三组件显式声明 + 锁精确版**：`@deepseek-ai/dsh-client-runtime` / `dsh-client-ui-slots` / `dsh-client-ui-primitives` 必须显式写在 profile `dependencies` 且**锁 `0.1.0-rc.6` 精确版**（不能用 `^`，会漂移到 `0.1.0-rc.8` → 与 0.1.5 核心版本错位 → `dsh web` 启动永久卡死零输出）。`autoInstallPeers:false` 下 peer 不自动装，显式声明是唯一稳定做法。
+- **三组件显式声明 + 锁精确版**：`@deepseek-ai/dsh-client-runtime` / `dsh-client-ui-slots` / `dsh-client-ui-primitives` 必须显式写在 profile `dependencies` 且**锁 `0.1.0-rc.6` 精确版**（不能用 `^`，会偏离到 `0.1.0-rc.8` → 与 0.1.5 核心版本错位 → `dsh web` 启动永久卡死零输出）。`autoInstallPeers:false` 下 peer 不自动装，显式声明是唯一稳定做法。
 - **文件浏览器用 `dsh-file-explorer-kit`（^0.3.8）**，**不用** `@jie-rong-214/dsh-file-explorer`：后者 client 代码硬编码旧架构 `ctx.workspaces`/`ctx.sessions`（复数服务），0.1.5 只有 `ctx.workspaceRegistry`/`ctx.sessionProjections`（单数），加载失败。`dsh-file-explorer-kit` 0.3.4+ 用 `ui-slots`/`ui-workspace`（0.1.5 都有），支持任意绝对路径跳转。
 - **patchReload 用 `startup`**（`live` 需要 Cordis HMR 服务，0.1.5 环境无 HMR → `watchUserPatches` 抛错崩溃）。
 - **目录选择器只能从 C 盘 home 开始**：browse 后端固定从 `os.homedir()`（`C:\Users\Razer`）列目录，无法逐级浏览到别的盘（G 盘等）。去别的盘 = 弹窗右上角**铅笔图标 → 输入绝对路径（如 `G:\CodexDS\DSH\MAIN`）→ 回车跳转**（官方 issue #256 的恢复入口，图标隐蔽易漏）。native 原生对话框若在后台启动（Codex 启动）下不可见，改普通 PowerShell 前台 `cd C:\Users\Razer\Documents\Codex; dsh web` 即可。

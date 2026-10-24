@@ -13,9 +13,9 @@
 | 定位 | 个人「自我改进」agent 环境 | 通用 coding agent 工作台 | 通用多智能体编排 SDK |
 | 自我反思 | **外置**（skill-evaluator/optimizer 闭环） | 无（靠模型自身） | 无（编排不评估自身） |
 | 用户画像 | **persona.md 六维** + 收尾积累 | CLAUDE.md 记忆（仅 Claude） | 无 |
-| 自我优化 | **有**（rollout→reflect→edit→gate 防过拟合） | 无 | 无 |
+| 自我优化 | **有**（rollout→reflect→edit→gate 防假改进） | 无 | 无 |
 | 跨框架 | **有**（agent-deploy 一键铺） | 各自绑定 | SDK 框架无关但重 |
-| 安全门控 | **有**（secret-scan 强制检查） | 无 | 无 |
+| 安全检查 | **有**（secret-scan 强制检查） | 无 | 无 |
 | 可审计 | **高**（文件集合，人可读/diff/git） | 中 | 低（黑盒代码） |
 | 依赖重量 | 轻（纯文件 + 脚本） | 中 | 重（SDK/服务） |
 

@@ -21,5 +21,5 @@ description: Use when deciding whether a rule belongs in the global AGENTS.md or
 - 改完确认系统注入了新版本（会话里会出现 updated instructions 提示）。
 
 ## 常见错误
-- 把长流程塞进 AGENTS.md → 常驻提示膨胀、和 skill 内容漂移。
+- 把长流程塞进 AGENTS.md → 常驻提示膨胀、和 skill 内容偏离。
 - 把「每次自动触发」的规则只写进 skill → 实际不会自动生效。
