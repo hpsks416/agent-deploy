@@ -58,6 +58,7 @@ quirks worth handling in the push command:
 
 - Proxy: GitHub needs `-c http.proxy=http://127.0.0.1:7897` (real proxy, registry `ProxyEnable=1`); Gitee connects directly. A legacy `127.0.0.1:9` proxy note is stale — ignore it.
 - Use `-c http.sslBackend=openssl`; the default schannel backend can fail with `SEC_E_NO_CREDENTIALS`.
+- **push 一律走 `scripts/push-secure.cmd`**（内部 `call secrets.cmd` → 环境变量 → inline auth），agent 不直接 `Get-Content G:\KEY\*.txt` 读 token 明文；token 只进脚本进程环境变量、不进 agent 上下文。用法：`push-secure.cmd <Repo路径> <RepoName> github|gitee [Branch]`。
 - Prefer inline auth `https://<github_user>:<GITHUB_TOKEN>@github.com/<owner>/<repo>.git`, plus
   `-c credential.helper=` so git never opens an interactive prompt.
 - Never write the token into repo config; read it from `secrets.cmd` / `GITHUB_TOKEN` and redact it from output.
