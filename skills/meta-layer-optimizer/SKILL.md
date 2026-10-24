@@ -3,11 +3,10 @@ name: meta-layer-optimizer
 description: Optimize the meta layer (铁律 in AGENTS.md + persona.md) through an evaluate→reflect→edit→gate loop, using the violation/drift log (~/.dsh/meta-drift-log.md) as the score signal and a held-out gate set plus human final review to prevent overfitting. Use when the agent repeatedly violates its own iron laws, drifts from its persona, or the user asks to improve the framework's behavior rules. Not for editing skills or one-off rule tweaks.
 ---
 
-# Meta-Layer Optimizer（元层自演进四环）
+# Meta-Layer Optimizer（元层自我改进四环）
 
-对称 `skill-optimizer`（能力层四环），把 evaluate→reflect→edit→gate 从「skill 文档」抬升到「元层资产」——**铁律（AGENTS.md）+ 画像（persona.md）**。核心：元层和能力层是同一个「认知资产自演进四环」抽象的两个实例，唯一区别在 evaluate 信号源——能力层看任务 A/B 表现，元层看**违规率 / 漂移率 / 画像一致性**（来自 `~/.dsh/meta-drift-log.md`）。
+对称 `skill-optimizer`（能力层四环），把 evaluate→reflect→edit→gate 从「skill 文档」抬升到「元层资产」——**铁律（AGENTS.md）+ 画像（persona.md）**。核心：元层和能力层是同一个「认知资产自我改进四环」抽象的两个实例，唯一区别在 evaluate 信号源——能力层看任务 A/B 表现，元层看**违规率 / 漂移率 / 画像一致性**（来自 `~/.dsh/meta-drift-log.md`）。
 
-**理论底座**：前馈 Transformer 无法内化「对思考的思考」，所以元认知外置到工作区。能力层（skill）已有评估/优化闭环，但元层（管「怎么想/怎么对齐」的铁律与画像）一直靠铁律二的「收尾自查」手工演进——本 skill 把这个手工过程升格为可判定、可门控、人类终审的四环。对齐业界：IterAlign（数据驱动宪法发现：从违规归纳新宪法，而非手写）+ SkillOpt（小步改 + gate 防过拟合）+ PERMA（画像一致性 = 跨时间/跨域，非静态检索）。
 
 ## 何时用
 
@@ -72,7 +71,7 @@ description: Optimize the meta layer (铁律 in AGENTS.md + persona.md) through 
 
 - **结构门（脚本可判定，先跑）**：`_draft` 不得触碰不可写面（枚举/gate 集/已否决条目）、改动 ≤3 处、未新增违规类型。
 - **行为门（LLM 判定）**：用 gate 集违规案例「重放」——把 `_draft` 铁律/画像代入，判定「若当时用新版，这条违规是否会被避免」，且「不会引入新的违规类型」。
-- **诚实局限（必须向用户声明）**：元层没有能力层那种「跑 evals 出 pass/fail」的确定性执行面——行为门是 LLM 判定，**比 skill 层的 gate 弱**。因此元层的最终 gate 是**人类终审**，不是脚本。这是元层自演进天生的不对称，不掩盖。
+- **诚实局限（必须向用户声明）**：元层没有能力层那种「跑 evals 出 pass/fail」的确定性执行面——行为门是 LLM 判定，**比 skill 层的 gate 弱**。因此元层的最终 gate 是**人类终审**，不是脚本。这是元层自我改进天生的不对称，不掩盖。
 - 通过 → 报告 `_draft` + 前后对比，请用户终审。不通过 → 报告「被 gate 拒绝」，不覆盖、不声称成功。
 
 ### 阶段 5 — 人类终审

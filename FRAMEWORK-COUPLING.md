@@ -21,7 +21,7 @@ skill 资产本身是**框架无关**的 AgentSkills 格式（`SKILL.md` + front
 
 | skill | 说明 |
 |-------|------|
-| `skill-lifecycle-manager` | 元认知生命周期方法论，用泛化措辞，具体工具操作委托给对应 skill |
+| `skill-lifecycle-manager` | 自我反思生命周期方法论，用泛化措辞，具体工具操作委托给对应 skill |
 | `open-source-scout` | 检索轮子方法论 |
 | `secure-push-workflow` | 发布编排逻辑（依赖的 acp-studio/secret-scan 有 env/hardcode 耦合，见下） |
 | `github-ready-packager` | 打包整理 |
@@ -60,7 +60,7 @@ skill 资产本身是**框架无关**的 AgentSkills 格式（`SKILL.md` + front
 
 ## 换模型（模型特异）
 
-skill 不仅「框架特异」，还**「模型特异」**——元认知是索引性的，它依赖「自己是谁、能力边界在哪」，而这个信息是模型自己的运行状态，不随 skill 迁移。
+skill 不仅「框架特异」，还**「模型特异」**——自我反思是索引性的，它依赖「自己是谁、能力边界在哪」，而这个信息是模型自己的运行状态，不随 skill 迁移。
 
 - `description` 的触发依赖模型的「描述匹配能力」：同一个 description，DS v4 能正确触发，换到 Claude/Kimi 后匹配率可能下降或误触发。
 - skill 的 lift（A/B 基线）是**相对某个模型**的：在 DS v4 上「有没有都一样」的 skill，换到更强/更弱的模型后 lift 可能翻转为有效或无效。

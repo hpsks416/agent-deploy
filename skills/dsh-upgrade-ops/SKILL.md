@@ -14,9 +14,9 @@ description: DSH 升级/闪退定位。升级必须同步「全局 CLI @deepseek
 - 影响面：只改 DSH 的全局 CLI 与 profile 两处安装，不碰业务数据/凭据。
 - 可验证：`dsh --version` 与 profile `package.json` 的 `dsh-base`/`dsh-web-app` 三处版本一致；`dsh web --no-open` 能绑定端口且无 `parameter codec has no create() factory` / `agent-presets` 报错。
 
-## 动手前硬门控（铁律一前置检查）
+## 动手前强制检查（铁律一前置检查）
 
-升级/迁移/改环境是最高优先级硬门控，四项缺一就停下补齐：
+升级/迁移/改环境是最高优先级强制检查，四项缺一就停下补齐：
 
 1. **检索已知坑与 issue**：同名问题往往早有人踩过——如「内测声明无法保存确认状态」早报在 deepseek-ai/deepseek-harness Discussion #860；「升级必须双处同步」是本 skill 铁律。
 2. **检索官方 README/文档的正确姿势**：如 dsh-mobile 的 USAGE.md、DSH 升级说明，先读后动。
@@ -112,7 +112,7 @@ pnpm dlx dsh-replay --file <file> --stats                              # JSON �
 
 ### 核心教训
 
-- **铁律执行力 = 部署形态**：C（提示词学习）最易跳过铁律；B（原生部署）次之；A（常驻注入 + harness 硬门控）最强。要「保证」先检索，必须 harness 门控，不能靠提示词。
+- **铁律执行力 = 部署形态**：C（提示词学习）最易跳过铁律；B（原生部署）次之；A（常驻注入 + harness 强制检查）最强。要「保证」先检索，必须 harness 门控，不能靠提示词。
 - **「医者无法自医」**：agent 崩溃/无 LLM 时无法自述，必须有无模型 API 依赖的离线日志查看器兜底。
 - **检索保底**：`web_search` / `open-source-scout` 为主；不可用时 `web_fetch` 百度搜索（`www.baidu.com/s?wd=`）或人工检索兜底。文心（`wenxin.baidu.com/search`）是 AI 助手界面，web_fetch 只能拿标题、**不能自动化检索**，仅作人工保底。
 

@@ -1,6 +1,6 @@
 # AGENT 框架总览
 
-> 一个「文件原生」的自我演进 agent 框架——把「元认知」外置到工作区文件里（Markdown + 脚本 + 铁律），让 agent 能自我评估、自我优化、记住用户、跨框架迁移，且全程人可读、可 diff、可 git、可审计。
+> 一个「文件原生」的自我改进 agent 框架——把「自我反思」外置到工作区文件里（Markdown + 脚本 + 铁律），让 agent 能自我评估、自我优化、记住用户、跨框架迁移，且全程人可读、可 diff、可 git、可审计。
 
 ---
 
@@ -8,12 +8,12 @@
 
 | 层 | 载体 | 职责 |
 |----|------|------|
-| ① 铁律层 | `AGENTS.md` | 三条常驻触发：优先检索轮子 + 元认知反射 + 画像积累 |
+| ① 铁律层 | `AGENTS.md` | 三条常驻触发：优先检索轮子 + 自我反思反射 + 画像积累 |
 | ② 画像层 | `persona.md` + `persona-manager` | 记「用户是谁、怎么想」（六维），一键清空/导入 |
-| ③ 元认知链 | 3 个 skill | skill 的生老病死：建 → 测 → 优 → 门控 |
+| ③ skill 生命周期链 | 3 个 skill | skill 的生老病死：建 → 测 → 优 → 门控 |
 | ④ 编排层 | `agent-workflow-orchestration` | 复杂任务分解 / 并行 / 收敛 |
 | ⑤ 检索层 | `open-source-scout` | 铁律一的支柱（找现成轮子） |
-| ⑥ 安全发布层 | 4 个 skill | 打包 → 安检 → 推送，硬门控 |
+| ⑥ 安全发布层 | 4 个 skill | 打包 → 安检 → 推送，强制检查 |
 | ⑦ 对话继承层 | 3 个 skill | 可插拔会话源，续接历史对话 |
 | ⑧ 部署层 | 本仓库（agent-deploy） | 换框架/中间商/模型一键铺 |
 
@@ -24,13 +24,13 @@
 | 层 | skill | 一句话 |
 |----|-------|--------|
 | 画像 | `persona-manager` | 画像一键清空/导入 |
-| 元认知 | `skill-lifecycle-manager` | 判断「要不要做成 skill」+ 建/分层/脚本化 |
-| 元认知 | `skill-evaluator` | 测量 skill 是否有效（静态+A/B+lift） |
-| 元认知 | `skill-optimizer` | 自动优化 skill（rollout→reflect→edit→gate 防过拟合） |
+| 自我反思 | `skill-lifecycle-manager` | 判断「要不要做成 skill」+ 建/分层/脚本化 |
+| 自我反思 | `skill-evaluator` | 测量 skill 是否有效（静态+A/B+lift） |
+| 自我反思 | `skill-optimizer` | 自动优化 skill（rollout→reflect→edit→gate 防过拟合） |
 | 编排 | `agent-workflow-orchestration` | 元工作流：拆解/并行/验证/收敛 |
 | 检索 | `open-source-scout` | 找现成开源项目 + 对比 |
 | 安全 | `secret-scan` | 扫描密钥泄露（只读、脱敏报告） |
-| 安全 | `secure-push-workflow` | 编排「打包→安检→推送」+ 硬门控 |
+| 安全 | `secure-push-workflow` | 编排「打包→安检→推送」+ 强制检查 |
 | 安全 | `github-ready-packager` | 整理成 GitHub 项目（写 README 等） |
 | 安全 | `acp-studio` | git 提交/推送/双向同步 |
 | 对话 | `resume-conversation-full` | 续接对话完整细节 |
@@ -55,7 +55,7 @@
 
 ---
 
-## 五、元认知闭环（自我演进怎么转）
+## 五、自我改进闭环（自我改进怎么转）
 
 ```
 铁律一（检索轮子）→ 动手前先看世界
@@ -114,6 +114,6 @@ agent-deploy/                    ← 本仓库（框架总仓库）
 
 ## 附：这一路建了什么（时间线）
 
-22 个 skill 生态 → 三条铁律 + 画像 → 元认知链（评估/优化）→ 跨框架部署器 → 会话源可插拔 → persona 画像 + 管理 → 全套 README 开源化 → dsh-config 并入总仓库。
+22 个 skill 生态 → 三条铁律 + 画像 → skill 生命周期链（评估/优化）→ 跨框架部署器 → 会话源可插拔 → persona 画像 + 管理 → 全套 README 开源化 → dsh-config 并入总仓库。
 
-**核心一句话**：用 DSH 给模型装了一双「元认知的眼睛」，并把这只眼睛做成了能跨框架带走、能自我迭代、能记住你的文件系统。
+**核心一句话**：用 DSH 给模型装了一双「自我反思的眼睛」，并把这只眼睛做成了能跨框架带走、能自我迭代、能记住你的文件系统。

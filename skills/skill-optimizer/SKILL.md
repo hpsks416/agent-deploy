@@ -7,7 +7,6 @@ description: Optimize an existing skill's SKILL.md through a rollout→reflect�
 
 轻量版 SkillOpt：把「skill 文档当可训练参数」，用 rollout→reflect→edit→gate 四步循环自动改进一个 skill 的正文。核心是**用验证门控防过拟合**——只有能通过留出验证集的改进才被接受。产出永远是 `_draft`，人类终审。
 
-**理论底座**：前馈 Transformer 无法内化「对思考的思考」（元认知）——它只能模仿反思的文本，不能真正执行反思。所以元认知必须外置：本 skill 是「外部元认知引擎」的**优化回路**（rollout→reflect→edit→gate 即评估→反馈→迭代→门控），对标业界共识的外部 Critic/Reviser 循环，不是权宜之计。
 
 ## 何时用
 
