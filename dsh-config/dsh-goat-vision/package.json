@@ -1,0 +1,41 @@
+{
+  "name": "dsh-goat-vision",
+  "version": "0.1.0",
+  "description": "GOAT-quota vision bridge for DeepSeek Harness: a new provider route that claims image input, transcribes attached images to text via deepseek/deepseek-v4.1-flash (same Command Code / GOAT endpoint), then delegates the text-only conversation to the wrapped pi-ai commandcode adapter (deepseek/deepseek-v4-pro brain).",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib/index.js",
+    "cordis.patch.yml",
+    "README.md",
+    "LICENSE"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=22.19.0",
+    "dsh": ">=0.1.1-rc.2"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "keywords": [
+    "deepseek-harness",
+    "dsh",
+    "dsh-plugin",
+    "plugin",
+    "vision",
+    "multimodal",
+    "image",
+    "ocr",
+    "vlm",
+    "goat",
+    "commandcode",
+    "pi-ai"
+  ]
+}

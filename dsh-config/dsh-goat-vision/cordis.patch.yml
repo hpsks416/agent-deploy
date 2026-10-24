@@ -1,0 +1,39 @@
+# dsh-goat-vision bundle patch: one insert over the profile tree, registering
+# TWO vision routes that keep a text-only deepseek-v4-pro brain while letting
+# the user paste images directly:
+#
+#   1. goat-vision      — GOAT / Command Code: brain deepseek-v4-pro,
+#                         eyes deepseek/deepseek-v4.1-flash (GOAT quota).
+#   2. deepseek-vision  — official DeepSeek: brain deepseek-v4-pro,
+#                         eyes deepseek-flash (V4.1, natively multimodal).
+#
+# API keys are NOT required here: each route resolves its key per-request from
+# the credentials service (apiKeyEnv), then the environment. Override `apiKey`
+# in the profile's cordis.patch.yml only to pin a literal key.
+- insert:
+    - id: dsh-goat-vision
+      name: dsh-goat-vision
+      config:
+        routes:
+          - providerId: goat-vision
+            displayName: GOAT + 自动识图
+            innerProvider: commandcode
+            baseURL: https://api.commandcode.ai/provider/v1
+            model: deepseek/deepseek-v4.1-flash
+            apiKeyEnv: COMMANDCODE_API_KEY
+            maxTokens: 4096
+            timeoutMs: 120000
+            reasoningEffort: low
+            marker: '[图片转译]'
+            failureMode: placeholder
+          - providerId: deepseek-vision
+            displayName: 官方直冲 + 自动识图
+            innerProvider: deepseek-official
+            baseURL: https://api.deepseek.com
+            model: deepseek-flash
+            apiKeyEnv: DEEPSEEK_API_KEY
+            maxTokens: 4096
+            timeoutMs: 120000
+            reasoningEffort: low
+            marker: '[图片转译]'
+            failureMode: placeholder
