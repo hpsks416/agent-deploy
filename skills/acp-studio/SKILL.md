@@ -114,7 +114,7 @@ When creating or initializing a repository without a specified license, default 
 - Never force-push (`--force`, `-f`) unless the user explicitly asked.
 - Never commit secrets, `.env`, credentials, or large binaries; report them instead.
 - Credentials come from `GITEE_USERNAME`/`GITEE_TOKEN` and `GITHUB_TOKEN` (or `gh auth token`); never write them into repo config, and redact them from output.
-- **Gitee create-repo API 的 `public` 字段不接受布尔值** — 显式传 `public: true` 会返回 HTTP 400 `"public" is invalid`；正确做法是**省略 `public` 字段**（Gitee 默认就是 public，创建成功返回 201），不要显式传布尔值。新仓库默认 public + MIT；创建后用 GET 验证可见性，若 Gitee 返回了 private 再 PATCH `private=false`。
+- **Gitee create-repo API 的 `public` 字段不接受布尔值** — 显式传 `public: true` 会返回 HTTP 400 `"public" is invalid`；正确做法是**省略 `public` 字段**创建（返回 201）。**但 Gitee 默认建库是 private（不是 public）**，建完要转公开：`PATCH /api/v5/repos/{owner}/{repo}` body 带 `name=<repo>&private=false`（**必须带 name 参数，否则报 "name is missing"**）。
 - **Deleting a GitHub repo needs `delete_repo` scope** — a classic PAT with only `repo` scope returns `403 Must have admin rights` on `DELETE /repos/{owner}/{repo}`. Delete requires a PAT with `delete_repo` (plus `repo` for push). Gitee delete (`DELETE /repos/{owner}/{repo}`) works with the normal token. Deleting is irreversible — confirm the exact repo before running.
 - The sync script is fast-forward only and never force-pushes; diverged branches are reported and skipped.
 - Sync is one-way by default (`github-to-gitee`); choose `gitee-to-github` for the reverse direction, or `both` to run the two one-way directions in one pass.

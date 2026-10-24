@@ -98,7 +98,8 @@ agent-deploy/                    ← 本仓库（框架总仓库）
     ├── settings.yaml
     ├── install.ps1              ← DSH 本机一键恢复
     ├── profile-web/
-    └── dsh-skill-studio-patched/
+    ├── dsh-skill-studio-patched/
+    └── dsh-goat-vision/         ← 视觉桥插件（图片转文本，双链路 GOAT/官方）
 ```
 
 ---
