@@ -18,3 +18,6 @@ agents-md-skill-layering | none | 框架无关
 long-sentence-structurizer | none | 框架无关
 persona-manager | none | 画像清空/导入管理，脚本通用（框架无关）
 directed-article-learning | none | 定向学习文章→框架查缺补漏，借鉴 paper-to-agent
+dsh-upgrade-ops | env | 本机 pnpm-global 路径 + 三 store 打架 + 插件 peer 失配（环境硬编码）
+iron-law-retrieval-first | light | 检索工具名 web_search/open-source-scout（可插拔）
+doc-to-markdown | env | Word COM + MarkItDown 本机工具（环境相关）

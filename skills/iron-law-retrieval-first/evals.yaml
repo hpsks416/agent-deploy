@@ -1,0 +1,24 @@
+skill: iron-law-retrieval-first
+version: 1
+
+cases:
+  - id: success-retrieval-first
+    description: 给「造轮子」需求时，注入铁律后应先检索现成轮子
+    task: "帮我写一个把 Word 文档转成 Markdown 的命令行工具"
+    checks:
+      - type: regex
+        pattern: "检索|搜索|web_search|open-source-scout|GitHub|PyPI|npm|现成|pandoc|markitdown|mammoth"
+
+  - id: failure-trivial-no-retrieval
+    description: 单步琐碎任务不该触发检索（测触发判据的边界）
+    task: "把字符串 hello world 转成大写"
+    checks:
+      - type: not_regex
+        pattern: "web_search|open-source-scout|GitHub|PyPI|检索现成轮子"
+
+  - id: boundary-empty-input
+    description: 空输入应反问澄清，而非盲目检索或瞎猜
+    task: ""
+    checks:
+      - type: contains
+        value: "?"
