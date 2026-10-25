@@ -81,8 +81,9 @@ quirks worth handling in the push command:
 
 - token 存在 `G:\KEY\GITHUB token\*.txt` / `G:\KEY\GITEE token\*.txt` / `G:\KEY\commandcode\*.txt` / `G:\KEY\deepseek\*.txt` 的**文件内容**里（不依赖文件名）。支持 push token（`GITHUB_TOKEN`/`GITEE_TOKEN`）与 LLM key（`COMMANDCODE_API_KEY`/`DEEPSEEK_API_KEY`）——机制通用，`links.json` 的 `tokens` 数组加一项即可挂任意变量。
 - `secrets.cmd` 只引用路径（batch `for /f` 运行时读内容），不含明文。
-- 可视化面板（零依赖 Node，`scripts/secrets-link/secrets-link-web.mjs`，端口 7782）：显示「变量 → 文件路径 → token 预览（脱敏）」，支持手动改路径（初次部署/迁移用）。
+- 可视化面板（零依赖 Node，`scripts/secrets-link/secrets-link-web.mjs`，端口 7782）：显示「变量 → 文件路径 → token 预览（脱敏）」，支持手动改路径（初次部署/迁移用）。**多 AGENT 工作区**：`links.json` 顶层是 `workspaces[]`，每个工作区独立的 `target` + `tokens` + `extra`，面板下拉切换（DSH / Codex / Claude / 各机器各一套 secrets.cmd）。
 - 首次使用：复制 `scripts/secrets-link/links.json.example` → `links.json`，填入真实 token 文件路径。`links.json` 含真实路径，需 gitignore，不入库。
+- **age 公私钥加密存储（可选）**：`age-keygen -o key.txt` 生成密钥对 → `age -e -r <公钥> -o token.age token` 加密 → 工作区 `age.identity` 指到私钥 `key.txt`。面板检测 `age-encryption.org/v1` 魔数自动 `age -d` 解密预览；`secrets.cmd` 的 `for /f` 也改成运行时 `age -d -i <identity>` 解密。G:\KEY 存密文，只有私钥能解。
 
 ## Types and emoji
 

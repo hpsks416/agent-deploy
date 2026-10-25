@@ -40,7 +40,7 @@ A general "检查 token/密钥安全" request should cover both the remote repos
 
 ## What it detects
 
-- GitHub tokens (`ghp_`, `gho_`, `github_pat_`), the currently active GitHub/Gitee tokens, OpenAI/Slack/Google/AWS key patterns, PEM private keys, `access_token=...`, and `Authorization: Basic ...`.
+- GitHub tokens (`ghp_`, `gho_`, `github_pat_`), the currently active GitHub/Gitee tokens, OpenAI/Slack/Google/AWS key patterns, PEM private keys（标 `CRIT`，泄露严重）与 public keys（标 `INFO`，可公开非泄露）, `access_token=...`, and `Authorization: Basic ...`.
 - Risky filenames: `.env`, `*.env`, `*.pem`, `*.key`, `id_rsa`, `credentials.json`, `.netrc`, `.npmrc`, `.pypirc`, `*.p12`, `*.pfx`, and names containing `secret`.
 - **权限分级评分**：报告时按权限大小排序，而非平铺——`K8s Secret / ConfigMap` > `云厂商 AccessKey / 环境变量密钥` > `普通 Bearer / 应用级 token`。高权限凭证优先深挖（泄露后果最重），低权限排后。
 - **混淆态检测**：明文 grep 会漏掉「Base64 / 多层编码 / 压缩 / RSA 加密块」里藏的凭证，以及「密钥另存链式短链、正文只放间接引用」的写法。发现可疑编码串或短链跳转时，解码/展开一层再判断，不要只看明文正则命中。

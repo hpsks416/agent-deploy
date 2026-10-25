@@ -69,6 +69,7 @@ def build_patterns() -> list[tuple[str, re.Pattern]]:
         ("google_api_key", re.compile(r"AIza[0-9A-Za-z_-]{30,}")),
         ("aws_access_key_id", re.compile(r"\bAKIA[0-9A-Z]{16}\b")),
         ("private_key_pem", re.compile(r"-----BEGIN [A-Z0-9 ]*PRIVATE KEY-----")),
+        ("public_key_pem", re.compile(r"-----BEGIN [A-Z0-9 ]*PUBLIC KEY-----")),
         ("access_token_literal", re.compile(r"access_token\s*[=:]\s*[\"']?[A-Za-z0-9]{20,}[\"']?")),
         ("auth_basic_literal", re.compile(r"Authorization:\s*Basic\s+[A-Za-z0-9+/=]{20,}")),
     ]
@@ -103,8 +104,13 @@ def scan_file(path: str, text: str, patterns: list[tuple[str, re.Pattern]]) -> l
     return hits
 
 
+# 告警分级：公钥可公开（INFO，非泄露），其余（私钥/凭证）泄露严重（CRIT）
+_INFO_KINDS = {"public_key_pem"}
+
+
 def report(kind: str, location: str, sample: str) -> None:
-    print("  ! %s: %s -> %s" % (kind, location, sample))
+    sev = "INFO" if kind in _INFO_KINDS else "CRIT"
+    print("  ! [%s] %s: %s -> %s" % (sev, kind, location, sample))
 
 
 # ---------------------------------------------------------------------------

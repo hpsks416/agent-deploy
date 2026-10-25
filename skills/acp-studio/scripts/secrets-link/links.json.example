@@ -1,12 +1,19 @@
 {
-  "tokens": [
-    { "var": "GITHUB_TOKEN", "file": "G:\\KEY\\GITHUB token\\YOUR_GITHUB_TOKEN.txt" },
-    { "var": "GITEE_TOKEN", "file": "G:\\KEY\\GITEE token\\YOUR_GITEE_TOKEN.txt" },
-    { "var": "COMMANDCODE_API_KEY", "file": "G:\\KEY\\commandcode\\YOUR_COMMANDCODE_API_KEY.txt" },
-    { "var": "DEEPSEEK_API_KEY", "file": "G:\\KEY\\deepseek\\YOUR_DEEPSEEK_API_KEY.txt" }
+  "workspaces": [
+    {
+      "name": "DSH 本机",
+      "target": "C:\\path\\to\\acp-studio\\secrets.cmd",
+      "age": {
+        "identity": "C:\\path\\to\\age-identity.txt"
+      },
+      "tokens": [
+        { "var": "GITHUB_TOKEN", "file": "G:\\KEY\\GITHUB token\\YOUR_GITHUB_TOKEN.txt" },
+        { "var": "GITEE_TOKEN", "file": "G:\\KEY\\GITEE token\\YOUR_GITEE_TOKEN.txt" },
+        { "var": "COMMANDCODE_API_KEY", "file": "G:\\KEY\\DS\\commandcode\\416.txt" },
+        { "var": "DEEPSEEK_API_KEY", "file": "G:\\KEY\\DS\\deepseek\\416.txt" }
+      ],
+      "extra": { "GITEE_USERNAME": "hpsks416" }
+    }
   ],
-  "extra": {
-    "GITEE_USERNAME": "hpsks416"
-  },
-  "target": "C:\\path\\to\\acp-studio\\secrets.cmd"
+  "active": 0
 }
