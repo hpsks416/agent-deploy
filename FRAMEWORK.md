@@ -129,7 +129,7 @@ agent-deploy/                    ← 本仓库（框架总仓库）
 
 ## 七、云端状态
 
-- **22 个 skill 仓库** + `agent-deploy`（本仓库），全部双推 GitHub + Gitee、MIT 开源、Gitee 公开
+- **云端仓库**：GitHub 19 个、Gitee 16 个（其中 15 个双推；仅 GitHub 4 个：dsh-retrieval-guard、github-ready-packager、homophone-pun-analysis、hpsks416；仅 Gitee 1 个：helios），全部 MIT 开源
 - `dsh-config` 已合并进本仓库的 `dsh-config/` 子目录
 - **仓库管理约定**：与框架相关的子仓库（dsh-config、dsh-goat-vision、dsh-skill-studio-patched、dsh-retrieval-guard、dsh-secure-push-guard、dsh-session-sync-flush）**仅保留初版、不再独立更新，后续改动只进本仓库**；新建与总框架相关的子仓库后即废弃、纳入本仓库
 - 隐私文件（`persona.md`、`secrets.cmd`、`.credentials.yaml`）不进公开仓库
