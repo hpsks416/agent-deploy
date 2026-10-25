@@ -56,9 +56,9 @@ jobs:
       - run: pip install pyyaml
       - name: 动态 evals（带 evals.yaml 的 skill）
         env:
-          EVAL_BASE_URL: https://api.commandcode.ai/provider/v1
-          EVAL_API_KEY: ${{ secrets.COMMANDCODE_API_KEY }}
-          EVAL_MODEL: deepseek/deepseek-v4-pro
+          EVAL_BASE_URL: https://api.deepseek.com
+          EVAL_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          EVAL_MODEL: deepseek-v4-pro
         run: |
           failed=0
           for d in skills/*/; do
