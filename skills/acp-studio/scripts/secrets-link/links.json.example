@@ -1,7 +1,9 @@
 {
   "tokens": [
     { "var": "GITHUB_TOKEN", "file": "G:\\KEY\\GITHUB token\\YOUR_GITHUB_TOKEN.txt" },
-    { "var": "GITEE_TOKEN", "file": "G:\\KEY\\GITEE token\\YOUR_GITEE_TOKEN.txt" }
+    { "var": "GITEE_TOKEN", "file": "G:\\KEY\\GITEE token\\YOUR_GITEE_TOKEN.txt" },
+    { "var": "COMMANDCODE_API_KEY", "file": "G:\\KEY\\commandcode\\YOUR_COMMANDCODE_API_KEY.txt" },
+    { "var": "DEEPSEEK_API_KEY", "file": "G:\\KEY\\deepseek\\YOUR_DEEPSEEK_API_KEY.txt" }
   ],
   "extra": {
     "GITEE_USERNAME": "hpsks416"

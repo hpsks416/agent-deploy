@@ -79,7 +79,7 @@ quirks worth handling in the push command:
 
 把 `secrets.cmd` 里的 token 明文改成「引用 G:\KEY 文件内容」：换 token 只改文件内容，不再手改 secrets.cmd。
 
-- token 存在 `G:\KEY\GITHUB token\*.txt` / `G:\KEY\GITEE token\*.txt` 的**文件内容**里（不依赖文件名）。
+- token 存在 `G:\KEY\GITHUB token\*.txt` / `G:\KEY\GITEE token\*.txt` / `G:\KEY\commandcode\*.txt` / `G:\KEY\deepseek\*.txt` 的**文件内容**里（不依赖文件名）。支持 push token（`GITHUB_TOKEN`/`GITEE_TOKEN`）与 LLM key（`COMMANDCODE_API_KEY`/`DEEPSEEK_API_KEY`）——机制通用，`links.json` 的 `tokens` 数组加一项即可挂任意变量。
 - `secrets.cmd` 只引用路径（batch `for /f` 运行时读内容），不含明文。
 - 可视化面板（零依赖 Node，`scripts/secrets-link/secrets-link-web.mjs`，端口 7782）：显示「变量 → 文件路径 → token 预览（脱敏）」，支持手动改路径（初次部署/迁移用）。
 - 首次使用：复制 `scripts/secrets-link/links.json.example` → `links.json`，填入真实 token 文件路径。`links.json` 含真实路径，需 gitignore，不入库。
