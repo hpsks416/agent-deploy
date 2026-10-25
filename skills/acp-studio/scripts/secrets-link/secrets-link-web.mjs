@@ -127,21 +127,21 @@ const HTML = `<!doctype html>
   #toast { position: fixed; bottom: 20px; right: 20px; background: #222; color: #fff; padding: 10px 16px; border-radius: 6px; display: none; }
 </style>
 <h1>secrets-link 面板（多 AGENT 工作区）</h1>
-<p>每个工作区一套独立的 <code>secrets.cmd</code>（DSH / Codex / Claude / 各机器）。token 存在 <code>G:\\KEY</code> 文件内容里，<code>secrets.cmd</code> 只引用路径。</p>
+<p>每个工作区一套独立的 <code>secrets.cmd</code>（DSH / Codex / Claude / 各机器）。token 加密成 <code>.zip</code>（内含 age 密文），<code>secrets.cmd</code> 运行时自动解密。</p>
 <div class="ws-bar">
   工作区：<select id="wsSel"></select>
   <button id="wsAdd">＋ 新建工作区</button>
   <button id="wsDel">－ 删除当前</button>
 </div>
 <table id="tbl">
-  <thead><tr><th>选</th><th>变量</th><th>连接路径（文件内容 = token）</th><th>状态</th><th>token 预览</th><th></th></tr></thead>
+  <thead><tr><th>选</th><th>变量</th><th>连接路径（必须是 .zip）</th><th>状态</th><th>token 预览</th><th></th></tr></thead>
   <tbody></tbody>
 </table>
 <div class="footer">
   <div>secrets.cmd 目标：<code id="target"></code></div>
   <button id="regen">立即重新生成 secrets.cmd</button>
   <button id="encrypt">🔒 加密选中</button>
-  <div class="note">保存路径时自动重新生成；token 明文只存在 G:\\KEY 文件内容里，本页只显示前 4 位 + 后 2 位。</div>
+  <div class="note">token 必须是 <code>.zip</code>（加密产物，非 zip 拒绝生成 secrets.cmd）；本页只显示解密后前 4 位 + 后 2 位。</div>
 </div>
 <div id="toast"></div>
 <script>
@@ -201,7 +201,7 @@ async function encryptSelected() {
   const r = await fetch('/api/encrypt', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ indices: idx }) });
   const j = await r.json();
   state = j; render();
-  toast(j.encrypted ? ('已加密 ' + j.encrypted + ' 个：原文件→age密文，AES 备份（私钥即密码）') : ('加密失败：' + (j.error || '')));
+  toast(j.encrypted ? ('已加密 ' + j.encrypted + ' 个 → .zip（age 密文）+ .backup.enc（AES 备份）') : ('加密失败：' + (j.error || '')));
 }
 function toast(m) { const t = document.getElementById('toast'); t.textContent = m; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 3000); }
 document.getElementById('regen').onclick = regen;
