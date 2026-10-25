@@ -30,7 +30,6 @@ param(
 
 $ErrorActionPreference = 'Continue'
 $scriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
-$owner = 'hpsks416'
 
 # ---------- 1. 读中间商目录 ----------
 $providers = Get-Content (Join-Path $scriptRoot 'providers.json') -Raw | ConvertFrom-Json
@@ -65,7 +64,7 @@ switch ($Framework) {
 
 Write-Host ''
 Write-Host '============================================================' -ForegroundColor Cyan
-Write-Host " agent-deploy  框架=$Framework  中间商=$($p.name)  模型=$Model ($modelId)  源=$Source" -ForegroundColor Cyan
+Write-Host " agent-deploy  框架=$Framework  中间商=$($p.name)  模型=$Model ($modelId)" -ForegroundColor Cyan
 Write-Host " skill 目录 : $skillsDir" -ForegroundColor DarkGray
 Write-Host " 指令文件   : $instrPath" -ForegroundColor DarkGray
 Write-Host " 配置文件   : $cfgPath" -ForegroundColor DarkGray
@@ -82,11 +81,12 @@ if (-not $SkipSkills) {
   New-Item -ItemType Directory -Force -Path $skillsDir | Out-Null
   $ok = 0; $skip = 0; $fail = 0
   foreach ($s in $skills) {
+    $srcSkill = Join-Path $scriptRoot "skills\$($s.name)"
     $dst = Join-Path $skillsDir $s.name
+    if (-not (Test-Path $srcSkill)) { Write-Host "  [FAIL] $($s.name)（本仓 skills/ 下无此 skill）" -ForegroundColor Red; $fail++; continue }
     if (Test-Path (Join-Path $dst 'SKILL.md')) { Write-Host "  [已存在] $($s.name)" -ForegroundColor DarkGray; $skip++; continue }
-    $url = if ($Source -eq 'github') { "https://github.com/$owner/$($s.name).git" } else { "https://gitee.com/$owner/$($s.name).git" }
-    if ($DryRun) { Write-Host "  [DRY] git clone --depth 1 $url -> $dst"; $ok++; continue }
-    git clone --depth 1 $url $dst 2>&1 | Out-Null
+    if ($DryRun) { Write-Host "  [DRY] Copy-Item $srcSkill -> $dst"; $ok++; continue }
+    Copy-Item $srcSkill $dst -Recurse -Force
     if (Test-Path (Join-Path $dst 'SKILL.md')) { Write-Host "  [OK] $($s.name)" -ForegroundColor Green; $ok++ }
     else { Write-Host "  [FAIL] $($s.name)" -ForegroundColor Red; $fail++ }
   }

@@ -7,8 +7,8 @@
 #   ./deploy.sh --framework codex --provider commandcode --model deepseek-v4-pro
 #   ./deploy.sh --framework claude --provider deepseek --model deepseek-flash
 #   ./deploy.sh --framework dsh    --provider commandcode
-#   ./deploy.sh --framework codex --source gitee --owner <你的账号>
 #   ./deploy.sh --framework codex --dry-run
+#   （skill 从本仓 skills/ 复制部署，不再 git clone 独立仓库——子仓库仅保留初版）
 #
 # 三个维度独立可换：
 #   --framework  codex | claude | dsh        （框架）
@@ -111,7 +111,7 @@ esac
 
 echo ""
 echo "============================================================"
-echo " agent-deploy  框架=$FRAMEWORK  中间商=$PNAME  模型=$MODEL ($MODEL_ID)  源=$SOURCE"
+echo " agent-deploy  框架=$FRAMEWORK  中间商=$PNAME  模型=$MODEL ($MODEL_ID)"
 echo " skill 目录 : $SKILLS_DIR"
 echo " 指令文件   : $INSTR_PATH"
 echo " 配置文件   : $CFG_PATH"
@@ -132,18 +132,18 @@ if [ "$SKIP_SKILLS" = 0 ]; then
     name=$(printf '%s' "$line" | awk -F'|' '{gsub(/^[[:space:]]+|[[:space:]]+$/, "", $1); print $1}')
     coupling=$(printf '%s' "$line" | awk -F'|' '{gsub(/^[[:space:]]+|[[:space:]]+$/, "", $2); print $2}')
     [ -z "$name" ] && continue
+    src_skill="$SCRIPT_ROOT/skills/$name"
     dst="$SKILLS_DIR/$name"
+    if [ ! -d "$src_skill" ]; then
+      echo "  [FAIL] $name：本仓 skills/ 下无此 skill"; fail=$((fail+1)); continue
+    fi
     if [ -f "$dst/SKILL.md" ]; then
       echo "  [已存在] $name"; skip=$((skip+1)); continue
     fi
-    if [ -z "$OWNER" ]; then
-      echo "  [FAIL] $name：未指定 owner（--owner 或 OWNER 环境变量）"; fail=$((fail+1)); continue
-    fi
-    if [ "$SOURCE" = "github" ]; then url="https://github.com/$OWNER/$name.git"; else url="https://gitee.com/$OWNER/$name.git"; fi
     if [ "$DRY_RUN" = 1 ]; then
-      echo "  [DRY] git clone --depth 1 $url -> $dst"; ok=$((ok+1)); continue
+      echo "  [DRY] cp -r $src_skill -> $dst"; ok=$((ok+1)); continue
     fi
-    if git clone --depth 1 "$url" "$dst" >/dev/null 2>&1 && [ -f "$dst/SKILL.md" ]; then
+    if cp -r "$src_skill" "$dst" && [ -f "$dst/SKILL.md" ]; then
       echo "  [OK] $name"; ok=$((ok+1))
     else
       echo "  [FAIL] $name"; fail=$((fail+1))
