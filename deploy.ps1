@@ -100,7 +100,8 @@ if (-not $SkipSkills) {
 if (-not $SkipConfig) {
   Write-Host ''
   Write-Host '[2/3] 铺铁律' -ForegroundColor Yellow
-  $instr = Get-Content (Join-Path $scriptRoot 'templates\agents-core.md') -Raw
+  $instrSrc = if ($Framework -eq 'dsh') { Join-Path $scriptRoot 'dsh-config\AGENTS.md' } else { Join-Path $scriptRoot 'templates\agents-core.md' }
+  $instr = Get-Content $instrSrc -Raw
   if ((Test-Path $instrPath) -and (-not $DryRun)) {
     New-Item -ItemType Directory -Force -Path $backupRoot | Out-Null
     Copy-Item $instrPath (Join-Path $backupRoot (Split-Path $instrPath -Leaf)) -Force

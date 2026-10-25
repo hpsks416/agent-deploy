@@ -164,11 +164,13 @@ if [ "$SKIP_CONFIG" = 0 ]; then
     cp "$INSTR_PATH" "$BACKUP_ROOT/$(basename "$INSTR_PATH")"
     echo "  备份旧指令 -> $BACKUP_ROOT"
   fi
+  INSTR_SRC="$SCRIPT_ROOT/templates/agents-core.md"
+  [ "$FRAMEWORK" = "dsh" ] && INSTR_SRC="$SCRIPT_ROOT/dsh-config/AGENTS.md"
   if [ "$DRY_RUN" = 1 ]; then
-    echo "  [DRY] 写 $INSTR_PATH"
+    echo "  [DRY] 写 $INSTR_PATH ($INSTR_SRC)"
   else
     mkdir -p "$(dirname "$INSTR_PATH")"
-    cp "$SCRIPT_ROOT/templates/agents-core.md" "$INSTR_PATH"
+    cp "$INSTR_SRC" "$INSTR_PATH"
     echo "  已写 $INSTR_PATH"
   fi
 
