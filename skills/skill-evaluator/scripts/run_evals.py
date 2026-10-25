@@ -106,17 +106,29 @@ def main():
             "without_skill_pass": without_pass,
         })
 
-    passed = sum(1 for r in results if r["with_skill_pass"])
+    with_pass = sum(1 for r in results if r["with_skill_pass"])
+    without_pass = sum(1 for r in results if r["without_skill_pass"])
     total = len(results)
+    with_rate = with_pass / total if total else 0.0
+    without_rate = without_pass / total if total else 0.0
+    lift = with_rate - without_rate
+
     print(json.dumps({
         "skill": skill_dir.name,
         "cases_total": total,
-        "with_skill_passed": passed,
+        "with_skill_passed": with_pass,
+        "without_skill_passed": without_pass,
+        "lift": round(lift, 3),
         "cases": results,
     }, ensure_ascii=False, indent=2))
 
-    # 所有用例 with-skill 通过才算绿；否则红（signal 回归失败）
-    return 0 if passed == total else 1
+    # 闸门：with-skill 全过 且 lift > 0（with 必须严格优于 without，否则 dead weight 也绿）
+    if with_pass != total:
+        return 1
+    if lift <= 0:
+        print("lift=%s <= 0：with-skill 未优于 without-skill（dead weight），闸门不放行" % round(lift, 3), file=sys.stderr)
+        return 1
+    return 0
 
 
 if __name__ == "__main__":

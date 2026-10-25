@@ -7,11 +7,11 @@ Never prints or writes real token values. Never modifies any file or repo.
 Environment:
   GITHUB_TOKEN    GitHub personal access token (optional; falls back to `gh auth token`)
   GITEE_TOKEN     Gitee personal access token (optional; needed for private repos)
-  GH_USER         GitHub owner name (default hpsks416)
-  GITEE_USER      Gitee owner name (default hpsks416)
+  GH_USER         GitHub owner name (required for remote scan; or use --owner)
+  GITEE_USER      Gitee owner name (required for remote scan; or use --owner)
 
 Usage:
-  python scan_secrets.py                       # scan remote GitHub + Gitee
+  python scan_secrets.py --owner <owner>       # scan remote GitHub + Gitee
   python scan_secrets.py --local <dir>         # scan a local directory tree
   python scan_secrets.py --skip-github         # Gitee only
   python scan_secrets.py --skip-gitee          # GitHub only
@@ -31,8 +31,8 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-GH_USER = os.environ.get("GH_USER", "hpsks416").strip()
-GITEE_USER = os.environ.get("GITEE_USER", "hpsks416").strip()
+GH_USER = os.environ.get("GH_USER", "").strip()
+GITEE_USER = os.environ.get("GITEE_USER", "").strip()
 
 RISKY_FILE = re.compile(
     r"(^|/)(\.env(\.|$)|.*\.env$|.*\.pem$|.*\.key$|id_rsa|"
@@ -49,7 +49,6 @@ def gh_token() -> str:
     env_bin = os.environ.get("GH_BIN", "").strip()
     if env_bin:
         candidates.append(env_bin)
-    candidates.append(r"G:\KEY\2FA\GITHUBCLI\Application\gh.exe")
     for gh in candidates:
         try:
             out = subprocess.run([gh, "auth", "token"], capture_output=True, text=True, timeout=15)
@@ -265,10 +264,15 @@ def scan_gitee(token: str, patterns: list[tuple[str, re.Pattern]], max_file: int
 def main() -> int:
     parser = argparse.ArgumentParser(description="Scan for leaked credentials (read-only).")
     parser.add_argument("--local", help="scan a local directory tree instead of remote")
+    parser.add_argument("--owner", help="GitHub/Gitee owner (overrides $GH_USER / $GITEE_USER)")
     parser.add_argument("--skip-github", action="store_true")
     parser.add_argument("--skip-gitee", action="store_true")
     parser.add_argument("--max-file", type=int, default=200000)
     args = parser.parse_args()
+
+    global GH_USER, GITEE_USER
+    if args.owner:
+        GH_USER = GITEE_USER = args.owner.strip()
 
     patterns = build_patterns()
     total = 0
@@ -278,6 +282,12 @@ def main() -> int:
         print("### Local scan: %s" % root)
         total = scan_local(root, patterns, args.max_file)
     else:
+        if not GH_USER and not args.skip_github:
+            print("owner not set: use --owner or GH_USER env var (required for GitHub scan)", file=sys.stderr)
+            return 2
+        if not GITEE_USER and not args.skip_gitee:
+            print("owner not set: use --owner or GITEE_USER env var (required for Gitee scan)", file=sys.stderr)
+            return 2
         token = gh_token()
         if not token:
             print("GITHUB_TOKEN not set and `gh auth token` failed; GitHub scan may fail.", file=sys.stderr)
