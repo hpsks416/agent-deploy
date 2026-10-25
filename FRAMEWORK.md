@@ -45,17 +45,18 @@
 | 学习 | `directed-article-learning` | 定向学习文章→框架查缺补漏 |
 | 可视化 | `browser-viz-local-scripts` | 本地脚本浏览器可视化（含桌面启动器/仪表盘） |
 
-## 三、不在本仓库的 skill（7 个，独立仓库/本机保留）
+## 三、不在本仓库的 skill（8 个，独立仓库/本机保留）
 
-| skill | 领域 | 状态 |
+| skill | 领域 | 云端状态 |
 |---|---|---|
-| `web-3d-asset-pipeline` | 3D | 独立仓库 |
-| `rust-refactor-local-projects` | 重构 | 独立仓库 |
-| `homophone-pun-analysis` | 谐音梗 | 独立仓库 |
-| `hpsks416` | 个人透镜 | 独立仓库 |
-| `windows-node-spawn-cli` | DSH/Windows | 独立仓库 |
-| `dsh-plugin-lazy-adapter-resolution` | DSH 插件 | 独立仓库 |
-| `hatch-pet` | 宠物 | 已退役，本机保留 |
+| `web-3d-asset-pipeline` | 3D | 仅本机 |
+| `rust-refactor-local-projects` | 重构 | 仅本机 |
+| `homophone-pun-analysis` | 谐音梗 | 仅 GitHub |
+| `hpsks416` | 个人透镜 | 仅 GitHub |
+| `windows-node-spawn-cli` | DSH/Windows | 仅本机 |
+| `dsh-plugin-lazy-adapter-resolution` | DSH 插件 | GitHub + Gitee |
+| `local-tool-mcp-exposure` | 本地工具 MCP | 仅本机 |
+| `hatch-pet` | 宠物 | 已退役，仅本机 |
 
 ---
 
@@ -138,7 +139,7 @@ agent-deploy/                    ← 本仓库（框架总仓库）
 
 ## 附：这一路建了什么（时间线）
 
-- 28 个 skill 集合
+- 29 个 skill 集合
 - 两条铁律 + 画像
 - skill 生命周期链（评估/优化）
 - 跨框架部署器
@@ -147,4 +148,4 @@ agent-deploy/                    ← 本仓库（框架总仓库）
 - 全套 README 开源化
 - dsh-config 并入总仓库
 
-**核心一句话**：28 个 skill + 两条规则 + 画像文件 + 部署脚本，一键装到 Codex/Claude Code/DSH；改动前先检索、收尾时判断固化。
+**核心一句话**：29 个 skill + 两条规则 + 画像文件 + 部署脚本，一键装到 Codex/Claude Code/DSH；改动前先检索、收尾时判断固化。
