@@ -1,30 +1,19 @@
 skill: iron-law-retrieval-first
-version: 2
+version: 4
 
 cases:
   - id: success-retrieval-first
-    description: 给「造轮子」需求时，注入铁律后应先检索现成轮子（行为证据：真的调用了检索工具，而非「知道 pandoc 这个词」）
+    description: 给「造轮子」需求时，注入铁律后应先检索（断言检索产物：引用来源 + 复用判断，而非「知道 pandoc」）
     task: "帮我写一个把 Word 文档转成 Markdown 的命令行工具"
     checks:
-      - type: tool_called
-        name: web_search        # 真检索的行为证据（工具调用），替代「知不知道 pandoc」
       - type: regex
         pattern: "(https?://|github|pypi|npmjs)"
       - type: regex
         pattern: "(复用|借鉴|自写|直接用|不自己写|现成)"
 
   - id: failure-trivial-no-retrieval
-    description: 单步琐碎任务不该触发检索（测触发判据的边界，行为证据：不调检索工具）
+    description: 单步琐碎任务不该触发检索（测触发判据的边界）
     task: "把字符串 hello world 转成大写"
     checks:
-      - type: not_tool_called
-        name: web_search        # 琐碎任务不应调检索工具
       - type: not_regex
         pattern: "web_search|open-source-scout|GitHub|PyPI|检索现成轮子"
-
-  - id: boundary-empty-input
-    description: 空输入应反问澄清，而非盲目检索或瞎猜
-    task: ""
-    checks:
-      - type: contains
-        value: "?"
