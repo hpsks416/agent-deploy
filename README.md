@@ -8,11 +8,14 @@
 |---|---|
 | 提交推送 | `acp-studio`、`secure-push-workflow`、`github-ready-packager` |
 | 安全 | `secret-scan`（密钥扫描） |
-| 检索 | `open-source-scout` |
+| 检索 | `open-source-scout`、`iron-law-retrieval-first` |
 | 运维 | `dsh-upgrade-ops`（升级/闪退定位） |
 | 文档 | `doc-to-markdown`（Word/PDF 转 Markdown） |
 | 会话 | `resume-conversation-full`、`resume-conversation-brief`、`migrate-conversation-prompt` |
 | 评估优化 | `skill-evaluator`、`skill-optimizer`、`meta-layer-optimizer`、`skill-lifecycle-manager` |
+| 编排决策 | `agent-workflow-orchestration`、`agents-md-skill-layering`、`long-sentence-structurizer` |
+| 画像 | `persona-manager` |
+| 学习可视化 | `directed-article-learning`、`browser-viz-local-scripts` |
 
 完整清单见 `core-skills.txt`。
 

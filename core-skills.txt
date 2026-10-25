@@ -21,3 +21,5 @@ directed-article-learning | none | 定向学习文章→框架查缺补漏，借
 dsh-upgrade-ops | env | 本机 pnpm-global 路径 + 三 store 打架 + 插件 peer 失配（环境硬编码）
 iron-law-retrieval-first | light | 检索工具名 web_search/open-source-scout（可插拔）
 doc-to-markdown | env | Word COM + MarkItDown 本机工具（环境相关）
+meta-layer-optimizer | light | 读 ~/.dsh/meta-drift-log.md + subagent 隔离（DSH 路径可插拔）
+browser-viz-local-scripts | none | 本地 HTTP + 无构建前端（框架无关）

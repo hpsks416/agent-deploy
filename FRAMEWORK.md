@@ -19,7 +19,7 @@
 
 ---
 
-## 二、核心 skill（15 个，跨框架迁移）
+## 二、已纳入本仓库的 skill（21 个）
 
 | 层 | skill | 一句话 |
 |----|-------|--------|
@@ -27,8 +27,10 @@
 | 自我反思 | `skill-lifecycle-manager` | 判断「要不要做成 skill」+ 建/分层/脚本化 |
 | 自我反思 | `skill-evaluator` | 测量 skill 是否有效（静态+A/B+lift） |
 | 自我反思 | `skill-optimizer` | 自动优化 skill（rollout→reflect→edit→gate 防假改进） |
+| 自我反思 | `meta-layer-optimizer` | 铁律+画像的四环优化（违规/偏离日志作信号） |
 | 编排 | `agent-workflow-orchestration` | 元工作流：拆解/并行/验证/收敛 |
 | 检索 | `open-source-scout` | 找现成开源项目 + 对比 |
+| 检索 | `iron-law-retrieval-first` | 铁律一「先检索」的可评估载体 |
 | 安全 | `secret-scan` | 扫描密钥泄露（只读、脱敏报告） |
 | 安全 | `secure-push-workflow` | 编排「打包→安检→推送」+ 强制检查 |
 | 安全 | `github-ready-packager` | 整理成 GitHub 项目（写 README 等） |
@@ -38,19 +40,22 @@
 | 对话 | `migrate-conversation-prompt` | 生成迁移/续聊提示词 |
 | 决策 | `agents-md-skill-layering` | 规则放 AGENTS.md 还是 skill |
 | 决策 | `long-sentence-structurizer` | 冗长需求改写成结构化提示词 |
+| 文档 | `doc-to-markdown` | Word/PDF 转 Markdown |
+| 运维 | `dsh-upgrade-ops` | DSH 升级/闪退定位 |
+| 学习 | `directed-article-learning` | 定向学习文章→框架查缺补漏 |
+| 可视化 | `browser-viz-local-scripts` | 本地脚本浏览器可视化（含桌面启动器/仪表盘） |
 
-## 三、非核心 skill（8 个，专业领域/个人，不参与框架迁移）
+## 三、不在本仓库的 skill（7 个，独立仓库/本机保留）
 
-| skill | 领域 |
-|---|---|
-| `web-3d-asset-pipeline` | 3D |
-| `rust-refactor-local-projects` | 重构 |
-| `browser-viz-local-scripts` | 可视化（含服务启动器/仪表盘，已纳入本仓库） |
-| `homophone-pun-analysis` | 谐音梗 |
-| `hpsks416` | 个人透镜 |
-| `windows-node-spawn-cli` | DSH/Windows |
-| `dsh-plugin-lazy-adapter-resolution` | DSH 插件 |
-| `hatch-pet` | 已退役，本地保留 |
+| skill | 领域 | 状态 |
+|---|---|---|
+| `web-3d-asset-pipeline` | 3D | 独立仓库 |
+| `rust-refactor-local-projects` | 重构 | 独立仓库 |
+| `homophone-pun-analysis` | 谐音梗 | 独立仓库 |
+| `hpsks416` | 个人透镜 | 独立仓库 |
+| `windows-node-spawn-cli` | DSH/Windows | 独立仓库 |
+| `dsh-plugin-lazy-adapter-resolution` | DSH 插件 | 独立仓库 |
+| `hatch-pet` | 宠物 | 已退役，本机保留 |
 
 ---
 
@@ -69,7 +74,7 @@
 ```
 铁律一（检索轮子）→ 动手前先检索
         ↓
-做事（用 15 个核心 skill）
+做事（用 21 个 skill）
         ↓
 铁律二（收尾反思）→ 命中就申请：要不要固化 skill？要不要提炼画像？
         ↓
@@ -96,15 +101,15 @@ agent-deploy/                    ← 本仓库（框架总仓库）
 ├── .gitignore
 ├── deploy.ps1                   ← 跨框架部署器
 ├── providers.json               ← 中间商 + 模型目录
-├── core-skills.txt              ← 15 个核心 skill 清单（含耦合等级）
+├── core-skills.txt              ← 21 个 skill 清单（含耦合等级）
 ├── templates/agents-core.md     ← 框架无关的两条铁律模板
 ├── FRAMEWORK-COUPLING.md        ← 框架耦合清单
 ├── docs/METHOD.md               ← 可复用执行方法（三道检索 + 四步强制检查）
-├── skills/                      ← 15 个核心 skill（已合并，废弃独立仓库）
+├── skills/                      ← 21 个 skill（已合并，废弃独立仓库）
 │   ├── agent-workflow-orchestration/
 │   ├── skill-lifecycle-manager/
 │   ├── skill-evaluator/  skill-optimizer/  secret-scan/  acp-studio/
-│   ├── ...（共 15 个，清单见 core-skills.txt）
+│   ├── ...（共 21 个，清单见 core-skills.txt）
 │   └── persona-manager/
 └── dsh-config/                  ← DSH 本机架构（合并进来的子仓库）
     ├── AGENTS.md
@@ -133,7 +138,7 @@ agent-deploy/                    ← 本仓库（框架总仓库）
 
 ## 附：这一路建了什么（时间线）
 
-- 23 个 skill 集合
+- 28 个 skill 集合
 - 两条铁律 + 画像
 - skill 生命周期链（评估/优化）
 - 跨框架部署器
@@ -142,4 +147,4 @@ agent-deploy/                    ← 本仓库（框架总仓库）
 - 全套 README 开源化
 - dsh-config 并入总仓库
 
-**核心一句话**：23 个 skill + 两条规则 + 画像文件 + 部署脚本，一键装到 Codex/Claude Code/DSH；改动前先检索、收尾时判断固化。
+**核心一句话**：28 个 skill + 两条规则 + 画像文件 + 部署脚本，一键装到 Codex/Claude Code/DSH；改动前先检索、收尾时判断固化。
