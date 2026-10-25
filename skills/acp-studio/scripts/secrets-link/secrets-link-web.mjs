@@ -32,18 +32,18 @@ function saveLinks(links) {
 function activeWs(links) {
   return links.workspaces[links.active] || links.workspaces[0];
 }
-function isAgeEncrypted(file) {
-  try {
-    return fs.readFileSync(file, 'utf8').split(/\r?\n/)[0].trim().startsWith('age-encryption.org/v1');
-  } catch { return false; }
+const PY = process.platform === 'win32' ? 'python' : 'python3';
+const DECRYPT_RUNTIME = path.join(DIR, 'decrypt-runtime.py');
+
+function isZip(file) {
+  return /\.zip$/i.test(file || '');
 }
 function readTokenFile(file, identity, ageBin) {
   try {
-    const raw = fs.readFileSync(file, 'utf8').trim();
-    if (raw.startsWith('age-encryption.org/v1') && identity) {
-      return execFileSync(ageBin, ['-d', '-i', identity, file], { encoding: 'utf8' }).trim();
+    if (isZip(file) && identity) {
+      return execFileSync(PY, [DECRYPT_RUNTIME, file, ageBin, identity], { encoding: 'utf8' }).trim();
     }
-    return raw;
+    return fs.readFileSync(file, 'utf8').trim();
   } catch { return null; }
 }
 function mask(token) {
@@ -60,9 +60,9 @@ function generateSecretsCmd(ws) {
   for (const [k, v] of Object.entries(ws.extra ?? {})) lines.push('set "' + k + '=' + v + '"');
   lines.push('');
   for (const t of ws.tokens) {
-    if (isAgeEncrypted(t.file) && ws.age && ws.age.identity) {
+    if (isZip(t.file) && ws.age && ws.age.identity) {
       const ab = (ws.age.bin) || 'age';
-      lines.push(`for /f "delims=" %%i in ('${ab} -d -i ${ws.age.identity} ${t.file}') do set "${t.var}=%%i"`);
+      lines.push(`for /f "delims=" %%i in ('${PY} ${DECRYPT_RUNTIME} ${t.file} ${ab} ${ws.age.identity}') do set "${t.var}=%%i"`);
     } else {
       lines.push('for /f "usebackq delims=" %%i in ("' + t.file + '") do set "' + t.var + '=%%i"');
     }
@@ -72,6 +72,10 @@ function generateSecretsCmd(ws) {
 }
 function regenerate(links) {
   const ws = activeWs(links);
+  const unencrypted = ws.tokens.filter(t => !isZip(t.file)).map(t => t.var);
+  if (unencrypted.length) {
+    return { target: ws.target, wrote: false, error: '有未加密的 token（非 .zip），拒绝生成 secrets.cmd：' + unencrypted.join(', ') };
+  }
   const cmd = generateSecretsCmd(ws);
   let target = ws.target, wrote = false, error = null;
   if (target) {
@@ -258,19 +262,20 @@ const server = http.createServer(async (req, res) => {
       const identity = (ws.age && ws.age.identity) || '';
       const ageBin = (ws.age && ws.age.bin) || 'age';
       if (!identity || !ageBin) { json({ ...snapshot(), error: '未配置 age.identity / age.bin' }); return; }
-      const py = process.platform === 'win32' ? 'python' : 'python3';
       const helper = path.join(DIR, 'encrypt-token.py');
       let ok = 0, firstErr = null;
       for (const i of (data.indices || [])) {
         const t = ws.tokens[i];
         if (!t) continue;
         try {
-          execFileSync(py, [helper, t.file, ageBin, identity], { encoding: 'utf8' });
+          execFileSync(PY, [helper, t.file, ageBin, identity], { encoding: 'utf8' });
+          t.file = t.file + '.zip';
           ok++;
         } catch (e) {
           if (!firstErr) firstErr = String(e?.stderr || e?.message || e);
         }
       }
+      saveLinks(links);
       json({ ...snapshot(), encrypted: ok, error: firstErr });
       return;
     }

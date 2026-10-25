@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
-"""encrypt-token.py — 加密一个 token 文件（AES-256-GCM 备份 + age 密文）。
+"""encrypt-token.py — 加密 token：AES 备份 + age 密文 → 打包成 zip（公钥做 zip 密码）。
 
-流程（精简：私钥即备份密码）：
-  1) 明文先 AES-256-GCM 加密备份到同目录 <file>.backup.enc（密码 = 私钥 AGE-SECRET-KEY 行）；
-  2) 原文件内容改成 age 密文（公钥从 identity 解析）。
+流程（防误操作：最终产物是 .zip，面板只认 zip）：
+  1) 明文 AES-256-GCM 备份 <file>.backup.enc（密码 = 私钥）；
+  2) 明文 age 加密成密文；
+  3) 密文打包成 zip <file>.zip（zip 密码 = 公钥，作为「已加密」的格式标记）；
+  4) 删原明文文件。
 
 依赖：cryptography + age 二进制。无需 pip。
 用法: python encrypt-token.py <token_file> <age_bin> <identity>
@@ -11,6 +13,7 @@
 import os
 import re
 import sys
+import zipfile
 import subprocess
 
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
@@ -28,12 +31,12 @@ def _derive_key(password: bytes, salt: bytes) -> bytes:
     return kdf.derive(password)
 
 
-def aes_encrypt_backup(file: str, secret: str) -> str:
-    plaintext = open(file, "rb").read()
+def aes_backup(file: str, secret: str) -> str:
+    pt = open(file, "rb").read()
     salt = os.urandom(SALT_LEN)
     nonce = os.urandom(NONCE_LEN)
     key = _derive_key(secret.encode(), salt)
-    ct = AESGCM(key).encrypt(nonce, plaintext, None)
+    ct = AESGCM(key).encrypt(nonce, pt, None)
     out = file + ".backup.enc"
     with open(out, "wb") as f:
         f.write(MAGIC + salt + nonce + ct)
@@ -55,11 +58,19 @@ def main():
     pubkey = m.group(0)
     secret = s.group(0)
 
-    backup = aes_encrypt_backup(file, secret)  # 密码 = 私钥
-    tmp = file + ".age.tmp"
-    subprocess.run([age_bin, "-e", "-r", pubkey, "-o", tmp, file], check=True)
-    os.replace(tmp, file)
-    print("encrypted:", os.path.basename(file), "-> backup", os.path.basename(backup))
+    backup = aes_backup(file, secret)  # 1) AES 备份
+
+    age_ct = file + ".age.tmp"          # 2) age 加密
+    subprocess.run([age_bin, "-e", "-r", pubkey, "-o", age_ct, file], check=True)
+
+    zp = file + ".zip"                  # 3) 密文打包 zip（密码 = 公钥）
+    with zipfile.ZipFile(zp, "w", zipfile.ZIP_DEFLATED) as zf:
+        zf.setpassword(pubkey.encode())
+        zf.write(age_ct, os.path.basename(file))
+    os.remove(age_ct)
+
+    os.remove(file)                     # 4) 删原明文
+    print("encrypted:", os.path.basename(file), "->", os.path.basename(zp), "+", os.path.basename(backup))
 
 
 if __name__ == "__main__":
