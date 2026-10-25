@@ -124,3 +124,4 @@ When creating or initializing a repository without a specified license, default 
 ## References
 
 - `scripts/sync_github_gitee.py`: the bundled bidirectional sync script.
+- `references/secrets-link-guide.md`: secrets-link 加密存储完整指南（配置 / 三层加密 / 恢复 / 多工作区 / 安全模型）。
