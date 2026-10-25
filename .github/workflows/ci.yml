@@ -57,7 +57,7 @@ jobs:
       - name: 动态 evals（带 evals.yaml 的 skill）
         env:
           EVAL_BASE_URL: https://api.deepseek.com
-          EVAL_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          EVAL_API_KEY: ${{ secrets.deepseekv4pro }}
           EVAL_MODEL: deepseek-v4-pro
         run: |
           failed=0
