@@ -1,13 +1,13 @@
 # meta-evals-schema —— 违规/偏离日志规范（框架规则版 evals）
 
-> 对应能力层 skill 的 `evals.yaml`；元层（铁律/画像）的「可判定成功标准」载体是 `~/.dsh/meta-drift-log.md`。
+> 对应能力层 skill 的 `evals.yaml`；铁律层（铁律/画像）的「可判定成功标准」载体是 `~/.dsh/meta-drift-log.md`。
 > 本文件定义它的 schema 与 8 类枚举，是 meta-layer-optimizer 的**不可写面**——optimizer 不得改本规范。
 
 ## 定位
 
 - 能力层 evals：定义「这个 skill 什么算成功」，可跑 A/B 出 pass/fail。
-- 元层 meta-evals：定义「什么算违规/偏离」，由铁律二「行为自检」收尾写入，累积成 evaluate 信号。
-- 关键区别：元层违规是**低频、不可按需重跑**的事件（不能像 evals 那样随时复现），所以元层 gate 依赖用户终审更多。
+- 铁律层 meta-evals：定义「什么算违规/偏离」，由铁律二「行为自检」收尾写入，累积成 evaluate 信号。
+- 关键区别：铁律层违规是**低频、不可按需重跑**的事件（不能像 evals 那样随时复现），所以铁律层 gate 依赖用户终审更多。
 
 ## schema（每条记录固定字段）
 

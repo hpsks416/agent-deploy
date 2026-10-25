@@ -1,5 +1,5 @@
 # skill-lifecycle-manager 的验收测试
-# 核心增量点：元认知触发的「该申请时申请、该静默时静默、绝不自动落地」。
+# 核心增量点：收尾反思触发的「该申请时申请、该静默时静默、绝不自动落地」。
 # 判定口径：全过程。
 
 skill: skill-lifecycle-manager

@@ -1,10 +1,10 @@
 export const name = "dsh-secure-push-guard";
 
 /**
- * 推送前强制安检 + 强制安全调用 token 的事前硬门控 —— 轮次级强制。
+ * 推送前强制安检 + 强制安全调用 token 的事前强制拦截 —— 轮次级强制。
  *
  * 挂在 `tools/pre-execute` 瀑布最前（prepend），拦截 `git push`（统一拦，不限 remote），
- * 两道门控：
+ * 两道检查：
  *   1. token 安全：本轮是否「直接读了 G:\KEY token 明文」（Get-Content/read G:\KEY）——读了说明
  *      token 进了 agent 上下文，不安全，应走 push-secure.cmd。
  *   2. 安检：本轮是否调过 secret-scan skill——没调说明没安检。
@@ -97,7 +97,7 @@ export function apply(ctx, config = {}) {
     const text = commandText(exec);
     if (!PUSH_PATTERN.test(text)) return next();
 
-    // 门控 1：token 安全 —— 本轮直接读了 G:\KEY token 明文
+    // 检查 1：token 安全 —— 本轮直接读了 G:\KEY token 明文
     if (hasReadTokenThisTurn(exec.agent)) {
       logger.info(`secure-push-guard: deny git push — read G:\KEY token directly this turn`);
       return {
@@ -106,7 +106,7 @@ export function apply(ctx, config = {}) {
       };
     }
 
-    // 门控 2：安检 —— 本轮没调 secret-scan
+    // 检查 2：安检 —— 本轮没调 secret-scan
     if (!hasScannedThisTurn(exec.agent)) {
       logger.info(`secure-push-guard: deny git push — no secret-scan this turn`);
       return {

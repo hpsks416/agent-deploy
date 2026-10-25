@@ -5,7 +5,7 @@ description: Optimize the meta layer (铁律 in AGENTS.md + persona.md) through 
 
 # Meta-Layer Optimizer（自我改进四环）
 
-对称 `skill-optimizer`（能力层四环），把 evaluate→reflect→edit→gate 从「skill 文档」抬升到「规则资产」——**铁律（AGENTS.md）+ 画像（persona.md）**。核心：元层和能力层是同一个「认知资产自我改进四环」抽象的两个实例，唯一区别在 evaluate 信号源——能力层看任务 A/B 表现，元层看**违规率 / 偏离率 / 画像一致性**（来自 `~/.dsh/meta-drift-log.md`）。
+对称 `skill-optimizer`（能力层四环），把 evaluate→reflect→edit→gate 从「skill 文档」抬升到「规则资产」——**铁律（AGENTS.md）+ 画像（persona.md）**。核心：铁律层和能力层是同一个「认知资产自我改进四环」抽象的两个实例，唯一区别在 evaluate 信号源——能力层看任务 A/B 表现，铁律层看**违规率 / 偏离率 / 画像一致性**（来自 `~/.dsh/meta-drift-log.md`）。
 
 
 ## 何时用
@@ -71,7 +71,7 @@ description: Optimize the meta layer (铁律 in AGENTS.md + persona.md) through 
 
 - **结构门（脚本可判定，先跑）**：`_draft` 不得触碰不可写面（枚举/gate 集/已否决条目）、改动 ≤3 处、未新增违规类型。
 - **行为门（LLM 判定）**：用 gate 集违规案例「重放」——把 `_draft` 铁律/画像代入，判定「若当时用新版，这条违规是否会被避免」，且「不会引入新的违规类型」。
-- **诚实局限（必须向用户声明）**：元层没有能力层那种「跑 evals 出 pass/fail」的确定性执行面——行为门是 LLM 判定，**比 skill 层的 gate 弱**。因此元层的最终 gate 是**用户终审**，不是脚本。这是元层自我改进天生的不对称，不掩盖。
+- **诚实局限（必须向用户声明）**：铁律层没有能力层那种「跑 evals 出 pass/fail」的确定性执行面——行为门是 LLM 判定，**比 skill 层的 gate 弱**。因此铁律层的最终 gate 是**用户终审**，不是脚本。这是铁律层自我改进天生的不对称，不掩盖。
 - 通过 → 报告 `_draft` + 前后对比，请用户终审。不通过 → 报告「被 gate 拒绝」，不覆盖、不声称成功。
 
 ### 阶段 5 — 用户终审

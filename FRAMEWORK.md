@@ -88,14 +88,18 @@ skill-optimizer → 优化（gate 防假改进，产出 _draft）
 
 ```
 agent-deploy/                    ← 本仓库（框架总仓库）
+├── AGENTS.md                    ← 两条铁律（先检索、收尾反思）
 ├── FRAMEWORK.md                 ← 本文件（框架地图，总领全文）
 ├── COMPARISON.md                ← 框架及各 skill 与其他轮子的区别
 ├── README.md                    ← 仓库入口
+├── LICENSE                      ← MIT
+├── .gitignore
 ├── deploy.ps1                   ← 跨框架部署器
 ├── providers.json               ← 中间商 + 模型目录
 ├── core-skills.txt              ← 15 个核心 skill 清单（含耦合等级）
 ├── templates/agents-core.md     ← 框架无关的两条铁律模板
 ├── FRAMEWORK-COUPLING.md        ← 框架耦合清单
+├── docs/METHOD.md               ← 可复用执行方法（三道检索 + 四步强制检查）
 ├── skills/                      ← 15 个核心 skill（已合并，废弃独立仓库）
 │   ├── agent-workflow-orchestration/
 │   ├── skill-lifecycle-manager/
@@ -106,10 +110,12 @@ agent-deploy/                    ← 本仓库（框架总仓库）
     ├── AGENTS.md
     ├── settings.yaml
     ├── install.ps1              ← DSH 本机一键恢复
+    ├── launch-dsh.cmd           ← 本机启动脚本
+    ├── restart-dsh.ps1          ← 本机重启脚本
     ├── profile-web/
     ├── dsh-skill-studio-patched/
     ├── dsh-goat-vision/         ← 视觉桥插件（图片转文本，双链路 GOAT/官方）
-    ├── dsh-retrieval-guard/     ← 动手前先检索 + 门控
+    ├── dsh-retrieval-guard/     ← 动手前先检索 + 强制拦截
     ├── dsh-secure-push-guard/   ← push 前安检
     └── dsh-session-sync-flush/  ← 关键事件后落盘
 ```

@@ -1,7 +1,7 @@
 export const name = "dsh-retrieval-guard";
 
 /**
- * 铁律一（先检索）的事前硬门控 —— 轮次级强制。
+ * 铁律一（先检索）的事前强制拦截 —— 轮次级强制。
  *
  * 挂在 `tools/pre-execute` 瀑布最前（prepend），拦截两类「大概率造轮子」的动作：
  *   1. write/edit 到代码/脚本/skill 文件（.py/.js/.ts/.sh/.ps1/.../SKILL.md/AGENTS.md）
@@ -9,7 +9,7 @@ export const name = "dsh-retrieval-guard";
  *
  * 判定依据：**每轮**（最近一次 user/message 之后）是否已调过检索工具（web_search / open-source-scout）。
  * 不是「会话里检索过一次就永久放行」，而是「每一轮都要先检索」——上一轮搜过不代表这一轮能跳过。
- * 这是 harness 层的硬门控，不靠模型自觉。
+ * 这是 harness 层的强制拦截，不靠模型自觉。
  */
 export function apply(ctx, config = {}) {
   const logger = ctx.logger("retrieval-guard");
@@ -75,7 +75,7 @@ export function apply(ctx, config = {}) {
     const tool = exec?.name;
 
     // 融合 dsh-guardian：先查通用安全（危险命令/明文密钥/SSRF/提示注入），命中就弹框强制触发。
-    // dsh-guardian 未安装或调用失败时静默跳过，不影响我们的业务门控。
+    // dsh-guardian 未安装或调用失败时静默跳过，不影响我们的业务拦截。
     try {
       const g = ctx.bail("guardian/check", tool, exec?.arguments);
       if (g && g.intercepted) {

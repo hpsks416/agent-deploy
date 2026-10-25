@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""eval_drift.py — 解析 meta-drift-log.md，产出元层四环的 evaluate 信号（违规率/漂移率）。
+"""eval_drift.py — 解析 meta-drift-log.md，产出铁律层四环的 evaluate 信号（违规率/偏离率）。
 
 用法：
   python eval_drift.py [--log PATH]
@@ -9,7 +9,7 @@
 输出（JSON）：
   total          总违规数
   by_type        {类型: 次数}
-  drift_types    [{type, count, max_n}]  第N次 >= 2 即漂移（同类反复犯 = 规则失效）
+  drift_types    [{type, count, max_n}]  第N次 >= 2 即偏离（同类反复犯 = 规则失效）
   unknown_types  [非法类型]（不在 8 类枚举里，先修日志/枚举，不直接归因）
 
 只认头行锚点 `### [类型] ... 第N次`；read-only，stdlib。

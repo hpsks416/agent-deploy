@@ -14,9 +14,11 @@ DeepSeek Harness（DSH）本机架构与配置快照 —— 一键恢复「换�
 - `profile-web/` — web profile 配置（cordis.patch.yml / cordis.yml / package.json / pnpm-workspace.yaml）
 - `dsh-skill-studio-patched/` — dsh-skill-studio 提取器修复版（多帧 zstd 解压 + token 预算 + JSON 解析）
 - `dsh-goat-vision/` — 视觉桥插件（图片转文本）
-- `dsh-retrieval-guard/` — 动手前先检索 + 门控
-- `dsh-secure-push-guard/` — push 前安检 + token 门控
+- `dsh-retrieval-guard/` — 动手前先检索 + 强制拦截
+- `dsh-secure-push-guard/` — push 前安检 + token 检查
 - `dsh-session-sync-flush/` — 关键事件后落盘
+- `launch-dsh.cmd` — 本机启动脚本
+- `restart-dsh.ps1` — 本机重启脚本
 - `install.ps1` — 一键恢复脚本
 
 ## 一键恢复
