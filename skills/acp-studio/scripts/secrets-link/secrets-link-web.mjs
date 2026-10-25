@@ -194,12 +194,10 @@ async function delWs() {
 async function encryptSelected() {
   const idx = Array.from(document.querySelectorAll('.sel:checked')).map(cb => Number(cb.dataset.i));
   if (!idx.length) { toast('先勾选要加密的 token'); return; }
-  const pw = prompt('zip 备份密码（解压恢复用，请记牢）：');
-  if (!pw) return;
-  const r = await fetch('/api/encrypt', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ indices: idx, password: pw }) });
+  const r = await fetch('/api/encrypt', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ indices: idx }) });
   const j = await r.json();
   state = j; render();
-  toast(j.encrypted ? ('已加密 ' + j.encrypted + ' 个：原文件→age密文，明文存 password zip') : ('加密失败：' + (j.error || '')));
+  toast(j.encrypted ? ('已加密 ' + j.encrypted + ' 个：原文件→age密文，AES 备份（私钥即密码）') : ('加密失败：' + (j.error || '')));
 }
 function toast(m) { const t = document.getElementById('toast'); t.textContent = m; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 3000); }
 document.getElementById('regen').onclick = regen;
@@ -267,7 +265,7 @@ const server = http.createServer(async (req, res) => {
         const t = ws.tokens[i];
         if (!t) continue;
         try {
-          execFileSync(py, [helper, t.file, ageBin, identity, String(data.password || '')], { encoding: 'utf8' });
+          execFileSync(py, [helper, t.file, ageBin, identity], { encoding: 'utf8' });
           ok++;
         } catch (e) {
           if (!firstErr) firstErr = String(e?.stderr || e?.message || e);

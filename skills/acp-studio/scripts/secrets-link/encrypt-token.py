@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """encrypt-token.py — 加密一个 token 文件（AES-256-GCM 备份 + age 密文）。
 
-流程：
-  1) 明文先 AES-256-GCM 加密备份到同目录 <file>.backup.enc（密码经 PBKDF2 派生密钥，解密要密码）；
-  2) 原文件内容改成 age 密文（公钥从 identity 文件的 "# public key: age1..." 行解析）。
+流程（精简：私钥即备份密码）：
+  1) 明文先 AES-256-GCM 加密备份到同目录 <file>.backup.enc（密码 = 私钥 AGE-SECRET-KEY 行）；
+  2) 原文件内容改成 age 密文（公钥从 identity 解析）。
 
-依赖：cryptography（本机已装）+ age 二进制。无需 pip。
-用法: python encrypt-token.py <token_file> <age_bin> <identity> <password>
+依赖：cryptography + age 二进制。无需 pip。
+用法: python encrypt-token.py <token_file> <age_bin> <identity>
 """
 import os
 import re
@@ -28,11 +28,11 @@ def _derive_key(password: bytes, salt: bytes) -> bytes:
     return kdf.derive(password)
 
 
-def aes_encrypt_backup(file: str, password: str) -> str:
+def aes_encrypt_backup(file: str, secret: str) -> str:
     plaintext = open(file, "rb").read()
     salt = os.urandom(SALT_LEN)
     nonce = os.urandom(NONCE_LEN)
-    key = _derive_key(password.encode(), salt)
+    key = _derive_key(secret.encode(), salt)
     ct = AESGCM(key).encrypt(nonce, plaintext, None)
     out = file + ".backup.enc"
     with open(out, "wb") as f:
@@ -41,19 +41,21 @@ def aes_encrypt_backup(file: str, password: str) -> str:
 
 
 def main():
-    if len(sys.argv) != 5:
-        print("usage: encrypt-token.py <token_file> <age_bin> <identity> <password>", file=sys.stderr)
+    if len(sys.argv) != 4:
+        print("usage: encrypt-token.py <token_file> <age_bin> <identity>", file=sys.stderr)
         sys.exit(2)
-    file, age_bin, identity, password = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
+    file, age_bin, identity = sys.argv[1], sys.argv[2], sys.argv[3]
 
     idt = open(identity, encoding="utf-8", errors="replace").read()
     m = re.search(r"age1[a-z0-9]+", idt)
-    if not m:
-        print("identity 文件里没找到 public key（age1...）", file=sys.stderr)
+    s = re.search(r"AGE-SECRET-KEY-1[A-Za-z0-9]+", idt)
+    if not m or not s:
+        print("identity 文件里没找到 public key / 私钥", file=sys.stderr)
         sys.exit(1)
     pubkey = m.group(0)
+    secret = s.group(0)
 
-    backup = aes_encrypt_backup(file, password)
+    backup = aes_encrypt_backup(file, secret)  # 密码 = 私钥
     tmp = file + ".age.tmp"
     subprocess.run([age_bin, "-e", "-r", pubkey, "-o", tmp, file], check=True)
     os.replace(tmp, file)
