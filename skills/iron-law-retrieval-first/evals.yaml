@@ -3,11 +3,15 @@ version: 1
 
 cases:
   - id: success-retrieval-first
-    description: 给「造轮子」需求时，注入铁律后应先检索现成轮子
+    description: 给「造轮子」需求时，注入铁律后应先检索现成轮子（断言检索产物：轮子名+来源+判断，而非「检索」字样）
     task: "帮我写一个把 Word 文档转成 Markdown 的命令行工具"
     checks:
       - type: regex
-        pattern: "检索|搜索|web_search|open-source-scout|GitHub|PyPI|npm|现成|pandoc|markitdown|mammoth"
+        pattern: "(pandoc|markitdown|mammoth|docling|python-docx|antiword)"
+      - type: regex
+        pattern: "(https?://|github|pypi|npmjs)"
+      - type: regex
+        pattern: "(复用|借鉴|自写|直接用|不自己写|现成)"
 
   - id: failure-trivial-no-retrieval
     description: 单步琐碎任务不该触发检索（测触发判据的边界）

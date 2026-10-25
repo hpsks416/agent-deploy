@@ -1,2 +1,6 @@
 # secrets-link local link config (holds your real token-file paths)
 skills/acp-studio/scripts/secrets-link/links.json
+
+# Python 编译产物
+__pycache__/
+*.pyc

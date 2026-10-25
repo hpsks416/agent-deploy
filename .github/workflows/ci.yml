@@ -1,0 +1,71 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  static-check:
+    # 静态体检：对 skills/ 下每个 skill 跑 static_check.py，纯 Python 无 LLM 依赖。
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: 静态体检 skills/
+        run: |
+          python - <<'PY'
+          import json, subprocess, sys
+          from pathlib import Path
+          skill_dirs = [d for d in sorted(Path("skills").iterdir()) if d.is_dir()]
+          fails = []
+          for d in skill_dirs:
+              r = subprocess.run(
+                  ["python", "skills/skill-evaluator/scripts/static_check.py", "--skill", str(d)],
+                  capture_output=True, text=True,
+              )
+              try:
+                  out = json.loads(r.stdout)
+              except Exception:
+                  fails.append(f"{d.name}: 输出解析失败")
+                  continue
+              bad = [c for c in out.get("checks", []) if c.get("result") == "fail"]
+              if bad:
+                  fails.append(f"{d.name}: {len(bad)} 项 fail")
+          print(f"静态体检 {len(skill_dirs)} 个 skill，fail {len(fails)} 个")
+          for f in fails:
+              print("  FAIL " + f)
+          if fails:
+              sys.exit(1)
+          PY
+
+  dynamic-evals:
+    # 动态 evals：对「带 evals.yaml 的 skill」跑 with-skill vs without-skill A/B。
+    # 需要 GitHub Secrets 配置 LLM key（值与本机 .cmd 里的 key 相同）。
+    runs-on: ubuntu-latest
+    needs: static-check
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install pyyaml
+      - name: 动态 evals（带 evals.yaml 的 skill）
+        env:
+          EVAL_BASE_URL: https://api.commandcode.ai/provider/v1
+          EVAL_API_KEY: ${{ secrets.COMMANDCODE_API_KEY }}
+          EVAL_MODEL: deepseek/deepseek-v4-pro
+        run: |
+          failed=0
+          for d in skills/*/; do
+            if [ -f "$d/evals.yaml" ]; then
+              echo "===== 评估 $d ====="
+              python skills/skill-evaluator/scripts/run_evals.py "$d" || failed=1
+            fi
+          done
+          if [ "$failed" -ne 0 ]; then
+            echo "存在 with-skill 未通过的用例"
+            exit 1
+          fi
