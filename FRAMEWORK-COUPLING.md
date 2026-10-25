@@ -4,7 +4,7 @@
 
 ## 前提
 
-skill 资产本身是**框架无关**的 AgentSkills 格式（`SKILL.md` + frontmatter `name`/`description` + `scripts/`/`references/`），Codex / Claude Code / DSH 共用同一套约定。所以「换框架」对 skill 正文而言是「复制到不同目录」，不是「转译」。
+skill 资产本身是**框架无关**的 Agent Skills（AAIF/Linux Foundation，原 Anthropic 捐赠）格式（`SKILL.md` + frontmatter `name`/`description` + `scripts/`/`references/`），Codex / Claude Code / DSH 共用同一套约定。所以「换框架」对 skill 正文而言是「复制到不同目录」，不是「转译」。
 
 但 skill 正文里会**散落少量「框架相关」的引用**——DSH 的工具名（`skillmgr_*`、`session_query`）、DSH 的会话路径（`~/.dsh\sessions`、projcache、`.zstd`）、以及环境硬编码（proxy、owner、凭据）。这些是「换框架/换机器」后需要核对的点，按耦合度分四档：
 
