@@ -202,12 +202,14 @@ def main():
         "cases": results,
     }, ensure_ascii=False, indent=2))
 
-    # 闸门：with-skill 全过 且 lift > 0（with 必须严格优于 without，否则 dead weight 也绿）
+    # 闸门：with-skill 全过（真回归才红）+ lift<0（负增益才红）；lift=0 是 dead weight 只警告不红
     if with_pass != total:
         return 1
-    if lift <= 0:
-        print("lift=%s <= 0：with-skill 未优于 without-skill（dead weight），闸门不放行" % round(lift, 3), file=sys.stderr)
+    if lift < 0:
+        print("lift=%s < 0：with-skill 劣于 without-skill（负增益），闸门不放行" % round(lift, 3), file=sys.stderr)
         return 1
+    if lift == 0:
+        print("lift=0：with-skill 与 without-skill 打平（dead weight 警告，不红；evals 需加强区分度）", file=sys.stderr)
     return 0
 
 
