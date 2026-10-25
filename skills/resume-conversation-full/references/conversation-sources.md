@@ -36,15 +36,23 @@
   - projcache：`~/.dsh\storages\session_projcache\sessions\<session-id>.json`
   - zstd 日志：`~/.dsh\sessions\--<workspace>--\<session-id>\session.v3.jsonl.zstd`
 
+### 源 3：`codex-native` —— Codex 原生会话
+
+- **适用**：对话是 Codex 原生会话（非迁移 .md）。
+- **定位**（按对话名 → session-id）：
+  1. 读 `~/.codex\session_index.jsonl`（会话索引，逐行 JSON），按标题/对话名匹配得 session-id。
+  2. 或用 `~/.codex\.codex-global-state.json`（全局状态：会话列表/置顶）查。
+  3. 已归档会话在 `~/.codex\archived_sessions\` 里找。
+- **读取全文**：
+  - 真正的会话记录在 SQLite `~/.codex\sqlite\codex-dev.db`（+ `-wal`/`-shm`）。用 `python -c "import sqlite3; ..."` 查（sqlite3 标准库，无额外依赖；具体表结构以库内实际为准）。
+  - 会话文件按 `年\月` 分在 `~/.codex\sessions\2026\09\...`。
+- **读取主干**：读 `session_index.jsonl` 的索引条目（含标题/摘要），或 `.codex-global-state.json` 的会话列表。
+- **路径配置**（换机器改这里）：
+  - 会话主目录：`~/.codex\sessions\`
+  - 记录库：`~/.codex\sqlite\codex-dev.db`
+  - 索引：`~/.codex\session_index.jsonl`
+  - 归档：`~/.codex\archived_sessions\`
+
 ## 如何新增一个会话源（换框架时）
 
 在「已知会话源」里追加一节，写清四件事：**适用条件、定位方法、读取全文方法、读取主干方法**。SKILL.md 正文不用改——它会自动遍历本文件所有源。
-
-示例（换到 Codex 原生会话时加）：
-
-> ### 源 3：`codex-native` —— Codex 原生会话
-> - **适用**：对话是 Codex 原生会话（非迁移 .md）。
-> - **定位**：用 Codex 的会话列表工具，按对话名匹配 session-id。
-> - **读取全文**：读 Codex 会话存储的完整 rollout。
-> - **读取主干**：读会话的 turn 摘要。
-> - **路径配置**：`~/.codex\sessions\...`（按实际填）。
