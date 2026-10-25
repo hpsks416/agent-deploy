@@ -4,6 +4,7 @@
       "name": "DSH 本机",
       "target": "C:\\path\\to\\acp-studio\\secrets.cmd",
       "age": {
+        "bin": "C:\\path\\to\\age.exe",
         "identity": "C:\\path\\to\\age-identity.txt"
       },
       "tokens": [

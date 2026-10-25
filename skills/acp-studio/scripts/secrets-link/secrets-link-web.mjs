@@ -8,7 +8,7 @@ import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { execSync } from 'node:child_process';
+import { execSync, execFileSync } from 'node:child_process';
 
 const DIR = path.dirname(fileURLToPath(import.meta.url));
 const LINKS_PATH = path.join(DIR, 'links.json');
@@ -37,11 +37,11 @@ function isAgeEncrypted(file) {
     return fs.readFileSync(file, 'utf8').split(/\r?\n/)[0].trim().startsWith('age-encryption.org/v1');
   } catch { return false; }
 }
-function readTokenFile(file, identity) {
+function readTokenFile(file, identity, ageBin) {
   try {
     const raw = fs.readFileSync(file, 'utf8').trim();
     if (raw.startsWith('age-encryption.org/v1') && identity) {
-      return execSync(`age -d -i "${identity}" "${file}"`, { encoding: 'utf8' }).trim();
+      return execFileSync(ageBin, ['-d', '-i', identity, file], { encoding: 'utf8' }).trim();
     }
     return raw;
   } catch { return null; }
@@ -61,7 +61,8 @@ function generateSecretsCmd(ws) {
   lines.push('');
   for (const t of ws.tokens) {
     if (isAgeEncrypted(t.file) && ws.age && ws.age.identity) {
-      lines.push(`for /f "usebackq delims=" %%i in ('age -d -i "${ws.age.identity}" "${t.file}"') do set "${t.var}=%%i"`);
+      const ab = (ws.age.bin) || 'age';
+      lines.push(`for /f "delims=" %%i in ('${ab} -d -i ${ws.age.identity} ${t.file}') do set "${t.var}=%%i"`);
     } else {
       lines.push('for /f "usebackq delims=" %%i in ("' + t.file + '") do set "' + t.var + '=%%i"');
     }
@@ -86,8 +87,9 @@ function snapshot() {
   const links = loadLinks();
   const ws = activeWs(links);
   const identity = (ws.age && ws.age.identity) || '';
+  const ageBin = (ws.age && ws.age.bin) || 'age';
   const tokens = ws.tokens.map((t) => {
-    const content = readTokenFile(t.file, identity);
+    const content = readTokenFile(t.file, identity, ageBin);
     const m = mask(content);
     return { var: t.var, file: t.file, exists: content != null, mask: m.text };
   });
