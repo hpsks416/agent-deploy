@@ -1,0 +1,4 @@
+interface:
+  display_name: "Browser Viz for Local Scripts"
+  short_description: "Add a browser visualization to a local script project"
+  default_prompt: "Add a browser-based visualization or UI to this local script project."

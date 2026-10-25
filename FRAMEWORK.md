@@ -45,7 +45,7 @@
 |---|---|
 | `web-3d-asset-pipeline` | 3D |
 | `rust-refactor-local-projects` | 重构 |
-| `browser-viz-local-scripts` | 可视化 |
+| `browser-viz-local-scripts` | 可视化（含服务启动器/仪表盘，已纳入本仓库） |
 | `homophone-pun-analysis` | 谐音梗 |
 | `hpsks416` | 个人透镜 |
 | `windows-node-spawn-cli` | DSH/Windows |
