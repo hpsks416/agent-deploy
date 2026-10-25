@@ -84,6 +84,7 @@ quirks worth handling in the push command:
 - 可视化面板（零依赖 Node，`scripts/secrets-link/secrets-link-web.mjs`，端口 7782）：显示「变量 → 文件路径 → token 预览（脱敏）」，支持手动改路径（初次部署/迁移用）。**多 AGENT 工作区**：`links.json` 顶层是 `workspaces[]`，每个工作区独立的 `target` + `tokens` + `extra`，面板下拉切换（DSH / Codex / Claude / 各机器各一套 secrets.cmd）。
 - 首次使用：复制 `scripts/secrets-link/links.json.example` → `links.json`，填入真实 token 文件路径。`links.json` 含真实路径，需 gitignore，不入库。
 - **age 公私钥加密存储（可选）**：`age-keygen -o key.txt` 生成密钥对 → `age -e -r <公钥> -o token.age token` 加密 → 工作区 `age.identity` 指到私钥 `key.txt`。面板检测 `age-encryption.org/v1` 魔数自动 `age -d` 解密预览；`secrets.cmd` 的 `for /f` 也改成运行时 `age -d -i <identity>` 解密。G:\KEY 存密文，只有私钥能解。
+- **面板一键加密（选择加密对象）**：勾选 token →「🔒 加密选中」→ 输入 zip 备份密码。流程：明文先压成密码 zip 备份 `<file>.backup.zip`（同目录，解压要密码），再把原文件改成 age 密文（`encrypt-token.py` 实现）。评估：age 密文不含明文（无私钥无法泄露）、zip 无密码读不了——但 Python `zipfile` 是 **ZipCrypto 弱加密**（可被暴力破解），要强加密换 7z 的 AES-256。
 
 ## Types and emoji
 

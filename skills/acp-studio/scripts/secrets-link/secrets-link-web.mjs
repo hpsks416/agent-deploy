@@ -130,12 +130,13 @@ const HTML = `<!doctype html>
   <button id="wsDel">－ 删除当前</button>
 </div>
 <table id="tbl">
-  <thead><tr><th>变量</th><th>连接路径（文件内容 = token）</th><th>状态</th><th>token 预览</th><th></th></tr></thead>
+  <thead><tr><th>选</th><th>变量</th><th>连接路径（文件内容 = token）</th><th>状态</th><th>token 预览</th><th></th></tr></thead>
   <tbody></tbody>
 </table>
 <div class="footer">
   <div>secrets.cmd 目标：<code id="target"></code></div>
   <button id="regen">立即重新生成 secrets.cmd</button>
+  <button id="encrypt">🔒 加密选中</button>
   <div class="note">保存路径时自动重新生成；token 明文只存在 G:\\KEY 文件内容里，本页只显示前 4 位 + 后 2 位。</div>
 </div>
 <div id="toast"></div>
@@ -152,7 +153,8 @@ function render() {
   const tb = document.querySelector('#tbl tbody'); tb.innerHTML = '';
   state.tokens.forEach((t, i) => {
     const tr = document.createElement('tr');
-    tr.innerHTML = '<td><code>' + t.var + '</code></td>' +
+    tr.innerHTML = '<td><input type="checkbox" class="sel" data-i="' + i + '"></td>' +
+      '<td><code>' + t.var + '</code></td>' +
       '<td class="cell-file"><code class="path">' + (t.file || '') + '</code></td>' +
       '<td class="' + (t.exists ? 'ok' : 'bad') + '">' + (t.exists ? '✓ 存在' : '✗ 缺失') + '</td>' +
       '<td>' + t.mask + '</td>' +
@@ -189,8 +191,19 @@ async function delWs() {
   const r = await fetch('/api/delete', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ index: state.active }) });
   state = await r.json(); render();
 }
+async function encryptSelected() {
+  const idx = Array.from(document.querySelectorAll('.sel:checked')).map(cb => Number(cb.dataset.i));
+  if (!idx.length) { toast('先勾选要加密的 token'); return; }
+  const pw = prompt('zip 备份密码（解压恢复用，请记牢）：');
+  if (!pw) return;
+  const r = await fetch('/api/encrypt', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ indices: idx, password: pw }) });
+  const j = await r.json();
+  state = j; render();
+  toast(j.encrypted ? ('已加密 ' + j.encrypted + ' 个：原文件→age密文，明文存 password zip') : ('加密失败：' + (j.error || '')));
+}
 function toast(m) { const t = document.getElementById('toast'); t.textContent = m; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 3000); }
 document.getElementById('regen').onclick = regen;
+document.getElementById('encrypt').onclick = encryptSelected;
 document.getElementById('wsSel').onchange = e => selectWs(Number(e.target.value));
 document.getElementById('wsAdd').onclick = addWs;
 document.getElementById('wsDel').onclick = delWs;
@@ -240,6 +253,27 @@ const server = http.createServer(async (req, res) => {
         saveLinks(links);
       }
       json(snapshot());
+      return;
+    }
+    if (req.method === 'POST' && url.pathname === '/api/encrypt') {
+      const ws = activeWs(links);
+      const identity = (ws.age && ws.age.identity) || '';
+      const ageBin = (ws.age && ws.age.bin) || 'age';
+      if (!identity || !ageBin) { json({ ...snapshot(), error: '未配置 age.identity / age.bin' }); return; }
+      const py = process.platform === 'win32' ? 'python' : 'python3';
+      const helper = path.join(DIR, 'encrypt-token.py');
+      let ok = 0, firstErr = null;
+      for (const i of (data.indices || [])) {
+        const t = ws.tokens[i];
+        if (!t) continue;
+        try {
+          execFileSync(py, [helper, t.file, ageBin, identity, String(data.password || '')], { encoding: 'utf8' });
+          ok++;
+        } catch (e) {
+          if (!firstErr) firstErr = String(e?.stderr || e?.message || e);
+        }
+      }
+      json({ ...snapshot(), encrypted: ok, error: firstErr });
       return;
     }
     res.writeHead(404); res.end('not found');
