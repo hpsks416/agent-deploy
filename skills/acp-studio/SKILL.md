@@ -84,7 +84,7 @@ quirks worth handling in the push command:
 - 可视化面板（零依赖 Node，`scripts/secrets-link/secrets-link-web.mjs`，端口 7782）：显示「变量 → 文件路径 → token 预览（脱敏）」，支持手动改路径（初次部署/迁移用）。**多 AGENT 工作区**：`links.json` 顶层是 `workspaces[]`，每个工作区独立的 `target` + `tokens` + `extra`，面板下拉切换（DSH / Codex / Claude / 各机器各一套 secrets.cmd）。
 - 首次使用：复制 `scripts/secrets-link/links.json.example` → `links.json`，填入真实 token 文件路径。`links.json` 含真实路径，需 gitignore，不入库。
 - **age 公私钥加密存储（可选）**：`age-keygen -o key.txt` 生成密钥对 → `age -e -r <公钥> -o token.age token` 加密 → 工作区 `age.identity` 指到私钥 `key.txt`。面板检测 `age-encryption.org/v1` 魔数自动 `age -d` 解密预览；`secrets.cmd` 的 `for /f` 也改成运行时 `age -d -i <identity>` 解密。G:\KEY 存密文，只有私钥能解。
-- **面板一键加密（选择加密对象，产物是 .zip）**：勾选 token →「🔒 加密选中」→ 自动加密。产物：`<file>.zip`（内含 age 密文，zip 密码 = 公钥，作「已加密」格式标记）+ `<file>.backup.enc`（AES-256-GCM 备份，密码 = 私钥）。**面板只认 .zip**：非 .zip 的 token 拒绝生成 secrets.cmd（防未加密就生成）。运行时 `decrypt-runtime.py <file>.zip <age_bin> <identity>` 解 zip（公钥）→ age 解密（私钥）→ 明文。
+- **面板一键封装（选择封装对象，产物是 .zip）**：勾选 token →「🔒 封装选中」→ 自动封装。产物：`<file>.zip`（内含 age 密文，**zip 密码 = 公钥，属「防误提交封装」非加密**——公钥公开、无保密性，只防手滑推仓库）+ `<file>.backup.enc`（AES-256-GCM 备份，密码 = 私钥，真加密）。**面板只认 .zip**：非 .zip 拒绝生成 secrets.cmd（防未封装就生成）。运行时 `decrypt-runtime.py <file>.zip <age_bin> <identity>` 解 zip（公钥）→ age 解密（私钥）→ 明文。
 
 ## Types and emoji
 

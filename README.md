@@ -21,13 +21,14 @@
 
 ## 快速上手
 
-```powershell
+```bash
 git clone https://github.com/hpsks416/agent-deploy.git
 cd agent-deploy
-pwsh deploy.ps1 -Framework codex -Provider commandcode -Model deepseek-v4-pro
-# 或 Gitee 直连
-pwsh deploy.ps1 -Framework codex -Source gitee
+./deploy.sh --framework codex --provider commandcode --model deepseek-v4-pro   # Linux / macOS
+# Windows 用 pwsh deploy.ps1 -Framework codex -Provider commandcode -Model deepseek-v4-pro
 ```
+
+> skill 从本仓 `skills/` 复制部署，不再 clone 独立子仓库（子仓库仅保留初版）。
 
 三个参数独立可换：
 
@@ -49,8 +50,8 @@ DSH 本机一键恢复：`pwsh dsh-config/install.ps1`
 
 ## 环境依赖
 
-- Windows
-- PowerShell（pwsh）+ git
+- Linux / macOS / Windows
+- git + python3（`deploy.sh` 解析 providers.json 用）；Windows 用 `deploy.ps1` 需 PowerShell
 - 目标框架（Codex / Claude Code / DSH 任选）
 
 ## 新增中间商 / 模型

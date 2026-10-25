@@ -7,7 +7,7 @@ skill-lifecycle-manager | none | 框架无关，具体工具操作委托给对�
 skill-evaluator | light | skillmgr_get 读取 skill 全文
 skill-optimizer | light | skillmgr_get 读取 skill 全文
 open-source-scout | none | 框架无关
-secret-scan | hardcode | owner hpsks416 硬编码（SKILL.md + 脚本）
+secret-scan | none | owner 已拔硬编码（--owner/env 必填），框架无关
 secure-push-workflow | none | 编排逻辑框架无关
 github-ready-packager | none | 框架无关
 acp-studio | env | proxy 7897 + sslBackend + owner + GITEE_* 凭据（环境硬编码）

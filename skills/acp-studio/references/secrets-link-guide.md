@@ -73,7 +73,7 @@ G:\CodexDS\DSH\INTRO\age\age\age-keygen.exe -o C:\Users\Razer\.dsh\age-identity.
 |---|---|---|
 | age 密文（zip 内） | 无私钥无法解 | X25519 + ChaCha20-Poly1305，**强** |
 | AES 备份 `.backup.enc` | 无密码（私钥）无法解 | AES-256-GCM 认证，**强** |
-| zip（外层） | zip 密码 = 公钥（**公开**） | **非安全加密**，只作格式标记（防误操作） |
+| zip（外层） | zip 密码 = 公钥（**公开**） | **防误提交封装**，非加密（无保密性，只防手滑推仓库） |
 
 - 私钥是**唯一主密钥**：丢了它，age 密文 + AES 备份同时报废。
 - zip 的作用是「认得出加密没加密」（面板只认 zip），防的是「未加密就生成 secrets.cmd」，不是防泄露。

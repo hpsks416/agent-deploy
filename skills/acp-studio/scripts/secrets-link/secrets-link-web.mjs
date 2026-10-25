@@ -140,8 +140,8 @@ const HTML = `<!doctype html>
 <div class="footer">
   <div>secrets.cmd 目标：<code id="target"></code></div>
   <button id="regen">立即重新生成 secrets.cmd</button>
-  <button id="encrypt">🔒 加密选中</button>
-  <div class="note">token 必须是 <code>.zip</code>（加密产物，非 zip 拒绝生成 secrets.cmd）；本页只显示解密后前 4 位 + 后 2 位。</div>
+  <button id="encrypt">🔒 封装选中</button>
+  <div class="note">token 必须是 <code>.zip</code>（防误提交封装产物，非 zip 拒绝生成 secrets.cmd）；本页只显示解密后前 4 位 + 后 2 位。</div>
 </div>
 <div id="toast"></div>
 <script>
@@ -201,7 +201,7 @@ async function encryptSelected() {
   const r = await fetch('/api/encrypt', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ indices: idx }) });
   const j = await r.json();
   state = j; render();
-  toast(j.encrypted ? ('已加密 ' + j.encrypted + ' 个 → .zip（age 密文）+ .backup.enc（AES 备份）') : ('加密失败：' + (j.error || '')));
+  toast(j.encrypted ? ('已封装 ' + j.encrypted + ' 个 → .zip（age 密文）+ .backup.enc（AES 备份）') : ('封装失败：' + (j.error || '')));
 }
 function toast(m) { const t = document.getElementById('toast'); t.textContent = m; t.style.display = 'block'; setTimeout(() => t.style.display = 'none', 3000); }
 document.getElementById('regen').onclick = regen;
