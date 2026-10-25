@@ -64,7 +64,9 @@ jobs:
           for d in skills/*/; do
             if [ -f "$d/evals.yaml" ]; then
               echo "===== 评估 $d ====="
-              python skills/skill-evaluator/scripts/run_evals.py "$d" || failed=1
+              python skills/skill-evaluator/scripts/run_evals.py "$d"; code=$?
+              if [ "$code" -eq 2 ]; then echo "  [SKIP] $d（缺 key/余额不足）"; continue; fi
+              if [ "$code" -ne 0 ]; then failed=1; fi
             fi
           done
           if [ "$failed" -ne 0 ]; then

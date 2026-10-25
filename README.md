@@ -60,7 +60,9 @@ DSH 本机一键恢复：`pwsh dsh-config/install.ps1`
 
 ## 换框架后的核对
 
-skill 正文里有少量框架相关引用（DSH 工具名、会话路径、owner 硬编码），按 `FRAMEWORK-COUPLING.md` 核对即可。
+skill 正文里有少量框架相关引用（DSH 工具名、会话路径、环境硬编码），按 `FRAMEWORK-COUPLING.md` 核对即可。
+
+> 注：本仓库的 `evals.yaml` 是**自创评测格式**，不兼容官方 AAIF 的 `evals.json`/`grading.json`——evals 是内部评测、不对外交互，故未迁移；要对官方生态交换 eval 数据时再迁。
 
 ## 仓库管理约定
 

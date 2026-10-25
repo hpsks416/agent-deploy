@@ -58,6 +58,9 @@ MOCK_SEARCH_RESULT = (
     "markitdown (https://github.com/microsoft/markitdown, MIT, Microsoft)."
 )
 
+# 退出码：0=通过 / 1=真失败（lift 闸门）/ 2=跳过（缺 key 或余额不足，fork 友好）
+SKIP = 2
+
 
 def post_chat(base_url, api_key, model, messages, tools=None):
     payload = {"model": model, "messages": messages}
@@ -140,8 +143,8 @@ def main():
     api_key = os.environ.get("EVAL_API_KEY", "")
     model = os.environ.get("EVAL_MODEL", "")
     if not (base_url and api_key and model):
-        print(json.dumps({"error": "缺少 EVAL_BASE_URL / EVAL_API_KEY / EVAL_MODEL 环境变量"}), file=sys.stderr)
-        return 1
+        print("SKIP: 缺少 EVAL_BASE_URL / EVAL_API_KEY / EVAL_MODEL（fork 未配 secret），跳过动态 evals", file=sys.stderr)
+        return SKIP
 
     skill_md = (skill_dir / "SKILL.md").read_text(encoding="utf-8")
     evals = yaml.safe_load((skill_dir / "evals.yaml").read_text(encoding="utf-8"))
@@ -154,28 +157,34 @@ def main():
     )
 
     results = []
-    for case in cases:
-        task = case.get("task", "")
-        checks = case.get("checks", [])
-        tools = MOCK_TOOLS if use_tools else None
+    try:
+        for case in cases:
+            task = case.get("task", "")
+            checks = case.get("checks", [])
+            tools = MOCK_TOOLS if use_tools else None
 
-        with_calls, with_text = run_conversation(base_url, api_key, model, [
-            {"role": "system", "content": f"你是一个编码 agent，必须遵守以下 skill 正文：\n\n{skill_md}"},
-            {"role": "user", "content": task},
-        ], tools=tools)
-        without_calls, without_text = run_conversation(base_url, api_key, model, [
-            {"role": "user", "content": task},
-        ], tools=tools)
+            with_calls, with_text = run_conversation(base_url, api_key, model, [
+                {"role": "system", "content": f"你是一个编码 agent，必须遵守以下 skill 正文：\n\n{skill_md}"},
+                {"role": "user", "content": task},
+            ], tools=tools)
+            without_calls, without_text = run_conversation(base_url, api_key, model, [
+                {"role": "user", "content": task},
+            ], tools=tools)
 
-        with_pass, _ = run_checks(with_text, checks, with_calls)
-        without_pass, _ = run_checks(without_text, checks, without_calls)
-        results.append({
-            "id": case.get("id"),
-            "with_skill_pass": with_pass,
-            "without_skill_pass": without_pass,
-            "with_tool_calls": with_calls,
-            "without_tool_calls": without_calls,
-        })
+            with_pass, _ = run_checks(with_text, checks, with_calls)
+            without_pass, _ = run_checks(without_text, checks, without_calls)
+            results.append({
+                "id": case.get("id"),
+                "with_skill_pass": with_pass,
+                "without_skill_pass": without_pass,
+                "with_tool_calls": with_calls,
+                "without_tool_calls": without_calls,
+            })
+    except urllib.error.HTTPError as e:
+        if e.code in (401, 403, 402):
+            print("SKIP: 鉴权失败/余额不足（HTTP %s），跳过动态 evals" % e.code, file=sys.stderr)
+            return SKIP
+        raise
 
     with_pass = sum(1 for r in results if r["with_skill_pass"])
     without_pass = sum(1 for r in results if r["without_skill_pass"])
