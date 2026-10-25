@@ -8,6 +8,7 @@
 import os
 import re
 import sys
+import tempfile
 import zipfile
 import subprocess
 
@@ -30,10 +31,15 @@ def main():
         name = zf.namelist()[0]
         age_ct = zf.read(name)
 
-    tmp = file + ".ct"
-    open(tmp, "wb").write(age_ct)
-    out = subprocess.run([age_bin, "-d", "-i", identity, tmp], capture_output=True)
-    os.remove(tmp)
+    tmp = None
+    try:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".age") as f:
+            f.write(age_ct)
+            tmp = f.name
+        out = subprocess.run([age_bin, "-d", "-i", identity, tmp], capture_output=True)
+    finally:
+        if tmp:
+            os.remove(tmp)
     sys.stdout.write(out.stdout.decode("utf-8", "replace"))
 
 
