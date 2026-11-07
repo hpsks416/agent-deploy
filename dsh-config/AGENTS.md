@@ -77,3 +77,5 @@
 2. 更新 `HANDOFF.md` 的「当前状态 / 已完成 / 待办」三节。
 
 纯对话/纯查询（没改框架）不触发。可检测状态由脚本自动打印，自由文本（已完成/待办）需人工补。
+
+> 推送（用户要求时）**三目标 github + gitee + atomgit 缺一不可**——旧 `push-secure.cmd` 只推两目标已弃用，用 acp-studio `target=all`。
