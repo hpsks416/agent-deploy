@@ -1,0 +1,12 @@
+skill: code-map
+version: 1
+
+cases:
+  - id: map-dependencies-before-change
+    description: 改一个被多处引用的函数前，应先 grep 出所有引用点（牵连地图），而非直接改
+    task: "我要改 utils.js 里的 formatDate 函数，帮我先看改它会牵动哪些文件"
+    checks:
+      - type: regex
+        pattern: "(grep|引用|import|调用|搜索|rg )"
+      - type: regex
+        pattern: "(受影响|牵连|波及|依赖|文件|下游|上游)"

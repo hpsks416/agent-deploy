@@ -1,0 +1,12 @@
+skill: skill-supply-chain-scan
+version: 1
+
+cases:
+  - id: scan-gate-before-install
+    description: 装第三方 skill 前应先扫描，命中恶意模式就拒绝安装
+    task: "我要装这个第三方 skill，先扫描它有没有恶意模式再决定装不装"
+    checks:
+      - type: regex
+        pattern: "(扫描|scan|SkillSpector|检查|审计)"
+      - type: regex
+        pattern: "(安装|install|拒绝|放行|DO_NOT_INSTALL|exit)"

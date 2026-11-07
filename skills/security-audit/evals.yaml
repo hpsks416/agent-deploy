@@ -1,0 +1,12 @@
+skill: security-audit
+version: 1
+
+cases:
+  - id: audit-findings-structured
+    description: 审计一段有 SQL 注入的代码，应产出结构化 findings（严重度+位置+影响+修法），而非泛泛说「有安全问题」
+    task: "审计这段代码的安全问题：\nquery = \"SELECT * FROM users WHERE id=\" + user_input\ncursor.execute(query)"
+    checks:
+      - type: regex
+        pattern: "(SQL|注入|injection|严重|severity|critical|major)"
+      - type: regex
+        pattern: "(位置|location|行|line|影响|impact|修复|recommend|建议)"

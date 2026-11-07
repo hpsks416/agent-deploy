@@ -1,0 +1,23 @@
+skill: design-qa
+version: 1
+
+cases:
+  - id: audit-detect-slop
+    description: 给一段带「AI 味」的界面代码，评审应命中「紫蓝渐变 + Inter 字体 + 三卡模板」等可判定特征
+    task: "评审这段界面代码，列出它命中的 AI 味（模板化）特征：\n<div style=\"background:linear-gradient(135deg,#7c3aed,#2563eb);font-family:Inter\"><h1>标题</h1><div style=\"display:flex\"><div style=\"border-radius:12px;border:1px solid #e5e7eb;box-shadow:0 1px 3px rgba(0,0,0,.1)\">卡片一</div><div>卡片二</div><div>卡片三</div></div></div>"
+    checks:
+      - type: regex
+        pattern: "(渐变|linear-gradient|#7c3aed|紫色|紫蓝|purple)"
+      - type: regex
+        pattern: "(Inter|字体|font|默认)"
+      - type: regex
+        pattern: "(卡片|card|等宽|模板|三张|icon|图标)"
+
+  - id: critique-severity
+    description: 评审应给出严重度分级（critical/major/minor），而非只罗列
+    task: "这段落地页一眼假（Inter 字体 + 紫蓝渐变 + 三卡等宽），给我 critque 评审报告，按严重度分级"
+    checks:
+      - type: regex
+        pattern: "(critical|major|minor|严重|严重度|分级)"
+      - type: regex
+        pattern: "(位置|location|行|元素|selector)"
