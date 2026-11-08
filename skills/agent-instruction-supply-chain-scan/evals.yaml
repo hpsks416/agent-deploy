@@ -1,0 +1,34 @@
+# agent-instruction-supply-chain-scan 的验收测试
+# 判定口径：脚本自己打印的 SUMMARY 行必须出现（证据先于完成）；
+# 干净目录不得误报 HIGH；植入的指令文件必须被列出。
+
+skill: agent-instruction-supply-chain-scan
+version: 1
+
+cases:
+  - id: clean-dir
+    description: 对空目录应干净退出，不误报 HIGH
+    task: "用 agent-instruction-supply-chain-scan 扫这个目录，只报告脚本打印的 SUMMARY 行：skills/agent-instruction-supply-chain-scan/fixtures/empty"
+    checks:
+      - type: contains
+        value: "SUMMARY findings="
+      - type: not_contains
+        value: "[HIGH]"
+
+  - id: planted-instruction-file
+    description: 目录里出现 AGENTS.md 时必须被列出（哪怕内容无害，也要先让用户确认来源）
+    task: "用 agent-instruction-supply-chain-scan 扫这个目录，报告它发现了哪些指令文件：skills/agent-instruction-supply-chain-scan/fixtures/planted"
+    checks:
+      - type: contains
+        value: "AGENTS.md"
+      - type: contains
+        value: "instruction-file"
+
+  - id: missing-root
+    description: 不存在的根目录应跳过并说明，不崩溃、不编造发现
+    task: "用 agent-instruction-supply-chain-scan 扫这个不存在的目录并原样报告 SUMMARY：skills/agent-instruction-supply-chain-scan/fixtures/no-such-dir"
+    checks:
+      - type: contains
+        value: "root-missing"
+      - type: contains
+        value: "SUMMARY findings="

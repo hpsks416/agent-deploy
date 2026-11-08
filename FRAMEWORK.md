@@ -19,7 +19,7 @@
 
 ---
 
-## 二、已纳入本仓库的 skill（36 个，全部）
+## 二、已纳入本仓库的 skill（37 个，全部）
 
 | 层 | skill | 一句话 |
 |----|-------|--------|
@@ -60,7 +60,7 @@
 | 专业 | `hatch-pet` | Codex v2 动画宠物制作/校验/打包 |
 | 专业 | `dsh-plugin-lazy-adapter-resolution` | DSH 插件懒解析 provider 适配器 |
 
-> 全部 36 个 skill 均已并入本仓库 `skills/`，清单见 `core-skills.txt`。
+> 全部 37 个 skill 均已并入本仓库 `skills/`，清单见 `core-skills.txt`。
 
 ---
 
@@ -79,7 +79,7 @@
 ```
 铁律一（检索轮子）→ 动手前先检索
         ↓
-做事（用 36 个 skill）
+做事（用 37 个 skill）
         ↓
 铁律二（收尾反思）→ 命中就申请：要不要固化 skill？要不要提炼画像？
         ↓
@@ -106,15 +106,15 @@ agent-deploy/                    ← 本仓库（框架总仓库）
 ├── .gitignore
 ├── deploy.ps1                   ← 跨框架部署器
 ├── providers.json               ← 中间商 + 模型目录
-├── core-skills.txt              ← 36 个 skill 清单（含耦合等级）
+├── core-skills.txt              ← 37 个 skill 清单（含耦合等级）
 ├── templates/agents-core.md     ← 框架无关的铁律模板
 ├── FRAMEWORK-COUPLING.md        ← 框架耦合清单
 ├── docs/METHOD.md               ← 可复用执行方法（三道检索 + 四步强制检查）
-├── skills/                      ← 36 个 skill（已合并，废弃独立仓库）
+├── skills/                      ← 37 个 skill（已合并，废弃独立仓库）
 │   ├── agent-workflow-orchestration/
 │   ├── skill-lifecycle-manager/
 │   ├── skill-evaluator/  skill-optimizer/  secret-scan/  acp-studio/
-│   ├── ...（共 36 个，清单见 core-skills.txt）
+│   ├── ...（共 37 个，清单见 core-skills.txt）
 │   └── hatch-pet/
 └── dsh-config/                  ← DSH 本机架构（合并进来的子仓库）
     ├── AGENTS.md
@@ -144,7 +144,7 @@ agent-deploy/                    ← 本仓库（框架总仓库）
 
 ## 附：这一路建了什么（时间线）
 
-- 36 个 skill 集合（与 live `~/.dsh/skills` 全量对齐）
+- 37 个 skill 集合（与 live `~/.dsh/skills` 全量对齐）
 - 常驻铁律 + 画像
 - skill 生命周期链（评估/优化）
 - 跨框架部署器
@@ -154,4 +154,4 @@ agent-deploy/                    ← 本仓库（框架总仓库）
 - dsh-config 并入总仓库
 - 知识库（framework-kb / agent-deployed）入库
 
-**核心一句话**：36 个 skill + 铁律 + 画像文件 + 部署脚本，一键装到 Codex/Claude Code/DSH；改动前先检索、收尾时判断固化。
+**核心一句话**：37 个 skill + 铁律 + 画像文件 + 部署脚本，一键装到 Codex/Claude Code/DSH；改动前先检索、收尾时判断固化。

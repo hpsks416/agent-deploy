@@ -1,4 +1,4 @@
-# AGENT 框架核心 skill 清单（共 36 个）
+# AGENT 框架核心 skill 清单（共 37 个）
 # 格式：<skill名> | <耦合等级> | <备注>
 # 耦合等级：none=框架无关 / light=轻耦合(改可插拔处) / env=环境硬编码 / hardcode=owner硬编码
 
@@ -38,3 +38,4 @@ restricted-download-mirror-first | none | 下载受限止损流程约定（框�
 rust-refactor-local-projects | none | 重构决策（profile 先行），框架无关
 web-3d-asset-pipeline | none | GLB/glTF 资产流水线（框架无关）
 windows-node-spawn-cli | env | Windows .cmd/.ps1 shim 直调（环境相关）
+agent-instruction-supply-chain-scan | env | Windows 路径 + DSH 指令加载规则（dsh-agent-instructions）+ 本机 Downloads/.codex/.claude 布局

@@ -1,6 +1,6 @@
 # 框架及各 SKILL 与其他轮子的区别（逐级对比 · 逐个对比）
 
-> 铁律一「优先检索现成轮子」的完整答卷。分两级：**框架级**（整套框架 vs 其他 agent 框架 / 反思路径）→ **skill 级**（36 个 skill 逐个 vs 对应轮子）。
+> 铁律一「优先检索现成轮子」的完整答卷。分两级：**框架级**（整套框架 vs 其他 agent 框架 / 反思路径）→ **skill 级**（37 个 skill 逐个 vs 对应轮子）。
 
 ---
 
@@ -36,7 +36,7 @@
 
 ---
 
-# 第二部分：skill 级逐个对比（36 个）
+# 第二部分：skill 级逐个对比（37 个）
 
 判断三分类：**复用**（直接用轮子）· **借鉴**（吸收思想 + 自写）· **自写**（本机契约，无轮子覆盖）。
 
@@ -130,4 +130,10 @@
 
 # 结论：一句话总纲
 
-**36 个 skill 逐个对比完成。真正的「重复造轮子」只有 1 处（windows-node-spawn-cli，已改复用 cross-spawn）。其余是「现成轮子覆盖某几环、本机补上缺的那一环」或「本机是升级版」。**
+**37 个 skill 逐个对比完成。真正的「重复造轮子」只有 1 处（windows-node-spawn-cli，已改复用 cross-spawn）。其余是「现成轮子覆盖某几环、本机补上缺的那一环」或「本机是升级版」。**
+
+## 第 37 个（新增）：agent-instruction-supply-chain-scan
+
+- 现成轮子：`prompt-shielder`（MIT，SHA256 基线监控 CLAUDE.md/.env，bash 脚本、仅 macOS/Linux、1 star）；`skill-scanner`/`ctxsentry`/`patdown`/`agentverus-scanner`/`skillward`（扫 skill 与提示词的注入/恶意模式）。
+- 判断：**借鉴** prompt-shielder 的「基线 + 退出码」契约，**自己写** Windows 版扫描器——检索范围内没有同时覆盖「指令文件 + 全局配置劫持 + IOC + DSH 加载面」四类的现成轮子；skill 类扫描已被本机 `skill-supply-chain-scan`（SkillSpector 71 规则）覆盖，不重复造。
+- 增量：只读；断言退出码（0 干净 / 1 有发现 / 2 出错）；算出「DSH 启动会加载哪些指令文件」。
