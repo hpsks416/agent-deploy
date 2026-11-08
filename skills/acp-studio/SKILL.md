@@ -1,11 +1,11 @@
 ---
 name: acp-studio
-description: Unified local panel for GitHub commit, Gitee commit, and GitHub-to-Gitee sync, replacing git-acp, gitee-acp, and gh-gitee-sync. Always run secret-scan first before committing or pushing. Use when the user asks to commit, submit, push, or sync their work to GitHub and/or Gitee.
+description: Unified local panel for GitHub commit, Gitee commit, AtomGit mirror/push, and GitHub-to-Gitee sync, replacing git-acp, gitee-acp, and gh-gitee-sync. Always run secret-scan first before committing or pushing. Use when the user asks to commit, submit, push, or sync their work to GitHub, Gitee and/or AtomGit.
 ---
 
-# ACP Studio (GitHub · Gitee · 双向同步)
+# ACP Studio (GitHub · Gitee · AtomGit · 双向同步)
 
-One local panel that merges the previous `git-acp` / `gitee-acp` / `gh-gitee-sync` skills: commit and push to GitHub or Gitee, and run the bidirectional sync script once.
+One local panel that merges the previous `git-acp` / `gitee-acp` / `gh-gitee-sync` skills: commit and push to GitHub, Gitee or AtomGit (single target, or all three at once), and run the bidirectional sync script once.
 
 ## Step 0 — secret scan first (mandatory)
 
@@ -37,9 +37,11 @@ Start the panel as a **foreground process in an exec PTY session** instead:
 Endpoints:
 
 1. Inspect: `GET /api/repo?repo=<absolute repo path>` returns branch, GitHub/Gitee remotes, ahead/behind, staged/unstaged/untracked files, and recent commits. If there is nothing to commit, stop and say so.
-2. Commit + optional push: `POST /api/commit` with `{"repo_path":"<absolute path>","message":"<emoji> <type>(<scope>): <subject>","push":true|false,"target":"github|gitee"}`.
-3. Push only: `POST /api/push` with `{"repo_path":"<absolute path>","target":"github|gitee"}`.
+2. Commit + optional push: `POST /api/commit` with `{"repo_path":"<absolute path>","message":"<emoji> <type>(<scope>): <subject>","push":true|false,"target":"github|gitee|atomgit|all"}`.
+3. Push only: `POST /api/push` with `{"repo_path":"<absolute path>","target":"github|gitee|atomgit|all"}`.
 4. Sync once: `POST /api/sync` with `{"repos":[],"dry_run":false,"direction":"github-to-gitee"}` runs `scripts/sync_github_gitee.py` once in the chosen direction and returns its output. Directions: `github-to-gitee`, `gitee-to-github`, `both`.
+
+`target` accepts a single name, a comma list (`"github,atomgit"`), or `"all"` (order from `push_targets` in `config.json`, default `github,gitee,atomgit`). With `all`, each target reports `[GitHub] OK/FAIL` etc. and overall `ok` is true only if every target succeeded.
 
 Still build the commit message yourself with the table below. If acp-studio is missing or `/api/health` fails, fall back to direct git.
 
@@ -58,7 +60,7 @@ quirks worth handling in the push command:
 
 - Proxy: GitHub needs `-c http.proxy=http://127.0.0.1:7897` (real proxy, registry `ProxyEnable=1`); Gitee connects directly. A legacy `127.0.0.1:9` proxy note is stale — ignore it.
 - Use `-c http.sslBackend=openssl`; the default schannel backend can fail with `SEC_E_NO_CREDENTIALS`.
-- **push 一律走 `scripts/push-secure.cmd`**（内部 `call secrets.cmd` → 环境变量 → inline auth），agent 不直接 `Get-Content G:\KEY\*.txt` 读 token 明文；token 只进脚本进程环境变量、不进 agent 上下文。用法：`push-secure.cmd <Repo路径> <RepoName> github|gitee [Branch]`。
+- **push 一律走 `scripts/push-secure.cmd`**（内部 `call secrets.cmd` → 环境变量 → inline auth），agent 不直接 `Get-Content G:\KEY\*.txt` 读 token 明文；token 只进脚本进程环境变量、不进 agent 上下文。用法：`push-secure.cmd <Repo路径> <RepoName> github|gitee|atomgit [Branch]`。
 - Prefer inline auth `https://<github_user>:<GITHUB_TOKEN>@github.com/<owner>/<repo>.git`, plus
   `-c credential.helper=` so git never opens an interactive prompt.
 - Never write the token into repo config; read it from `secrets.cmd` / `GITHUB_TOKEN` and redact it from output.
@@ -85,6 +87,24 @@ quirks worth handling in the push command:
 - 首次使用：复制 `scripts/secrets-link/links.json.example` → `links.json`，填入真实 token 文件路径。`links.json` 含真实路径，需 gitignore，不入库。
 - **age 公私钥加密存储（可选）**：`age-keygen -o key.txt` 生成密钥对 → `age -e -r <公钥> -o token.age token` 加密 → 工作区 `age.identity` 指到私钥 `key.txt`。面板检测 `age-encryption.org/v1` 魔数自动 `age -d` 解密预览；`secrets.cmd` 的 `for /f` 也改成运行时 `age -d -i <identity>` 解密。G:\KEY 存密文，只有私钥能解。
 - **面板一键封装（选择封装对象，产物是 .zip）**：勾选 token →「🔒 封装选中」→ 自动封装。产物：`<file>.zip`（内含 age 密文，**zip 密码 = 公钥，属「防误提交封装」非加密**——公钥公开、无保密性，只防手滑推仓库）+ `<file>.backup.enc`（AES-256-GCM 备份，密码 = 私钥，真加密）。**面板只认 .zip**：非 .zip 拒绝生成 secrets.cmd（防未封装就生成）。运行时 `decrypt-runtime.py <file>.zip <age_bin> <identity>` 解 zip（公钥）→ age 解密（私钥）→ 明文。
+
+## AtomGit (third push target)
+
+AtomGit/GitCode is supported as `target: "atomgit"` (or part of `"all"`).
+
+- Credentials: `ATOMGIT_USER` (or `config.json` → `atomgit_user`, e.g. `qq_60289026`) + `ATOMGIT_TOKEN`
+  (or `config.json` → `atomgit_token`); token file lives at `G:\KEY\ATOMGIT token\*.zip`, decrypted by `secrets.cmd`.
+- Remote: uses a remote whose URL contains `atomgit.com`/`gitcode.com`; if none exists it **derives**
+  `https://<atomgit_host>/<atomgit_user>/<repo-slug>.git` (host from `config.json` → `atomgit_host`, default `atomgit.com`).
+  Repo slug is taken from the existing GitHub/Gitee remote, so clones whose local dir name differs still work.
+- Auth: inline `http.extraheader=Authorization: Basic base64(user:token)` — same pattern as the other targets;
+  no proxy needed (AtomGit connects directly), still uses `-c http.sslBackend=openssl`.
+- One-time bulk mirror (all repos on GitHub/Gitee → AtomGit): `work\env\atomgit_sync.py` in the MINDSPORE workspace
+  (creates the repo via API + `git push --mirror`; run with tokens injected, e.g. via `work\env\run_with_secrets.ps1`).
+- Known gotcha: `secrets.cmd` generated from the secrets-link panel may emit an **unquoted path containing a space**
+  (`G:\KEY\ATOMGIT token\...`), which breaks the `for /f` line and silently leaves `ATOMGIT_TOKEN` empty.
+  Fix = use the 8.3 short path (`G:\KEY\ATOMGI~1\...`) like the GITHUB/GITEE lines do. Verify with
+  `echo ATOMGIT set` after `call secrets.cmd`.
 
 ## Types and emoji
 

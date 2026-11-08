@@ -14,9 +14,9 @@ description: DSH 升级/闪退定位。升级必须同步「全局 CLI @deepseek
 - 影响面：只改 DSH 的全局 CLI 与 profile 两处安装，不碰业务数据/凭据。
 - 可验证：`dsh --version` 与 profile `package.json` 的 `dsh-base`/`dsh-web-app` 三处版本一致；`dsh web --no-open` 能绑定端口且无 `parameter codec has no create() factory` / `agent-presets` 报错。
 
-## 动手前强制检查（铁律一前置检查）
+## 动手前硬门控（铁律一前置检查）
 
-升级/迁移/改环境是最高优先级强制检查，四项缺一就停下补齐：
+升级/迁移/改环境是最高优先级硬门控，四项缺一就停下补齐：
 
 1. **检索已知坑与 issue**：同名问题往往早有人踩过——如「内测声明无法保存确认状态」早报在 deepseek-ai/deepseek-harness Discussion #860；「升级必须双处同步」是本 skill 铁律。
 2. **检索官方 README/文档的正确姿势**：如 dsh-mobile 的 USAGE.md、DSH 升级说明，先读后动。
@@ -54,6 +54,7 @@ DSH 有两处安装，**版本必须一致**：
 6. **子进程 Schannel TLS 报 SEC_E_NO_CREDENTIALS（0x8009030e）**：在 DSH sandbox（workspace-write 及更严）下，curl/git/PowerShell 等子进程用 Schannel 后端直连 HTTPS 会报 `AcquireCredentialsHandle failed: SEC_E_NO_CREDENTIALS`——**不是系统 Schannel 坏了，也不是密码套件被清空/根证书缺失，是 sandbox 破坏了子进程的 Schannel TLS**（上游 Discussion #2850；Codex 同款 issue #17459）。判据：Node(openssl)/certifi 直连正常、只有 Schannel 栈报错，且在 sandbox 外（普通终端）跑 curl 正常。workaround 走 openssl 栈：`git -c http.sslBackend=openssl`、curl 换 openssl 后端、Codex 设 `SSL_CERT_FILE`/`CODEX_CA_CERTIFICATE` 指 certifi。**勿删 `SCHANNEL\CipherSuites\Functions`**（不存在是默认态，删了无效，是误诊）。
 7. **会话日志查看器 `dsh-session-log-explorer` 在 Windows 白屏**：`serve.mjs` 的 `localFile` 用 `filename.startsWith(directory + "/")` 判断路径前缀，Windows `resolve()` 返回反斜杠 → 前缀不匹配 → 所有静态文件（`/assets/*.js`）fallback 到 `index.html` → 前端 JS 加载成 HTML → 白屏。判据：请求 `/assets/*.js` 返回 HTML（len ≈477）而非 JS。临时修复：改 `pnpm dlx` 缓存包内 `serve.mjs`（在 scripts 子目录）的 localFile，让 `startsWith` 同时匹配 `directory + "/"` 与 `directory + "\\"`。上游待报（检索未见 issue）。
 8. **端口 3080 EADDRINUSE → host-webserver 起不来 → 13 插件 pending → plugin tree 加载失败 → 闪退**：残留 DSH 实例占着 3080（重复双击桌面图标/反复重启攒下的僵尸 node）。判据：`netstat -ano | findstr :3080` 有 PID 处于 LISTENING，启动日志报 `listen EADDRINUSE: address already in use 127.0.0.1:3080`。修复：`taskkill /F /PID <占端口PID>` → 确认 `netstat -ano | findstr :3080` 无输出 → 再起 `dsh web`。**只开一个 DSH 实例，别重复双击**；重启走 `restart-dsh.ps1`（轮询等端口释放 + 验证绑定，见 `G:\CodexDS\DSH\INTRO\restart-dsh.ps1`）。
+9. **端口 3443 EADDRINUSE（dsh-mobile 移动网关 vs 桌面 DSH 内置移动网关）→ plugin tree 加载失败 → 闪退**：DSHWEB（0.1.5 + `dsh-mobile`）与桌面 DSH（0.2.1 内置移动网关）同时运行、共用 `~/.dsh/mobile-access/setup.json`，DSHWEB 去绑 `10.37.9.159:3443` 撞上桌面已占端口。判据：`netstat -ano | findstr :3443` 有桌面进程 LISTENING，启动日志报 `dsh-mobile: Error: listen EADDRINUSE: address already in use 10.37.9.159:3443`。修复：改 `~/.dsh/mobile-access/setup.json` 的 `listenPort` 3443→3444（或禁用 DSHSWEB profile 里的 dsh-mobile）。注意：setup.json 两实例共用，改端口后桌面下次重启也读 3444、手机移动访问需重配对（二维码带新端口）；另有 bonjour mDNS「Service name already in use」冲突，非致命，3080 直连不受影响。
 
 ## 会话日志排障（DSH 崩溃 / agent 无法自述时）
 
@@ -72,8 +73,9 @@ pnpm dlx dsh-replay --file <session.v3.jsonl.zstd> --out replay.html   # 渲染 
 pnpm dlx dsh-replay --file <file> --stats                              # JSON 摘要（turns/steps/toolCalls）
 ```
 
-- 可视化引导页：`G:\CodexDS\DSH\INTRO\dsh-replay-web.mjs`（Node 零依赖 HTTP 服务，127.0.0.1:7781，列会话 + 点选渲染）。
-- 桌面一键启动：`~/.dsh/launch-dsh-replay.cmd` + 桌面快捷方式「DSH 会话回放」。
+- ⚠️ **v3/v4 分代**：桌面端 DSH 0.2.1（dsh-desktop）写 `session.v4.jsonl.zstd`（工具结果是 `tool` 角色一等消息），旧 WEB 0.15 线写 v3；`dsh-replay@0.2.0` 只有 v3 语义，桌面会话须用下面的桌面移植项目。
+- **桌面移植项目（推荐，v4+v3 都已支持）**：`G:\DSH\CMAIN\CINTRO\launch-dsh-replay\`——内置 `@mingozhou/dsh-replay@0.4.2` 的 core+viewer（MIT，v4 原生解析、离线单文件 HTML），零依赖、只读；`node render.mjs --list | --latest | --id <id> [--out x.html]`，引导页 127.0.0.1:7781。
+- 桌面一键启动：桌面快捷方式「DSH 会话回放」→ 该项目 `launch-dsh-replay.cmd`；`~/.dsh/launch-dsh-replay.cmd` 保留为转发入口（项目不在时回退旧 WEB 版）。
 - **只读不覆盖原日志**：输出到 `%TEMP%\dsh-replay-out\`，原 `session.v3.jsonl.zstd` 原地不动。
 
 ### 多 agent 统一查看器调研（死局，别再绕）
@@ -97,6 +99,7 @@ pnpm dlx dsh-replay --file <file> --stats                              # JSON �
 
 ## 已验证版本对
 
+- DSH 桌面端 `dsh-desktop 0.2.1-rc.5` ↔ 会话格式 **v4** ↔ 桌面移植项目 `launch-dsh-replay`（2026-11-04 实测：v4 会话可列/可渲染，v3 兼容）。
 - DSH `0.1.5-rc.2` ↔ 各插件 0.1.5 线（旧稳定组合）。
 - DSH `0.1.7-rc.2` ↔ `dsh-mobile@0.5.0` ↔ 全局 CLI `0.1.7-rc.2`（本次目标组合）。
 
@@ -112,19 +115,19 @@ pnpm dlx dsh-replay --file <file> --stats                              # JSON �
 
 ### 核心教训
 
-- **铁律执行力 = 部署形态**：C（提示词学习）最易跳过铁律；B（原生部署）次之；A（常驻注入 + harness 强制检查）最强。要「保证」先检索，必须 harness 检查，不能靠提示词。
+- **铁律执行力 = 部署形态**：C（提示词学习）最易跳过铁律；B（原生部署）次之；A（常驻注入 + harness 硬门控）最强。要「保证」先检索，必须 harness 门控，不能靠提示词。
 - **「医者无法自医」**：agent 崩溃/无 LLM 时无法自述，必须有无模型 API 依赖的离线日志查看器兜底。
 - **检索保底**：`web_search` / `open-source-scout` 为主；不可用时 `web_fetch` 百度搜索（`www.baidu.com/s?wd=`）或人工检索兜底。文心（`wenxin.baidu.com/search`）是 AI 助手界面，web_fetch 只能拿标题、**不能自动化检索**，仅作人工保底。
 
 ### 三能力跨机落地状态
 
-1. **事前强制（先检索检查）**：A 已实现（`dsh-retrieval-guard`，`tools/pre-execute` + `{kind:"ask"}` 弹窗 + 轮次级）；B 可适配——Codex 有 hook 机制（官方 `codex-hooks.md`、`vinctor-codex-hook`），用 PreToolUse hook 实现同款「未检索拦截」；C 无法（未部署，无 harness）。
+1. **事前强制（先检索门控）**：A 已实现（`dsh-retrieval-guard`，`tools/pre-execute` + `{kind:"ask"}` 弹窗 + 轮次级）；B 可适配——Codex 有 hook 机制（官方 `codex-hooks.md`、`vinctor-codex-hook`），用 PreToolUse hook 实现同款「未检索拦截」；C 无法（未部署，无 harness）。
 2. **日志查看**：A 已实现（dsh-replay 保底：解码 v3 + 引导页 + 桌面一键）；B 待适配（Codex 日志格式/位置不同）；C 无本地日志。
 3. **引导部署（桌面一键 + 引导导入）**：A 已实现（`launch-dsh-log-viewer.ps1` + 桌面快捷方式「DSH 日志查看器」）；B/C 待做。
 
 ## 0.1.5-rc.2 稳定态约束（本机实测，勿破坏）
 
-- **三组件显式声明 + 锁精确版**：`@deepseek-ai/dsh-client-runtime` / `dsh-client-ui-slots` / `dsh-client-ui-primitives` 必须显式写在 profile `dependencies` 且**锁 `0.1.0-rc.6` 精确版**（不能用 `^`，会偏离到 `0.1.0-rc.8` → 与 0.1.5 核心版本错位 → `dsh web` 启动永久卡死零输出）。`autoInstallPeers:false` 下 peer 不自动装，显式声明是唯一稳定做法。
+- **三组件显式声明 + 锁精确版**：`@deepseek-ai/dsh-client-runtime` / `dsh-client-ui-slots` / `dsh-client-ui-primitives` 必须显式写在 profile `dependencies` 且**锁 `0.1.0-rc.6` 精确版**（不能用 `^`，会漂移到 `0.1.0-rc.8` → 与 0.1.5 核心版本错位 → `dsh web` 启动永久卡死零输出）。`autoInstallPeers:false` 下 peer 不自动装，显式声明是唯一稳定做法。
 - **文件浏览器用 `dsh-file-explorer-kit`（^0.3.8）**，**不用** `@jie-rong-214/dsh-file-explorer`：后者 client 代码硬编码旧架构 `ctx.workspaces`/`ctx.sessions`（复数服务），0.1.5 只有 `ctx.workspaceRegistry`/`ctx.sessionProjections`（单数），加载失败。`dsh-file-explorer-kit` 0.3.4+ 用 `ui-slots`/`ui-workspace`（0.1.5 都有），支持任意绝对路径跳转。
 - **patchReload 用 `startup`**（`live` 需要 Cordis HMR 服务，0.1.5 环境无 HMR → `watchUserPatches` 抛错崩溃）。
 - **目录选择器只能从 C 盘 home 开始**：browse 后端固定从 `os.homedir()`（`C:\Users\Razer`）列目录，无法逐级浏览到别的盘（G 盘等）。去别的盘 = 弹窗右上角**铅笔图标 → 输入绝对路径（如 `G:\CodexDS\DSH\MAIN`）→ 回车跳转**（官方 issue #256 的恢复入口，图标隐蔽易漏）。native 原生对话框若在后台启动（Codex 启动）下不可见，改普通 PowerShell 前台 `cd C:\Users\Razer\Documents\Codex; dsh web` 即可。

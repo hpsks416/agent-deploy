@@ -61,6 +61,7 @@ def parse_frontmatter(text: str):
 
 def extract_ref_paths(body: str):
     """提取正文里形如 `references/xxx.md` 或 `scripts/xxx.py` 的引用（含完整路径）。"""
+    body = re.sub(r"https?://\S+", " ", body)  # URL 内的 scripts/... 不算本地引用
     return set(re.findall(r"(?:references|scripts)/[A-Za-z0-9_\-./]+", body))
 
 

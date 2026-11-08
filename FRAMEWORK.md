@@ -8,18 +8,18 @@
 
 | 层 | 载体 | 职责 |
 |----|------|------|
-| ① 铁律层 | `AGENTS.md` | 两条铁律（先检索、收尾反思）+ 画像积累 |
+| ① 铁律层 | `AGENTS.md` | 常驻铁律（先检索、收尾反思、framework-kb 检索）+ 画像积累 |
 | ② 画像层 | `persona.md` + `persona-manager` | 记「用户是谁、怎么想」（六维），一键清空/导入 |
 | ③ skill 生命周期链 | 3 个 skill | skill 的生老病死：建 → 测 → 优 → 检查 |
 | ④ 编排层 | `agent-workflow-orchestration` | 复杂任务分解 / 并行 / 收敛 |
-| ⑤ 检索层 | `open-source-scout` | 铁律一的支柱（找现成轮子） |
-| ⑥ 安全发布层 | 4 个 skill | 打包 → 安检 → 推送，强制检查 |
+| ⑤ 检索层 | `open-source-scout` + `iron-law-retrieval-first` | 铁律一的支柱（找现成轮子） |
+| ⑥ 安全发布层 | 6 个 skill | 打包 → 安检 → 推送，强制检查 |
 | ⑦ 对话继承层 | 3 个 skill | 可插拔会话源，续接历史对话 |
 | ⑧ 部署层 | 本仓库（agent-deploy） | 换框架/中间商/模型一键铺 |
 
 ---
 
-## 二、已纳入本仓库的 skill（21 个）
+## 二、已纳入本仓库的 skill（36 个，全部）
 
 | 层 | skill | 一句话 |
 |----|-------|--------|
@@ -34,48 +34,52 @@
 | 安全 | `secret-scan` | 扫描密钥泄露（只读、脱敏报告） |
 | 安全 | `secure-push-workflow` | 编排「打包→安检→推送」+ 强制检查 |
 | 安全 | `github-ready-packager` | 整理成 GitHub 项目（写 README 等） |
-| 安全 | `acp-studio` | git 提交/推送/双向同步 |
+| 安全 | `acp-studio` | git 提交/推送（GitHub/Gitee/AtomGit）/双向同步/三目标推送 |
+| 安全 | `security-audit` | 6 阶段代码安全审计（覆盖账本 + 隔离猎手 + 对抗验证） |
+| 安全 | `skill-supply-chain-scan` | 装第三方 skill/插件前供应链扫描（SkillSpector） |
 | 对话 | `resume-conversation-full` | 续接对话完整细节 |
 | 对话 | `resume-conversation-brief` | 续接对话主干快照 |
 | 对话 | `migrate-conversation-prompt` | 生成迁移/续聊提示词 |
 | 决策 | `agents-md-skill-layering` | 规则放 AGENTS.md 还是 skill |
 | 决策 | `long-sentence-structurizer` | 冗长需求改写成结构化提示词 |
+| 代码 | `code-map` | 改多文件/公共模块前画「牵连地图」 |
+| 评审 | `design-qa` | 界面「AI 味」可判定体检（audit/critique/polish） |
 | 文档 | `doc-to-markdown` | Word/PDF 转 Markdown |
-| 运维 | `dsh-upgrade-ops` | DSH 升级/闪退定位 |
-| 学习 | `directed-article-learning` | 定向学习文章→框架查缺补漏 |
 | 可视化 | `browser-viz-local-scripts` | 本地脚本浏览器可视化（含桌面启动器/仪表盘） |
+| 运维 | `dsh-upgrade-ops` | DSH 升级/闪退定位 |
+| 工具 | `local-tool-mcp-exposure` | 本地工具做成 MCP server + skill + llms.txt |
+| 学习 | `directed-article-learning` | 定向学习文章→框架查缺补漏 |
+| 领域 | `metro-traffic-prediction` | 城市轨道交通客流预测机制 + 文献速查 |
+| 领域 | `homophone-pun-analysis` | 谐音梗/跨语言神翻译分析 |
+| 领域 | `hpsks416` | 个人分析透镜（控制论/递归/可证伪性） |
+| 领域 | `restricted-download-mirror-first` | 官方源下载受限的止损流程 |
+| 环境 | `mindspore-gpu-wsl` | Windows+WSL2 把 MindSpore 跑上 GPU |
+| 环境 | `windows-node-spawn-cli` | Windows 下 Node 调 .cmd/.ps1 shim 的正确姿势 |
+| 专业 | `web-3d-asset-pipeline` | GLB/glTF 资产流水线 |
+| 专业 | `rust-refactor-local-projects` | 本地项目性能重构（Rust 优先） |
+| 专业 | `hatch-pet` | Codex v2 动画宠物制作/校验/打包 |
+| 专业 | `dsh-plugin-lazy-adapter-resolution` | DSH 插件懒解析 provider 适配器 |
 
-## 三、不在本仓库的 skill（8 个，独立仓库/本机保留）
-
-| skill | 领域 | 云端状态 |
-|---|---|---|
-| `web-3d-asset-pipeline` | 3D | 仅本机 |
-| `rust-refactor-local-projects` | 重构 | 仅本机 |
-| `homophone-pun-analysis` | 谐音梗 | 仅 GitHub |
-| `hpsks416` | 个人透镜 | 仅 GitHub |
-| `windows-node-spawn-cli` | DSH/Windows | 仅本机 |
-| `dsh-plugin-lazy-adapter-resolution` | DSH 插件 | GitHub + Gitee |
-| `local-tool-mcp-exposure` | 本地工具 MCP | 仅本机 |
-| `hatch-pet` | 宠物 | 已退役，仅本机 |
+> 全部 36 个 skill 均已并入本仓库 `skills/`，清单见 `core-skills.txt`。
 
 ---
 
-## 四、关键文件（3 个）
+## 三、关键文件（3 个）
 
 | 文件 | 内容 |
 |------|------|
-| `~/.dsh/AGENTS.md` | 两条铁律 + 画像积累 |
+| `~/.dsh/AGENTS.md` | 常驻铁律 + 画像积累 |
 | `~/.dsh/persona.md` | 用户六维画像：人格/思维习惯/决策偏好/纠错模式/语言风格/环境约定 |
 | `~/.dsh/settings.yaml` | LLM provider + 默认模型配置 |
 
 ---
 
-## 五、自我改进闭环（自我改进怎么转）
+## 四、自我改进闭环（自我改进怎么转）
 
 ```
 铁律一（检索轮子）→ 动手前先检索
         ↓
-做事（用 21 个 skill）
+做事（用 36 个 skill）
         ↓
 铁律二（收尾反思）→ 命中就申请：要不要固化 skill？要不要提炼画像？
         ↓
@@ -90,11 +94,11 @@ skill-optimizer → 优化（gate 防假改进，产出 _draft）
 
 ---
 
-## 六、仓库结构
+## 五、仓库结构
 
 ```
 agent-deploy/                    ← 本仓库（框架总仓库）
-├── AGENTS.md                    ← 两条铁律（先检索、收尾反思）
+├── AGENTS.md                    ← 常驻铁律（先检索、收尾反思、framework-kb 检索）
 ├── FRAMEWORK.md                 ← 本文件（框架地图，总领全文）
 ├── COMPARISON.md                ← 框架及各 skill 与其他轮子的区别
 ├── README.md                    ← 仓库入口
@@ -102,16 +106,16 @@ agent-deploy/                    ← 本仓库（框架总仓库）
 ├── .gitignore
 ├── deploy.ps1                   ← 跨框架部署器
 ├── providers.json               ← 中间商 + 模型目录
-├── core-skills.txt              ← 21 个 skill 清单（含耦合等级）
-├── templates/agents-core.md     ← 框架无关的两条铁律模板
+├── core-skills.txt              ← 36 个 skill 清单（含耦合等级）
+├── templates/agents-core.md     ← 框架无关的铁律模板
 ├── FRAMEWORK-COUPLING.md        ← 框架耦合清单
 ├── docs/METHOD.md               ← 可复用执行方法（三道检索 + 四步强制检查）
-├── skills/                      ← 21 个 skill（已合并，废弃独立仓库）
+├── skills/                      ← 36 个 skill（已合并，废弃独立仓库）
 │   ├── agent-workflow-orchestration/
 │   ├── skill-lifecycle-manager/
 │   ├── skill-evaluator/  skill-optimizer/  secret-scan/  acp-studio/
-│   ├── ...（共 21 个，清单见 core-skills.txt）
-│   └── persona-manager/
+│   ├── ...（共 36 个，清单见 core-skills.txt）
+│   └── hatch-pet/
 └── dsh-config/                  ← DSH 本机架构（合并进来的子仓库）
     ├── AGENTS.md
     ├── settings.yaml
@@ -128,9 +132,10 @@ agent-deploy/                    ← 本仓库（框架总仓库）
 
 ---
 
-## 七、云端状态
+## 六、云端状态
 
-- **云端仓库**：GitHub 19 个、Gitee 16 个（其中 15 个双推；仅 GitHub 4 个：dsh-retrieval-guard、github-ready-packager、homophone-pun-analysis、hpsks416；仅 Gitee 1 个：helios），全部 MIT 开源
+- **三目标推送（缺一不可）**：`github.com/hpsks416` + `gitee.com/hpsks416` + `gitcode.com/qq_60289026`（AtomGit），全部 MIT 开源
+- 框架总仓库两处：`agent-deploy`（框架 + skill）与 `agent-deployed`（转化好的框架知识库，含构建产物 `framework_kb.sqlite3`）
 - `dsh-config` 已合并进本仓库的 `dsh-config/` 子目录
 - **仓库管理约定**：与框架相关的子仓库（dsh-config、dsh-goat-vision、dsh-skill-studio-patched、dsh-retrieval-guard、dsh-secure-push-guard、dsh-session-sync-flush）**仅保留初版、不再独立更新，后续改动只进本仓库**；新建与总框架相关的子仓库后即废弃、纳入本仓库
 - 隐私文件（`persona.md`、`secrets.cmd`、`.credentials.yaml`）不进公开仓库
@@ -139,13 +144,14 @@ agent-deploy/                    ← 本仓库（框架总仓库）
 
 ## 附：这一路建了什么（时间线）
 
-- 29 个 skill 集合
-- 两条铁律 + 画像
+- 36 个 skill 集合（与 live `~/.dsh/skills` 全量对齐）
+- 常驻铁律 + 画像
 - skill 生命周期链（评估/优化）
 - 跨框架部署器
 - 会话源可插拔
 - persona 画像 + 管理
 - 全套 README 开源化
 - dsh-config 并入总仓库
+- 知识库（framework-kb / agent-deployed）入库
 
-**核心一句话**：29 个 skill + 两条规则 + 画像文件 + 部署脚本，一键装到 Codex/Claude Code/DSH；改动前先检索、收尾时判断固化。
+**核心一句话**：36 个 skill + 铁律 + 画像文件 + 部署脚本，一键装到 Codex/Claude Code/DSH；改动前先检索、收尾时判断固化。

@@ -2,22 +2,25 @@
 
 一套 DSH / Codex / Claude Code 可复用的 skill 集合 + 一键部署脚本。
 
-## 包含什么
+## 包含什么（36 个 skill，全量清单见 `core-skills.txt`）
 
 | 类别 | skill |
 |---|---|
 | 提交推送 | `acp-studio`、`secure-push-workflow`、`github-ready-packager` |
-| 安全 | `secret-scan`（密钥扫描） |
+| 安全 | `secret-scan`（密钥扫描）、`security-audit`（6 阶段审计）、`skill-supply-chain-scan`（供应链扫描） |
 | 检索 | `open-source-scout`、`iron-law-retrieval-first` |
+| 代码 | `code-map`（改前画牵连地图） |
+| 评审 | `design-qa`（界面「AI 味」体检） |
 | 运维 | `dsh-upgrade-ops`（升级/闪退定位） |
 | 文档 | `doc-to-markdown`（Word/PDF 转 Markdown） |
+| 可视化 | `browser-viz-local-scripts` |
 | 会话 | `resume-conversation-full`、`resume-conversation-brief`、`migrate-conversation-prompt` |
 | 评估优化 | `skill-evaluator`、`skill-optimizer`、`meta-layer-optimizer`、`skill-lifecycle-manager` |
 | 编排决策 | `agent-workflow-orchestration`、`agents-md-skill-layering`、`long-sentence-structurizer` |
 | 画像 | `persona-manager` |
-| 学习可视化 | `directed-article-learning`、`browser-viz-local-scripts` |
-
-完整清单见 `core-skills.txt`。
+| 学习 | `directed-article-learning`、`homophone-pun-analysis`、`hpsks416` |
+| 工程环境 | `mindspore-gpu-wsl`、`windows-node-spawn-cli`、`local-tool-mcp-exposure`、`restricted-download-mirror-first` |
+| 专业 | `web-3d-asset-pipeline`、`rust-refactor-local-projects`、`hatch-pet`、`dsh-plugin-lazy-adapter-resolution`、`metro-traffic-prediction` |
 
 ## 快速上手
 
@@ -28,7 +31,7 @@ cd agent-deploy
 # Windows 用 pwsh deploy.ps1 -Framework codex -Provider commandcode -Model deepseek-v4-pro
 ```
 
-> skill 从本仓 `skills/` 复制部署，不再 clone 独立子仓库（子仓库仅保留初版）。
+> skill 从本仓 `skills/` 复制部署，不再 clone 独立子仓库（子仓库仅保留初版）。部署清单来自 `core-skills.txt`。
 
 三个参数独立可换：
 
@@ -60,9 +63,15 @@ DSH 本机一键恢复：`pwsh dsh-config/install.ps1`
 
 ## 换框架后的核对
 
-skill 正文里有少量框架相关引用（DSH 工具名、会话路径、环境硬编码），按 `FRAMEWORK-COUPLING.md` 核对即可。
+skill 正文里有少量框架相关引用（DSH 工具名、会话路径、环境硬编码），按 `FRAMEWORK-COUPLING.md` 核对即可（36 个 skill 按 `none`/`light`/`env`/`hardcode` 四档归类）。
 
 > 注：本仓库的 `evals.yaml` 是**自创评测格式**，不兼容官方 AAIF 的 `evals.json`/`grading.json`——evals 是内部评测、不对外交互，故未迁移；要对官方生态交换 eval 数据时再迁。
+
+## 同步约定
+
+- **live 为先**：skill 先部署到 `~/.dsh/skills`（live），改动验证后再回写本仓 `skills/`，两边保持一致。
+- **收口三件套**：改框架后跑 `sync_framework.ps1`（部署 live + 重建知识库 + 刷新 HANDOFF）。
+- **推送三目标**：GitHub `hpsks416` + Gitee `hpsks416` + GitCode/AtomGit `qq_60289026`，缺一不可。
 
 ## 仓库管理约定
 

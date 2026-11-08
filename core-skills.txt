@@ -1,4 +1,4 @@
-# AGENT 框架核心 skill 清单
+# AGENT 框架核心 skill 清单（共 36 个）
 # 格式：<skill名> | <耦合等级> | <备注>
 # 耦合等级：none=框架无关 / light=轻耦合(改可插拔处) / env=环境硬编码 / hardcode=owner硬编码
 
@@ -10,7 +10,7 @@ open-source-scout | none | 框架无关
 secret-scan | none | owner 已拔硬编码（--owner/env 必填），框架无关
 secure-push-workflow | none | 编排逻辑框架无关
 github-ready-packager | none | 框架无关
-acp-studio | env | proxy 7897 + sslBackend + owner + GITEE_* 凭据（环境硬编码）
+acp-studio | env | proxy 7897 + sslBackend + owner + GITEE_*/ATOMGIT_* 凭据（环境硬编码）
 resume-conversation-full | light | 正文已框架无关，会话源在 conversation-sources 注册表（可插拔）
 resume-conversation-brief | light | 正文已框架无关，会话源在 conversation-sources 注册表（可插拔）
 migrate-conversation-prompt | none | 框架无关
@@ -23,3 +23,18 @@ iron-law-retrieval-first | light | 检索工具名 web_search/open-source-scout�
 doc-to-markdown | env | Word COM + MarkItDown 本机工具（环境相关）
 meta-layer-optimizer | light | 读 ~/.dsh/meta-drift-log.md + subagent 隔离（DSH 路径可插拔）
 browser-viz-local-scripts | none | 本地 HTTP + 无构建前端（框架无关）
+code-map | none | 改前画「牵连地图」的 grep 编排（框架无关）
+design-qa | none | 「AI 味」可判定清单式界面评审（框架无关）
+security-audit | none | 6 阶段安全审计（覆盖账本/对抗验证），框架无关
+skill-supply-chain-scan | light | 扫描器用外部 SkillSpector（可插拔工具）
+dsh-plugin-lazy-adapter-resolution | light | DSH 插件/provider 适配器注册契约（框架 API 可插拔）
+hatch-pet | light | Codex v2 pet 规格（spriteVersionNumber / 行向规格），与框架无关但绑 Codex 规格
+homophone-pun-analysis | none | 谐音梗/神翻译语言学分析（框架无关）
+hpsks416 | none | 个人分析透镜，纯提示词（框架无关）
+local-tool-mcp-exposure | light | MCP server + SKILL.md + llms.txt 暴露本地工具（协议可插拔）
+metro-traffic-prediction | none | 客流预测机制/文献速查（领域知识）
+mindspore-gpu-wsl | env | Windows+NVIDIA+WSL2 本机路径与 CUDA 11.8（环境硬编码）
+restricted-download-mirror-first | none | 下载受限止损流程约定（框架无关）
+rust-refactor-local-projects | none | 重构决策（profile 先行），框架无关
+web-3d-asset-pipeline | none | GLB/glTF 资产流水线（框架无关）
+windows-node-spawn-cli | env | Windows .cmd/.ps1 shim 直调（环境相关）

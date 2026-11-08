@@ -1,0 +1,4 @@
+interface:
+  display_name: "Rust Refactor for Local Projects"
+  short_description: "Refactor a local project for efficiency with Rust"
+  default_prompt: "Refactor this local project for better performance and a smaller, faster binary."

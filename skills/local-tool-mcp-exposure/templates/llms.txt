@@ -1,0 +1,10 @@
+# My Tool
+
+<一句话说明这个本地工具做什么，以及它能被 agent 驱动完成什么。>
+
+## For AI agents
+
+1. 启动工具服务：`python fastmcp_server.py`（MCP 在 http://127.0.0.1:8000/mcp）。
+2. 连接 MCP：`claude mcp add --transport http my-tool http://127.0.0.1:8000/mcp`
+3. 先读工具说明书（MCP resource `tool://skill`，含写作规则 + 官方示例），再开始调用工具。
+4. 最小任务：<给出一个 agent 可立即执行的示例任务，用于验证链路已打通>。
