@@ -60,16 +60,29 @@ jobs:
           EVAL_API_KEY: ${{ secrets.deepseekv4pro }}
           EVAL_MODEL: deepseek-v4-pro
         run: |
+          set +e   # 单个 skill 失败不中断整轮（默认 shell 带 -e，会吞掉后续 skill 的结论）
           failed=0
+          skipped=0
+          summary=""
           for d in skills/*/; do
-            if [ -f "$d/evals.yaml" ]; then
-              echo "===== 评估 $d ====="
-              python skills/skill-evaluator/scripts/run_evals.py "$d"; code=$?
-              if [ "$code" -eq 2 ]; then echo "  [SKIP] $d（缺 key/余额不足）"; continue; fi
-              if [ "$code" -ne 0 ]; then failed=1; fi
+            [ -f "$d/evals.yaml" ] || continue
+            echo "===== 评估 $d ====="
+            python skills/skill-evaluator/scripts/run_evals.py "$d"
+            code=$?
+            name=$(basename "$d")
+            if [ "$code" -eq 2 ]; then
+              echo "  [SKIP] $name（缺 key/余额不足）"
+              skipped=$((skipped+1)); summary="${summary}SKIP $name\n"
+            elif [ "$code" -ne 0 ]; then
+              failed=$((failed+1)); summary="${summary}FAIL $name\n"
+            else
+              summary="${summary}OK   $name\n"
             fi
           done
+          echo ""
+          echo "===== 动态 evals 汇总（fail=$failed skip=$skipped）====="
+          printf "%b" "$summary"
           if [ "$failed" -ne 0 ]; then
-            echo "存在 with-skill 未通过的用例"
+            echo "存在 with-skill 未通过或 lift<0 的 skill（明细见上方各段 JSON 与 stderr 失败明细）"
             exit 1
           fi

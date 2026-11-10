@@ -1,0 +1,603 @@
+{
+  "schemaVersion": 1,
+  "generated": "2026-11-10",
+  "generator": "agent-deploy/dual-track",
+  "note": "单一清单：skill 走拷贝轨（跨框架），plugin 走 link/bundle 轨（仅 DSH）。取代 core-skills.txt 与 dsh-config/install.ps1 中的硬编码列表。",
+  "tracks": {
+    "skills": {
+      "mode": "copy",
+      "frameworks": [
+        "codex",
+        "claude",
+        "dsh"
+      ],
+      "targets": {
+        ".codex/skills": "codex",
+        ".claude/skills": "claude",
+        ".dsh/skills": "dsh"
+      },
+      "idempotent": "已存在则跳过（不覆盖本地修改）"
+    },
+    "plugins": {
+      "mode": "link",
+      "frameworks": [
+        "dsh"
+      ],
+      "target": "~/.dsh",
+      "registration": "~/.dsh/profiles/web/package.json → dependencies(link:) + dsh.profile.bundles",
+      "postInstall": [
+        "pnpm install（在 ~/.dsh/profiles/web）",
+        "重启 DSH"
+      ],
+      "idempotent": "复制插件目录 + 重接 link，profile package.json 先备份"
+    }
+  },
+  "items": [
+    {
+      "id": "agent-workflow-orchestration",
+      "kind": "skill",
+      "source": "skills/agent-workflow-orchestration",
+      "frameworks": [
+        "codex",
+        "claude",
+        "dsh"
+      ],
+      "coupling": "light",
+      "note": "subagent/session_query/board_*/skillmgr_* 等 DSH 工具名",
+      "present": true
+    },
+    {
+      "id": "skill-lifecycle-manager",
+      "kind": "skill",
+      "source": "skills/skill-lifecycle-manager",
+      "frameworks": [
+        "codex",
+        "claude",
+        "dsh"
+      ],
+      "coupling": "none",
+      "note": "框架无关，具体工具操作委托给对应 skill",
+      "present": true
+    },
+    {
+      "id": "skill-evaluator",
+      "kind": "skill",
+      "source": "skills/skill-evaluator",
+      "frameworks": [
+        "codex",
+        "claude",
+        "dsh"
+      ],
+      "coupling": "light",
+      "note": "skillmgr_get 读取 skill 全文",
+      "present": true
+    },
+    {
+      "id": "skill-optimizer",
+      "kind": "skill",
+      "source": "skills/skill-optimizer",
+      "frameworks": [
+        "codex",
+        "claude",
+        "dsh"
+      ],
+      "coupling": "light",
+      "note": "skillmgr_get 读取 skill 全文",
+      "present": true
+    },
+    {
+      "id": "open-source-scout",
+      "kind": "skill",
+      "source": "skills/open-source-scout",
+      "frameworks": [
+        "codex",
+        "claude",
+        "dsh"
+      ],
+      "coupling": "none",
+      "note": "框架无关",
+      "present": true
+    },
+    {
+      "id": "secret-scan",
+      "kind": "skill",
+      "source": "skills/secret-scan",
+      "frameworks": [
+        "codex",
+        "claude",
+        "dsh"
+      ],
+      "coupling": "none",
+      "note": "owner 已拔硬编码（--owner/env 必填），框架无关",
+      "present": true
+    },
+    {
+      "id": "secure-push-workflow",
+      "kind": "skill",
+      "source": "skills/secure-push-workflow",
+      "frameworks": [
+        "codex",
+        "claude",
+        "dsh"
+      ],
+      "coupling": "none",
+      "note": "编排逻辑框架无关",
+      "present": true
+    },
+    {
+      "id": "github-ready-packager",
+      "kind": "skill",
+      "source": "skills/github-ready-packager",
+      "frameworks": [
+        "codex",
+        "claude",
+        "dsh"
+      ],
+      "coupling": "none",
+      "note": "框架无关",
+      "present": true
+    },
+    {
+      "id": "acp-studio",
+      "kind": "skill",
+      "source": "skills/acp-studio",
+      "frameworks": [
+        "codex",
+        "claude",
+        "dsh"
+      ],
+      "coupling": "env",
+      "note": "proxy 7897 + sslBackend + owner + GITEE_*/ATOMGIT_* 凭据（环境硬编码）",
+      "present": true
+    },
+    {
+      "id": "resume-conversation-full",
+      "kind": "skill",
+      "source": "skills/resume-conversation-full",
+      "frameworks": [
+        "codex",
+        "claude",
+        "dsh"
+      ],
+      "coupling": "light",
+      "note": "正文已框架无关，会话源在 conversation-sources 注册表（可插拔）",
+      "present": true
+    },
+    {
+      "id": "resume-conversation-brief",
+      "kind": "skill",
+      "source": "skills/resume-conversation-brief",
+      "frameworks": [
+        "codex",
+        "claude",
+        "dsh"
+      ],
+      "coupling": "light",
+      "note": "正文已框架无关，会话源在 conversation-sources 注册表（可插拔）",
+      "present": true
+    },
+    {
+      "id": "migrate-conversation-prompt",
+      "kind": "skill",
+      "source": "skills/migrate-conversation-prompt",
+      "frameworks": [
+        "codex",
+        "claude",
+        "dsh"
+      ],
+      "coupling": "none",
+      "note": "框架无关",
+      "present": true
+    },
+    {
+      "id": "agents-md-skill-layering",
+      "kind": "skill",
+      "source": "skills/agents-md-skill-layering",
+      "frameworks": [
+        "codex",
+        "claude",
+        "dsh"
+      ],
+      "coupling": "none",
+      "note": "框架无关",
+      "present": true
+    },
+    {
+      "id": "long-sentence-structurizer",
+      "kind": "skill",
+      "source": "skills/long-sentence-structurizer",
+      "frameworks": [
+        "codex",
+        "claude",
+        "dsh"
+      ],
+      "coupling": "none",
+      "note": "框架无关",
+      "present": true
+    },
+    {
+      "id": "persona-manager",
+      "kind": "skill",
+      "source": "skills/persona-manager",
+      "frameworks": [
+        "codex",
+        "claude",
+        "dsh"
+      ],
+      "coupling": "none",
+      "note": "画像清空/导入管理，脚本通用（框架无关）",
+      "present": true
+    },
+    {
+      "id": "directed-article-learning",
+      "kind": "skill",
+      "source": "skills/directed-article-learning",
+      "frameworks": [
+        "codex",
+        "claude",
+        "dsh"
+      ],
+      "coupling": "none",
+      "note": "定向学习文章→框架查缺补漏，借鉴 paper-to-agent",
+      "present": true
+    },
+    {
+      "id": "dsh-upgrade-ops",
+      "kind": "skill",
+      "source": "skills/dsh-upgrade-ops",
+      "frameworks": [
+        "codex",
+        "claude",
+        "dsh"
+      ],
+      "coupling": "env",
+      "note": "本机 pnpm-global 路径 + 三 store 打架 + 插件 peer 失配（环境硬编码）",
+      "present": true
+    },
+    {
+      "id": "iron-law-retrieval-first",
+      "kind": "skill",
+      "source": "skills/iron-law-retrieval-first",
+      "frameworks": [
+        "codex",
+        "claude",
+        "dsh"
+      ],
+      "coupling": "light",
+      "note": "检索工具名 web_search/open-source-scout（可插拔）",
+      "present": true
+    },
+    {
+      "id": "doc-to-markdown",
+      "kind": "skill",
+      "source": "skills/doc-to-markdown",
+      "frameworks": [
+        "codex",
+        "claude",
+        "dsh"
+      ],
+      "coupling": "env",
+      "note": "Word COM + MarkItDown 本机工具（环境相关）",
+      "present": true
+    },
+    {
+      "id": "meta-layer-optimizer",
+      "kind": "skill",
+      "source": "skills/meta-layer-optimizer",
+      "frameworks": [
+        "codex",
+        "claude",
+        "dsh"
+      ],
+      "coupling": "light",
+      "note": "读 ~/.dsh/meta-drift-log.md + subagent 隔离（DSH 路径可插拔）",
+      "present": true
+    },
+    {
+      "id": "browser-viz-local-scripts",
+      "kind": "skill",
+      "source": "skills/browser-viz-local-scripts",
+      "frameworks": [
+        "codex",
+        "claude",
+        "dsh"
+      ],
+      "coupling": "none",
+      "note": "本地 HTTP + 无构建前端（框架无关）",
+      "present": true
+    },
+    {
+      "id": "code-map",
+      "kind": "skill",
+      "source": "skills/code-map",
+      "frameworks": [
+        "codex",
+        "claude",
+        "dsh"
+      ],
+      "coupling": "none",
+      "note": "改前画「牵连地图」的 grep 编排（框架无关）",
+      "present": true
+    },
+    {
+      "id": "design-qa",
+      "kind": "skill",
+      "source": "skills/design-qa",
+      "frameworks": [
+        "codex",
+        "claude",
+        "dsh"
+      ],
+      "coupling": "none",
+      "note": "「AI 味」可判定清单式界面评审（框架无关）",
+      "present": true
+    },
+    {
+      "id": "security-audit",
+      "kind": "skill",
+      "source": "skills/security-audit",
+      "frameworks": [
+        "codex",
+        "claude",
+        "dsh"
+      ],
+      "coupling": "none",
+      "note": "6 阶段安全审计（覆盖账本/对抗验证），框架无关",
+      "present": true
+    },
+    {
+      "id": "skill-supply-chain-scan",
+      "kind": "skill",
+      "source": "skills/skill-supply-chain-scan",
+      "frameworks": [
+        "codex",
+        "claude",
+        "dsh"
+      ],
+      "coupling": "light",
+      "note": "扫描器用外部 SkillSpector（可插拔工具）",
+      "present": true
+    },
+    {
+      "id": "dsh-plugin-lazy-adapter-resolution",
+      "kind": "skill",
+      "source": "skills/dsh-plugin-lazy-adapter-resolution",
+      "frameworks": [
+        "codex",
+        "claude",
+        "dsh"
+      ],
+      "coupling": "light",
+      "note": "DSH 插件/provider 适配器注册契约（框架 API 可插拔）",
+      "present": true
+    },
+    {
+      "id": "hatch-pet",
+      "kind": "skill",
+      "source": "skills/hatch-pet",
+      "frameworks": [
+        "codex",
+        "claude",
+        "dsh"
+      ],
+      "coupling": "light",
+      "note": "Codex v2 pet 规格（spriteVersionNumber / 行向规格），与框架无关但绑 Codex 规格",
+      "present": true
+    },
+    {
+      "id": "homophone-pun-analysis",
+      "kind": "skill",
+      "source": "skills/homophone-pun-analysis",
+      "frameworks": [
+        "codex",
+        "claude",
+        "dsh"
+      ],
+      "coupling": "none",
+      "note": "谐音梗/神翻译语言学分析（框架无关）",
+      "present": true
+    },
+    {
+      "id": "hpsks416",
+      "kind": "skill",
+      "source": "skills/hpsks416",
+      "frameworks": [
+        "codex",
+        "claude",
+        "dsh"
+      ],
+      "coupling": "none",
+      "note": "个人分析透镜，纯提示词（框架无关）",
+      "present": true
+    },
+    {
+      "id": "local-tool-mcp-exposure",
+      "kind": "skill",
+      "source": "skills/local-tool-mcp-exposure",
+      "frameworks": [
+        "codex",
+        "claude",
+        "dsh"
+      ],
+      "coupling": "light",
+      "note": "MCP server + SKILL.md + llms.txt 暴露本地工具（协议可插拔）",
+      "present": true
+    },
+    {
+      "id": "metro-traffic-prediction",
+      "kind": "skill",
+      "source": "skills/metro-traffic-prediction",
+      "frameworks": [
+        "codex",
+        "claude",
+        "dsh"
+      ],
+      "coupling": "none",
+      "note": "客流预测机制/文献速查（领域知识）",
+      "present": true
+    },
+    {
+      "id": "mindspore-gpu-wsl",
+      "kind": "skill",
+      "source": "skills/mindspore-gpu-wsl",
+      "frameworks": [
+        "codex",
+        "claude",
+        "dsh"
+      ],
+      "coupling": "env",
+      "note": "Windows+NVIDIA+WSL2 本机路径与 CUDA 11.8（环境硬编码）",
+      "present": true
+    },
+    {
+      "id": "restricted-download-mirror-first",
+      "kind": "skill",
+      "source": "skills/restricted-download-mirror-first",
+      "frameworks": [
+        "codex",
+        "claude",
+        "dsh"
+      ],
+      "coupling": "none",
+      "note": "下载受限止损流程约定（框架无关）",
+      "present": true
+    },
+    {
+      "id": "rust-refactor-local-projects",
+      "kind": "skill",
+      "source": "skills/rust-refactor-local-projects",
+      "frameworks": [
+        "codex",
+        "claude",
+        "dsh"
+      ],
+      "coupling": "none",
+      "note": "重构决策（profile 先行），框架无关",
+      "present": true
+    },
+    {
+      "id": "web-3d-asset-pipeline",
+      "kind": "skill",
+      "source": "skills/web-3d-asset-pipeline",
+      "frameworks": [
+        "codex",
+        "claude",
+        "dsh"
+      ],
+      "coupling": "none",
+      "note": "GLB/glTF 资产流水线（框架无关）",
+      "present": true
+    },
+    {
+      "id": "windows-node-spawn-cli",
+      "kind": "skill",
+      "source": "skills/windows-node-spawn-cli",
+      "frameworks": [
+        "codex",
+        "claude",
+        "dsh"
+      ],
+      "coupling": "env",
+      "note": "Windows .cmd/.ps1 shim 直调（环境相关）",
+      "present": true
+    },
+    {
+      "id": "agent-instruction-supply-chain-scan",
+      "kind": "skill",
+      "source": "skills/agent-instruction-supply-chain-scan",
+      "frameworks": [
+        "codex",
+        "claude",
+        "dsh"
+      ],
+      "coupling": "env",
+      "note": "Windows 路径 + DSH 指令加载规则（dsh-agent-instructions）+ 本机 Downloads/.codex/.claude 布局",
+      "present": true
+    },
+    {
+      "id": "dsh-goat-vision",
+      "kind": "plugin",
+      "source": "dsh-config/dsh-goat-vision",
+      "frameworks": [
+        "dsh"
+      ],
+      "package": "dsh-goat-vision",
+      "version": "0.1.0",
+      "engines": {
+        "node": ">=22.19.0",
+        "dsh": ">=0.1.1-rc.2"
+      },
+      "peerDependencies": [],
+      "link": true,
+      "note": "DSH 插件：宿主进程内加载，注册到 profile bundles"
+    },
+    {
+      "id": "dsh-retrieval-guard",
+      "kind": "plugin",
+      "source": "dsh-config/dsh-retrieval-guard",
+      "frameworks": [
+        "dsh"
+      ],
+      "package": "dsh-retrieval-guard",
+      "version": "0.1.0",
+      "engines": {},
+      "peerDependencies": [],
+      "link": true,
+      "note": "DSH 插件：宿主进程内加载，注册到 profile bundles"
+    },
+    {
+      "id": "dsh-secure-push-guard",
+      "kind": "plugin",
+      "source": "dsh-config/dsh-secure-push-guard",
+      "frameworks": [
+        "dsh"
+      ],
+      "package": "dsh-secure-push-guard",
+      "version": "0.1.0",
+      "engines": {},
+      "peerDependencies": [],
+      "link": true,
+      "note": "DSH 插件：宿主进程内加载，注册到 profile bundles"
+    },
+    {
+      "id": "dsh-session-sync-flush",
+      "kind": "plugin",
+      "source": "dsh-config/dsh-session-sync-flush",
+      "frameworks": [
+        "dsh"
+      ],
+      "package": "dsh-session-sync-flush",
+      "version": "0.1.0",
+      "engines": {},
+      "peerDependencies": [],
+      "link": true,
+      "note": "DSH 插件：宿主进程内加载，注册到 profile bundles"
+    },
+    {
+      "id": "dsh-skill-studio",
+      "kind": "plugin",
+      "source": "dsh-config/dsh-skill-studio-patched",
+      "frameworks": [
+        "dsh"
+      ],
+      "package": "dsh-skill-studio",
+      "version": "0.2.1",
+      "engines": {
+        "node": "^22.19.0 || >=24.0.0"
+      },
+      "peerDependencies": [
+        "@deepseek-ai/cordis",
+        "@deepseek-ai/dsh-client-connection",
+        "@deepseek-ai/dsh-client-ui-settings",
+        "@deepseek-ai/dsh-host-webserver",
+        "@deepseek-ai/dsh-skill",
+        "@deepseek-ai/dsh-system-prompt",
+        "@deepseek-ai/dsh-tools",
+        "react",
+        "react-dom"
+      ],
+      "link": true,
+      "note": "DSH 插件：宿主进程内加载，注册到 profile bundles"
+    }
+  ]
+}

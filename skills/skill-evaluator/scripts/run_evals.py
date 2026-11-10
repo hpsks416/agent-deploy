@@ -171,14 +171,19 @@ def main():
                 {"role": "user", "content": task},
             ], tools=tools)
 
-            with_pass, _ = run_checks(with_text, checks, with_calls)
-            without_pass, _ = run_checks(without_text, checks, without_calls)
+            with_pass, with_checks = run_checks(with_text, checks, with_calls)
+            without_pass, without_checks = run_checks(without_text, checks, without_calls)
             results.append({
                 "id": case.get("id"),
                 "with_skill_pass": with_pass,
                 "without_skill_pass": without_pass,
                 "with_tool_calls": with_calls,
                 "without_tool_calls": without_calls,
+                # 失败诊断（截断，避免 CI 日志爆）：哪条 check 不过 + 最终答复预览
+                "with_failed_checks": [i for i, r in enumerate(with_checks) if not r["passed"]],
+                "without_failed_checks": [i for i, r in enumerate(without_checks) if not r["passed"]],
+                "with_text_preview": with_text[:600],
+                "without_text_preview": without_text[:600],
             })
     except urllib.error.HTTPError as e:
         if e.code in (401, 403, 402):
@@ -204,6 +209,14 @@ def main():
 
     # 闸门：with-skill 全过（真回归才红）+ lift<0（负增益才红）；lift=0 是 dead weight 只警告不红
     if with_pass != total:
+        print("with-skill 未全过，失败明细：", file=sys.stderr)
+        for r in results:
+            if not r["with_skill_pass"]:
+                print(
+                    "  - %s: failed_checks=%s preview=%r"
+                    % (r["id"], r["with_failed_checks"], r["with_text_preview"][:200]),
+                    file=sys.stderr,
+                )
         return 1
     if lift < 0:
         print("lift=%s < 0：with-skill 劣于 without-skill（负增益），闸门不放行" % round(lift, 3), file=sys.stderr)

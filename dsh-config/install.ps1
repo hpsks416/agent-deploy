@@ -1,55 +1,73 @@
 #!/usr/bin/env pwsh
 # ============================================================================
-# DSH 本机架构一键恢复脚本（换机 / 迁移用）
-# 从 dsh-config 仓库恢复：全局指令、配置、web profile、5 个 link 插件，
-# 并批量 clone 全部 skill（21 个，已退役的 hatch-pet 除外）到 ~/.dsh/skills/。
+# DSH 本机架构一键恢复脚本（换机 / 迁移用）—— 双轨版 v2
 #
-# 用法（在 dsh-config 仓库根目录运行）：
-#   pwsh install.ps1                     # 恢复配置 + 全部 skill（默认 GitHub 源）
-#   pwsh install.ps1 -Source gitee       # 用 Gitee 源（国内直连更快）
-#   pwsh install.ps1 -SkipSkills         # 只恢复配置，不装 skill
-#   pwsh install.ps1 -SkipConfig         # 只装 skill，不覆盖配置
+# 从本仓库恢复：全局指令、配置、web profile、插件（link 进 profile bundles），
+# 并批量恢复 skill（清单来自 framework-manifest.json，回退旧硬编码列表）。
 #
-# 幂等：已存在的 skill 目录会被跳过（不会覆盖你已修改的内容）。
-# 安全：恢复配置前会先备份到 ~/.dsh/_backup_<时间戳>/。
+# 用法（在本仓库根目录运行）：
+#   pwsh dsh-config/install.ps1                     # 配置 + skill + 插件（全量）
+#   pwsh dsh-config/install.ps1 -PluginsOnly        # 只装/重接插件（deploy.ps1 -Track plugins 用）
+#   pwsh dsh-config/install.ps1 -DryRun             # 只预览
+#   pwsh dsh-config/install.ps1 -SkipSkills         # 只恢复配置
+#   pwsh dsh-config/install.ps1 -SkipConfig         # 只装 skill
+#
+# 幂等：已存在的 skill 目录会被跳过（不覆盖本地修改）。
+# 安全：覆盖前先备份到 ~/.dsh/_backup_<时间戳>/。
 # ============================================================================
 
 param(
   [ValidateSet('github', 'gitee')]
   [string]$Source = 'github',
   [switch]$SkipSkills,
-  [switch]$SkipConfig
+  [switch]$SkipConfig,
+  [switch]$PluginsOnly,
+  [switch]$DryRun
 )
 
 $ErrorActionPreference = 'Continue'
+[Console]::OutputEncoding = [Text.Encoding]::UTF8
 $dshHome = Join-Path $env:USERPROFILE '.dsh'
 $scriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
+$repoRoot = Split-Path -Parent $scriptRoot
 $owner = 'hpsks416'
 
-# 注：hatch-pet 已退役（本地保留、未上云），不参与迁移，故不在此列表
-$skills = @(
-  'acp-studio',
-  'agent-workflow-orchestration',
-  'agents-md-skill-layering',
-  'browser-viz-local-scripts',
-  'dsh-plugin-lazy-adapter-resolution',
-  'github-ready-packager',
-  'homophone-pun-analysis',
-  'hpsks416',
-  'long-sentence-structurizer',
-  'migrate-conversation-prompt',
-  'open-source-scout',
-  'resume-conversation-brief',
-  'resume-conversation-full',
-  'rust-refactor-local-projects',
-  'secret-scan',
-  'secure-push-workflow',
-  'skill-evaluator',
-  'skill-lifecycle-manager',
-  'skill-optimizer',
-  'web-3d-asset-pipeline',
-  'windows-node-spawn-cli'
+# ---------- 清单（唯一事实源） ----------
+$manifestPath = Join-Path $repoRoot 'framework-manifest.json'
+$manifest = $null
+if (Test-Path $manifestPath) {
+  try { $manifest = Get-Content $manifestPath -Raw | ConvertFrom-Json } catch {
+    Write-Host "! framework-manifest.json 解析失败，回退旧硬编码列表：$($_.Exception.Message)" -ForegroundColor Yellow
+  }
+}
+
+# 旧硬编码列表（仅在无清单时兜底；hatch-pet 已退役，不参与迁移）
+$legacySkills = @(
+  'acp-studio', 'agent-workflow-orchestration', 'agents-md-skill-layering',
+  'browser-viz-local-scripts', 'dsh-plugin-lazy-adapter-resolution', 'github-ready-packager',
+  'homophone-pun-analysis', 'hpsks416', 'long-sentence-structurizer',
+  'migrate-conversation-prompt', 'open-source-scout', 'resume-conversation-brief',
+  'resume-conversation-full', 'rust-refactor-local-projects', 'secret-scan',
+  'secure-push-workflow', 'skill-evaluator', 'skill-lifecycle-manager', 'skill-optimizer',
+  'web-3d-asset-pipeline', 'windows-node-spawn-cli'
 )
+$legacyPlugins = [ordered]@{
+  'dsh-skill-studio'       = 'dsh-skill-studio-patched'
+  'dsh-goat-vision'        = 'dsh-goat-vision'
+  'dsh-retrieval-guard'    = 'dsh-retrieval-guard'
+  'dsh-secure-push-guard'  = 'dsh-secure-push-guard'
+  'dsh-session-sync-flush' = 'dsh-session-sync-flush'
+}
+
+$skills = $legacySkills
+$linkedPlugins = $legacyPlugins
+if ($manifest) {
+  $skills = @($manifest.items | Where-Object { $_.kind -eq 'skill' -and ($_.frameworks -contains 'dsh') } | ForEach-Object { $_.id })
+  $linkedPlugins = [ordered]@{}
+  foreach ($it in @($manifest.items | Where-Object { $_.kind -eq 'plugin' -and ($_.frameworks -contains 'dsh') })) {
+    $linkedPlugins[$it.id] = (Split-Path $it.source -Leaf)
+  }
+}
 
 $ts = Get-Date -Format 'yyyyMMdd-HHmmss'
 $backupRoot = Join-Path $dshHome "_backup_$ts"
@@ -59,84 +77,131 @@ function Backup-And-Restore-File {
   if (Test-Path $Dst) {
     $rel = $Dst.Replace($dshHome + '\', '')
     $bak = Join-Path $backupRoot $rel
-    New-Item -ItemType Directory -Force -Path (Split-Path $bak) | Out-Null
-    Copy-Item $Dst $bak -Force
+    if (-not $DryRun) {
+      New-Item -ItemType Directory -Force -Path (Split-Path $bak) | Out-Null
+      Copy-Item $Dst $bak -Force
+    }
     Write-Host "    备份旧文件 -> ~/.dsh/_backup_$ts\$rel" -ForegroundColor DarkGray
   }
+  if ($DryRun) { Write-Host "    [DRY] 恢复 $Dst" -ForegroundColor Yellow; return }
   New-Item -ItemType Directory -Force -Path (Split-Path $Dst) | Out-Null
   Copy-Item $Src $Dst -Force
   Write-Host "    恢复 ~/.dsh/$($Dst.Replace($dshHome + '\', ''))" -ForegroundColor Green
 }
 
+function Install-LinkedPlugins {
+  Write-Host ''
+  Write-Host "[$($label)] 插件轨：$($linkedPlugins.Count) 个 link 插件 -> ~/.dsh" -ForegroundColor Yellow
+
+  # 版本/约束断言（有 engines.dsh 的打印，未声明的提示补）
+  if ($manifest) {
+    foreach ($it in @($manifest.items | Where-Object { $_.kind -eq 'plugin' -and ($_.frameworks -contains 'dsh') })) {
+      $pj = Join-Path $repoRoot (Join-Path $it.source 'package.json')
+      if (-not (Test-Path $pj)) { Write-Host "    [FAIL] $($it.id) 缺 package.json" -ForegroundColor Red; continue }
+      $actual = Get-Content $pj -Raw | ConvertFrom-Json
+      if ($actual.version -ne $it.version) {
+        Write-Host "    [WARN] $($it.id) 清单 $($it.version) ≠ package.json $($actual.version)" -ForegroundColor Yellow
+      }
+      $dshReq = if ($actual.engines -and $actual.engines.dsh) { $actual.engines.dsh } else { $null }
+      if ($dshReq) { Write-Host ("    [约束] {0} {1} 要求 dsh {2}" -f $it.id, $it.version, $dshReq) -ForegroundColor DarkGray }
+      else { Write-Host ("    [约束] {0} {1} 未声明 engines.dsh（建议补）" -f $it.id, $it.version) -ForegroundColor DarkYellow }
+    }
+  }
+
+  $pkgPath = Join-Path $dshHome 'profiles\web\package.json'
+  if (-not (Test-Path $pkgPath)) {
+    Write-Host "    x 缺 $pkgPath（先恢复 profile-web 配置）" -ForegroundColor Red
+    return
+  }
+  $fsHome = $env:USERPROFILE.Replace('\', '/')
+  $pkgText = Get-Content $pkgPath -Raw
+
+  foreach ($dep in $linkedPlugins.Keys) {
+    $srcDir = $linkedPlugins[$dep]
+    $src = Join-Path $scriptRoot $srcDir
+    $dstDir = Join-Path $dshHome $srcDir
+    if (-not (Test-Path $src)) { Write-Host "    [FAIL] $dep（缺 dsh-config/$srcDir）" -ForegroundColor Red; continue }
+    if (-not $DryRun) {
+      if (Test-Path $dstDir) {
+        $bak = Join-Path $backupRoot $srcDir
+        New-Item -ItemType Directory -Force -Path $bak | Out-Null
+        Copy-Item $dstDir $bak -Recurse -Force
+        Write-Host "    备份旧 $srcDir" -ForegroundColor DarkGray
+      }
+      Copy-Item $src $dstDir -Recurse -Force
+      Write-Host "    恢复 ~/.dsh/$srcDir" -ForegroundColor Green
+    } else {
+      Write-Host "    [DRY] Copy-Item $src -> $dstDir" -ForegroundColor Yellow
+    }
+    # 重接 link 路径（字符串级，保留其它依赖不动）
+    $pkgText = $pkgText -replace ('"' + [regex]::Escape($dep) + '"\s*:\s*"link:[^"]*"'), ("`"$dep`": `"link:$fsHome/.dsh/$srcDir`"")
+  }
+
+  if ($DryRun) { Write-Host '    [DRY] 重接 profile-web/package.json 的 link 路径' -ForegroundColor Yellow }
+  else {
+    Set-Content -Path $pkgPath -Value $pkgText -Encoding utf8
+    Write-Host '    重接 package.json 的 link 插件路径' -ForegroundColor Green
+  }
+
+  $otherLinks = [regex]::Matches($pkgText, '"([^"]+)"\s*:\s*"link:[^"]*"') | ForEach-Object { $_.Groups[1].Value } | Where-Object { $linkedPlugins.Keys -notcontains $_ }
+  if ($otherLinks) {
+    Write-Host ''
+    Write-Host '    ! 以下依赖仍是本地 link、未包含在本仓库中，需手动恢复：' -ForegroundColor Magenta
+    foreach ($l in $otherLinks) { Write-Host "       - $l" -ForegroundColor Magenta }
+  }
+}
+
+# ---------- PluginsOnly：只做插件轨 --------------------------------
+if ($PluginsOnly) {
+  $label = '1/1'
+  Write-Host ''
+  Write-Host '============================================================' -ForegroundColor Cyan
+  Write-Host " DSH 插件轨（manifest: $(if ($manifest) { 'framework-manifest.json' } else { 'legacy' })）" -ForegroundColor Cyan
+  if ($DryRun) { Write-Host ' [DRY RUN] 只预览，不写入' -ForegroundColor Yellow }
+  Write-Host '============================================================' -ForegroundColor Cyan
+  Install-LinkedPlugins
+  Write-Host ''
+  Write-Host '下一步（必须）：cd ~/.dsh/profiles/web; pnpm install; 重启 DSH' -ForegroundColor Yellow
+  Write-Host '若启动失败，日志：~/.dsh/logs/startup-*.log / ~/.dsh/storages/session_projcache/sessions/session-*.json' -ForegroundColor DarkGray
+  exit 0
+}
+
+# ---------- 全量 ------------------------------------------------
 Write-Host ''
 Write-Host '============================================================' -ForegroundColor Cyan
-Write-Host ' DSH 本机架构一键恢复' -ForegroundColor Cyan
+Write-Host ' DSH 本机架构一键恢复（双轨版）' -ForegroundColor Cyan
 Write-Host " 脚本目录: $scriptRoot" -ForegroundColor DarkGray
 Write-Host " 目标目录: $dshHome" -ForegroundColor DarkGray
+Write-Host " 清单    : $(if ($manifest) { "$($skills.Count) skills / $($linkedPlugins.Count) plugins" } else { "$($skills.Count) skills（legacy）" })" -ForegroundColor DarkGray
 Write-Host " skill 源: $Source" -ForegroundColor DarkGray
+if ($DryRun) { Write-Host ' [DRY RUN] 只预览，不写入' -ForegroundColor Yellow }
 Write-Host '============================================================' -ForegroundColor Cyan
 Write-Host ''
 
-# ---- 1. 恢复配置 ---------------------------------------------------------
+# ---- 1. 配置 + 插件 ---------------------------------------------
 if (-not $SkipConfig) {
-  Write-Host '[1/3] 恢复配置' -ForegroundColor Yellow
-  New-Item -ItemType Directory -Force -Path $dshHome | Out-Null
+  Write-Host '[1/3] 恢复配置 + 插件' -ForegroundColor Yellow
+  if (-not $DryRun) { New-Item -ItemType Directory -Force -Path $dshHome | Out-Null }
 
   Backup-And-Restore-File (Join-Path $scriptRoot 'AGENTS.md') (Join-Path $dshHome 'AGENTS.md')
   Backup-And-Restore-File (Join-Path $scriptRoot 'settings.yaml') (Join-Path $dshHome 'settings.yaml')
   Backup-And-Restore-File (Join-Path $scriptRoot 'profile-web\cordis.patch.yml') (Join-Path $dshHome 'profiles\web\cordis.patch.yml')
   Backup-And-Restore-File (Join-Path $scriptRoot 'profile-web\cordis.yml') (Join-Path $dshHome 'profiles\web\cordis.yml')
   Backup-And-Restore-File (Join-Path $scriptRoot 'profile-web\pnpm-workspace.yaml') (Join-Path $dshHome 'profiles\web\pnpm-workspace.yaml')
-
-  # package.json：先复制，再重接所有 link 插件的 link 到稳定路径
   Backup-And-Restore-File (Join-Path $scriptRoot 'profile-web\package.json') (Join-Path $dshHome 'profiles\web\package.json')
 
-  # link 插件：依赖名 → 源码目录名（源码在本仓库内，复制到 ~/.dsh/ 后重接 link）
-  $linkedPlugins = [ordered]@{
-    'dsh-skill-studio'       = 'dsh-skill-studio-patched'
-    'dsh-goat-vision'        = 'dsh-goat-vision'
-    'dsh-retrieval-guard'    = 'dsh-retrieval-guard'
-    'dsh-secure-push-guard'  = 'dsh-secure-push-guard'
-    'dsh-session-sync-flush' = 'dsh-session-sync-flush'
-  }
-
-  $pkgPath = Join-Path $dshHome 'profiles\web\package.json'
-  $fsHome = $env:USERPROFILE.Replace('\', '/')
-  $pkgText = Get-Content $pkgPath -Raw
-
-  foreach ($dep in $linkedPlugins.Keys) {
-    $srcDir = $linkedPlugins[$dep]
-    $dstDir = Join-Path $dshHome $srcDir
-    if (Test-Path $dstDir) {
-      $bak = Join-Path $backupRoot $srcDir
-      New-Item -ItemType Directory -Force -Path $bak | Out-Null
-      Copy-Item $dstDir $bak -Recurse -Force
-      Write-Host "    备份旧 $srcDir" -ForegroundColor DarkGray
-    }
-    Copy-Item (Join-Path $scriptRoot $srcDir) $dstDir -Recurse -Force
-    Write-Host "    恢复 ~/.dsh/$srcDir" -ForegroundColor Green
-    $pkgText = $pkgText -replace ('"' + [regex]::Escape($dep) + '"\s*:\s*"link:[^"]*"'), ("`"$dep`": `"link:$fsHome/.dsh/$srcDir`"")
-  }
-  Set-Content -Path $pkgPath -Value $pkgText -Encoding utf8
-  Write-Host '    重接 package.json 的 link 插件路径' -ForegroundColor Green
-
-  # 检测其它 link: 依赖（未打包，需手动恢复）
-  $otherLinks = [regex]::Matches($pkgText, '"([^"]+)"\s*:\s*"link:[^"]*"') | ForEach-Object { $_.Groups[1].Value } | Where-Object { $linkedPlugins.Keys -notcontains $_ }
-  if ($otherLinks) {
-    Write-Host ''
-    Write-Host '  ⚠ 以下依赖仍是本地 link、且未包含在本仓库中，需手动恢复：' -ForegroundColor Magenta
-    foreach ($l in $otherLinks) { Write-Host "     - $l" -ForegroundColor Magenta }
-  }
+  $label = '1/3'
+  Install-LinkedPlugins
 } else {
   Write-Host '[1/3] 跳过配置恢复（-SkipConfig）' -ForegroundColor DarkGray
 }
 
-# ---- 2. 安装 skill -------------------------------------------------------
+# ---- 2. 安装 skill ----------------------------------------------
 if (-not $SkipSkills) {
   Write-Host ''
-  Write-Host '[2/3] 安装 21 个 skill' -ForegroundColor Yellow
+  Write-Host "[2/3] 安装 $($skills.Count) 个 skill" -ForegroundColor Yellow
   $skillsDir = Join-Path $dshHome 'skills'
-  New-Item -ItemType Directory -Force -Path $skillsDir | Out-Null
+  if (-not $DryRun) { New-Item -ItemType Directory -Force -Path $skillsDir | Out-Null }
 
   $okCount = 0; $skipCount = 0; $failCount = 0
   foreach ($s in $skills) {
@@ -146,6 +211,7 @@ if (-not $SkipSkills) {
       $skipCount++
       continue
     }
+    if ($DryRun) { Write-Host "    [DRY] 安装 $s"; $okCount++; continue }
     if ($Source -eq 'github') { $url = "https://github.com/$owner/$s.git" }
     else { $url = "https://gitee.com/$owner/$s.git" }
     git clone --depth 1 $url $dst 2>&1 | Out-Null
@@ -163,7 +229,7 @@ if (-not $SkipSkills) {
   Write-Host '[2/3] 跳过 skill 安装（-SkipSkills）' -ForegroundColor DarkGray
 }
 
-# ---- 3. 收尾提醒 ---------------------------------------------------------
+# ---- 3. 收尾提醒 -------------------------------------------------
 Write-Host ''
 Write-Host '[3/3] 需要你手动补齐的密钥（本仓库不含任何密钥）' -ForegroundColor Yellow
 Write-Host '  1. 环境变量（settings.yaml 引用，无明文）：' -ForegroundColor White
@@ -174,8 +240,8 @@ Write-Host '  4. secrets.cmd（推送 GitHub/Gitee 用，若需双推）' -Foreg
 Write-Host ''
 Write-Host '恢复完成后：' -ForegroundColor Yellow
 Write-Host '  cd ~/.dsh/profiles/web  &&  pnpm install  &&  重启 DSH' -ForegroundColor White
+Write-Host '  启动失败日志：~/.dsh/logs/startup-*.log / ~/.dsh/sessions/<工作区>/<session-id>/session.v3.jsonl.zstd' -ForegroundColor DarkGray
 Write-Host ''
-
 Write-Host '============================================================' -ForegroundColor Cyan
-Write-Host ' 完成。备份目录: ~/.dsh/_backup_$ts/（如有）' -ForegroundColor Cyan
+Write-Host " 完成。备份目录: ~/.dsh/_backup_$ts/（如有）" -ForegroundColor Cyan
 Write-Host '============================================================' -ForegroundColor Cyan
