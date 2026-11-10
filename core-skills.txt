@@ -1,4 +1,6 @@
-# AGENT 框架核心 skill 清单（共 37 个）
+# AGENT 框架核心 skill 清单（共 37 个）—— **不是部署的事实源**
+# 部署唯一来源 = framework-manifest.json（37 skills / 6 plugins）；本文件保留为人类可读摘要 + 无 manifest 时的兜底。
+# 改动请改 manifest；核对一致性：check-plugin-contract.ps1（插件）+ 本文件非注释行数 vs manifest skill 数。
 # 格式：<skill名> | <耦合等级> | <备注>
 # 耦合等级：none=框架无关 / light=轻耦合(改可插拔处) / env=环境硬编码 / hardcode=owner硬编码
 

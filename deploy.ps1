@@ -40,6 +40,7 @@ $homeDir = $env:USERPROFILE
 $doSkills  = (-not $SkipSkills) -and ($Track -in @('skills', 'all'))
 $doPlugins = ($Track -in @('plugins', 'all')) -and ($Framework -eq 'dsh')
 $doConfig  = (-not $SkipConfig) -and ($Track -ne 'plugins')
+$pluginOk  = $true
 
 # ---------- 0. 清单（双轨的唯一事实源） ----------
 $manifestPath = Join-Path $scriptRoot 'framework-manifest.json'
@@ -173,15 +174,37 @@ if ($doPlugins) {
 
   # 版本/约束断言与安装都在 dsh-config/install.ps1 的单一实现里（-PluginsOnly），此处只做委托。
   $installScript = Join-Path $scriptRoot 'dsh-config\install.ps1'
+
+  # 插件轨会改写目标 profile 的 package.json：先快照并登记到状态，回滚才能复原
+  $dshHomeDir = Join-Path $homeDir '.dsh'
+  $profPkg = Join-Path $dshHomeDir "profiles\$Profile\package.json"
+  if ((Test-Path $profPkg) -and -not $DryRun) {
+    New-Item -ItemType Directory -Force -Path $backupRoot | Out-Null
+    $profBak = Join-Path $backupRoot "profile-package.json"
+    Copy-Item $profPkg $profBak -Force
+    $state.backups += [pscustomobject]@{ dest = $profPkg; src = $profBak }
+  }
+
+  # 只登记「本次新建」的插件目录（已存在的不算，回滚不能删用户的），npm 轨不删 node_modules
+  foreach ($it in $pluginItems) {
+    if ($it.install -and $it.install.mode -eq 'npm') { continue }
+    $leaf = Split-Path $it.source -Leaf
+    $dstDir = Join-Path $dshHomeDir $leaf
+    if (-not (Test-Path $dstDir)) { $state.createdPlugins += $dstDir }
+  }
   if (-not (Test-Path $installScript)) {
     Write-Host '  x 缺 dsh-config/install.ps1，无法安装插件' -ForegroundColor Red
+    $pluginOk = $false
   } else {
     $plArgs = @{ PluginsOnly = $true; Source = $Source; Profile = $Profile }
     if ($DryRun) { $plArgs.DryRun = $true }
     & $installScript @plArgs
-    if ($LASTEXITCODE -ne 0) { Write-Host "  ! 插件安装返回 $LASTEXITCODE" -ForegroundColor Yellow }
+    $pluginExit = $LASTEXITCODE
+    if ($pluginExit -ne 0) {
+      Write-Host "  x 插件轨失败（install.ps1 退出码 $pluginExit），不要继续 pnpm/重启" -ForegroundColor Red
+      $pluginOk = $false
+    }
   }
-  foreach ($it in $pluginItems) { $state.createdPlugins += (Join-Path $homeDir $it.id) }
 } else {
   Write-Host ''
   if ($Track -in @('plugins', 'all') -and $Framework -ne 'dsh') {
@@ -316,8 +339,9 @@ if (-not $coupled) {
 Write-Host ''
 Write-Host '============================================================' -ForegroundColor Cyan
 Write-Host " 完成。（备份目录: $backupRoot，如有旧文件）" -ForegroundColor Cyan
-if ($doPlugins) {
+if ($doPlugins -and $pluginOk) {
   if ($Profile -eq 'web') { Write-Host ' 插件轨下一步：cd ~/.dsh/profiles/web; pnpm install; 重启 DSH' -ForegroundColor Yellow }
   else { Write-Host ' 插件轨下一步：重启桌面 app（desktop profile 由 app 加载）' -ForegroundColor Yellow }
 }
+if (-not $pluginOk) { exit 2 }
 Write-Host '============================================================' -ForegroundColor Cyan

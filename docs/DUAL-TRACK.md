@@ -99,6 +99,16 @@ desktop : 6 个插件 | PASS 4 | WARN 2 | FAIL 0   # goat-vision / skill-studio 
 
 ## 5. 运行手册
 
+**实测记录（2026-11-10，假 HOME 沙箱，未碰真实 profile）**：
+
+```
+install  : deploy.ps1 -Track all -SkipConfig → skills 37/37 OK，插件 5 个目录落到 ~/.dsh/，
+           profile package.json 的 link 路径改写到沙箱，状态文件 createdPlugins=5 backups=1，exit 0
+rollback : deploy.ps1 -Rollback → 删 37 个 skill 目录 + 5 个插件目录，恢复 profile package.json
+           （link 路径回到原值），exit 0
+失败路径  : 缺 profile package.json 时 → 插件轨 x 报错 + exit 2，且不再提示 pnpm/重启
+```
+
 ```powershell
 # 预览（不写盘）
 pwsh deploy.ps1 -Framework dsh -Track all -DryRun

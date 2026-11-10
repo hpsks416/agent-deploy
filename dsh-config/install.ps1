@@ -30,6 +30,7 @@ param(
 
 $ErrorActionPreference = 'Continue'
 [Console]::OutputEncoding = [Text.Encoding]::UTF8
+$script:pluginOk = $true
 $dshHome = Join-Path $env:USERPROFILE '.dsh'
 $scriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
 $repoRoot = Split-Path -Parent $scriptRoot
@@ -119,6 +120,7 @@ function Install-LinkedPlugins {
   $pkgPath = Join-Path $dshHome "profiles\$Profile\package.json"
   if (-not (Test-Path $pkgPath)) {
     Write-Host "    x 缺 $pkgPath（先恢复 profile-web 配置）" -ForegroundColor Red
+    $script:pluginOk = $false
     return
   }
   $fsHome = $env:USERPROFILE.Replace('\', '/')
@@ -205,6 +207,7 @@ if ($PluginsOnly) {
     Write-Host '下一步（必须）：重启桌面 app（desktop profile 由 app 加载）' -ForegroundColor Yellow
   }
   Write-Host '若启动失败，日志：~/.dsh/logs/startup-*.log / ~/.dsh/storages/session_projcache/sessions/session-*.json' -ForegroundColor DarkGray
+  if (-not $script:pluginOk) { Write-Host 'x 插件轨未完成（见上方错误），不要执行 pnpm/重启' -ForegroundColor Red; exit 2 }
   exit 0
 }
 
