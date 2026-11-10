@@ -1,0 +1,27 @@
+{
+  "name": "dsh-context-guard",
+  "version": "0.1.0",
+  "description": "DSH plugin: enforce context-window budget — intercept near the limit and force a handoff prompt.",
+  "license": "MIT",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./cordis.patch.yml": "./cordis.patch.yml"
+  },
+  "files": ["lib", "cordis.patch.yml"],
+  "engines": {
+    "dsh": "^0.2.2-rc.1"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "compatibility": {
+      "dsh": "^0.2.2-rc.1",
+      "dshReleases": {
+        "0.2.2-rc.1": "compatible"
+      }
+    }
+  }
+}

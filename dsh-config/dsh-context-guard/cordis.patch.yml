@@ -1,0 +1,4 @@
+# dsh-context-guard bundle patch: mount this package as one composition row.
+- insert:
+    - id: context-guard
+      name: 'dsh-context-guard'

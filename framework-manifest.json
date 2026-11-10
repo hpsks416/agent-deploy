@@ -650,6 +650,22 @@
       },
       "link": false,
       "note": "第三方插件（MarkText/muya 所见即所得编辑器进右侧栏）。要求 DSH>=0.2.1，只能装 desktop；不 vendor 源码（11MB/698 文件），按固定版本从 npm 装。"
+    },
+    {
+      "id": "dsh-context-guard",
+      "kind": "plugin",
+      "source": "dsh-config/dsh-context-guard",
+      "frameworks": [
+        "dsh"
+      ],
+      "profiles": [
+        "desktop"
+      ],
+      "package": "dsh-context-guard",
+      "version": "0.1.0",
+      "license": "MIT",
+      "link": true,
+      "note": "上下文预算守卫：接近上限时拦截并强制交接提示。仅 desktop（0.2.2-rc.1）验证过；源码 3.4KB，随仓库分发。"
     }
   ]
 }
