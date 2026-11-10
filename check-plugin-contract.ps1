@@ -63,21 +63,31 @@ function VerParts([string]$v) {
   }
   return $null
 }
-# 判断声明的版本范围是否覆盖 profile 版本：
-#   >=X  → profile 的 (major,minor,patch) ≥ X 即覆盖（忽略 prerelease 差异，仅告警级）
+# 判断声明的版本范围是否覆盖 profile 版本（支持 `A || B` 并联）：
+#   >=X  → profile 的 (major,minor,patch) ≥ X 即覆盖
 #   ^X / ~X / =X → 基线相同才算一致
 function RangeCovers([string]$range, [string]$profileVer) {
   if (-not $range -or -not $profileVer) { return $true }
-  $op = 'eq'
-  if ($range -match '^\s*>=') { $op = 'ge' }
-  $rb = DeclaredBase $range; $pv = VerParts $profileVer; $rv = VerParts $rb
-  if (-not $pv -or -not $rv) { return $true }
-  if ($op -eq 'ge') {
-    if ($pv.major -ne $rv.major) { return $pv.major -gt $rv.major }
-    if ($pv.minor -ne $rv.minor) { return $pv.minor -gt $rv.minor }
-    return $pv.patch -ge $rv.patch
+  $pv = VerParts $profileVer
+  if (-not $pv) { return $true }
+  foreach ($part in ($range -split '\|\|')) {
+    $p = $part.Trim()
+    if (-not $p) { continue }
+    $op = 'eq'
+    if ($p -match '^\s*>=') { $op = 'ge' }
+    $rv = VerParts (DeclaredBase $p)
+    if (-not $rv) { continue }
+    if ($op -eq 'ge') {
+      $covered = $false
+      if ($pv.major -ne $rv.major) { $covered = $pv.major -gt $rv.major }
+      elseif ($pv.minor -ne $rv.minor) { $covered = $pv.minor -gt $rv.minor }
+      else { $covered = $pv.patch -ge $rv.patch }
+    } else {
+      $covered = ($pv.major -eq $rv.major -and $pv.minor -eq $rv.minor -and $pv.patch -eq $rv.patch)
+    }
+    if ($covered) { return $true }
   }
-  return ($pv.major -eq $rv.major -and $pv.minor -eq $rv.minor -and $pv.patch -eq $rv.patch)
+  return $false
 }
 
 foreach ($d in $dirs) {
@@ -159,6 +169,36 @@ foreach ($d in $dirs) {
   $results += [pscustomobject]@{
     plugin = $name; dir = $d.Name; verdict = $worst
     issues = @($issues | ForEach-Object { "[$($_.level)] $($_.msg)" })
+  }
+}
+
+# manifest 里 npm 分发的外部插件（不在 dsh-config/ 下）：检查目标 profile 装没装、版本对不对
+if ($manifest) {
+  foreach ($it in @($manifest.items | Where-Object { $_.kind -eq 'plugin' -and $_.install -and $_.install.mode -eq 'npm' })) {
+    $issues = New-Object System.Collections.ArrayList
+    $profs = @($it.profiles)
+    if ($profs.Count -gt 0 -and -not ($profs -contains $Profile)) {
+      Note $issues 'WARN' "只属于 profiles=$($profs -join ','), 不含 $Profile"
+    } else {
+      $inst = Join-Path (Join-Path $env:USERPROFILE ".dsh\profiles\$Profile") ("node_modules\" + $it.package + "\package.json")
+      if (-not (Test-Path $inst)) {
+        Note $issues 'FAIL' "未安装到 profile=$Profile（期望 $($it.package)@$($it.version)）"
+      } else {
+        $v = (Get-Content $inst -Raw | ConvertFrom-Json).version
+        if ($v -ne $it.version) { Note $issues 'FAIL' "已装 $v ≠ 清单 $($it.version)" }
+        else {
+          $bundled = (Get-Content (Join-Path (Join-Path $env:USERPROFILE ".dsh\profiles\$Profile") 'package.json') -Raw | ConvertFrom-Json).dsh.profile.bundles
+          if (@($bundled) -notcontains $it.package) { Note $issues 'FAIL' '已装但未注册到 dsh.profile.bundles' }
+        }
+      }
+    }
+    $worst = 'PASS'
+    if ($issues | Where-Object { $_.level -eq 'FAIL' }) { $worst = 'FAIL' }
+    elseif ($issues | Where-Object { $_.level -eq 'WARN' }) { $worst = 'WARN' }
+    $results += [pscustomobject]@{
+      plugin = $it.id; dir = '(npm)'; verdict = $worst
+      issues = @($issues | ForEach-Object { "[$($_.level)] $($_.msg)" })
+    }
   }
 }
 

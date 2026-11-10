@@ -630,6 +630,26 @@
       "profiles": [
         "web"
       ]
+    },
+    {
+      "id": "dsh-marktext",
+      "kind": "plugin",
+      "source": "npm:dsh-marktext@0.1.13",
+      "frameworks": [
+        "dsh"
+      ],
+      "profiles": [
+        "desktop"
+      ],
+      "package": "dsh-marktext",
+      "version": "0.1.13",
+      "license": "MIT",
+      "install": {
+        "mode": "npm",
+        "vendor": false
+      },
+      "link": false,
+      "note": "第三方插件（MarkText/muya 所见即所得编辑器进右侧栏）。要求 DSH>=0.2.1，只能装 desktop；不 vendor 源码（11MB/698 文件），按固定版本从 npm 装。"
     }
   ]
 }

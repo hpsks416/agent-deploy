@@ -75,17 +75,23 @@
 | 3 | `dsh.bundle.patch` 指向存在的 `cordis.patch.yml`，且内含 `- insert:` | 注册进 profile bundles 的唯一入口 | ✅ 全部 |
 | 4 | `files` 包含 `cordis.patch.yml` | 否则 npm 打包会漏，装完起不来 | ✅ 全部 |
 | 5 | 版本声明 `engines.dsh` 或 `dsh.compatibility.dsh`（含 `dshReleases`） | 实测两种写法都在用 | ✅ 全部（本轮修了 1 处错位） |
-| 6 | 声明的范围覆盖目标 profile 版本（web 0.1.5-rc.2 / desktop 0.2.2-rc.1） | 跨 profile 时最容易翻车 | ⚠️ 3 个守卫插件只声明 `^0.1.5-rc.2` |
+| 6 | 声明的范围覆盖目标 profile 版本（web 0.1.5-rc.2 / desktop 0.2.2-rc.1） | 跨 profile 时最容易翻车 | ✅ 3 个守卫插件已补 `engines.dsh = ^0.1.5-rc.2 \|\| ^0.2.2-rc.1` |
 | 7 | 有 `lib/client.js` 就必须有 `dsh.client.inject`（+ `platform`） | 客户端插件注入契约 | ✅ skill-studio 合规 |
 | 8 | `license` / `description` / `keywords`（分发元数据） | npm 可见性 | ✅ 本轮补齐 license |
 
-**检查器**：`pwsh check-plugin-contract.ps1 [-Profile web|desktop] [-Json]`，只读、有退出码（0=无 FAIL），可直接进 CI。
+**两类插件源**：
+- **仓库内（link 轨）**：源码在 `dsh-config/<dir>/`，`install.ps1` 复制到 `~/.dsh/<dir>` 再 `link:` 进 profile；
+- **外部 npm（npm 轨）**：源码**不 vendor**，manifest 里写死 `install: {mode:"npm"}` + 版本，`install.ps1` 执行 `pnpm add <pkg>@<ver>` 并把包名追加进 `dsh.profile.bundles`。
+  `dsh-marktext@0.1.13` 就是这一类（MIT，但 unpacked **11MB / 698 文件**、自带构建产物，vendor 进来等于把上游快照冻死；固定版本从 npm 装更干净）。
 
-基线（修之前）→ 修复后：
+**检查器**：`pwsh check-plugin-contract.ps1 [-Profile web|desktop] [-Json]`，只读、有退出码（0=无 FAIL），可直接进 CI。
+它会检查仓库内插件的 8 项契约，**外加** manifest 里 npm 轨插件在当前 profile 是否已按版本装好、是否注册进 bundles。
+
+当前基线：
 
 ```
-修复前 web: PASS 0 | WARN 5 | FAIL 0     # 3 个缺 license、1 个版本写在 dsh.engines、goat-vision 范围判断误报
-修复后 web: （见仓库实际输出）
+web     : 6 个插件 | PASS 5 | WARN 1 | FAIL 0   # marktext 只属 desktop，web 视角 WARN
+desktop : 6 个插件 | PASS 4 | WARN 2 | FAIL 0   # goat-vision / skill-studio 只属 web
 ```
 
 本轮只做**可安全修复**的四项：补 `license: MIT`（repo LICENSE 是 MIT）、把 skill-studio 的 `dsh.engines.dsh` 提到顶层 `engines.dsh`、检查器支持 `>=` 覆盖判断、加契约检查器。

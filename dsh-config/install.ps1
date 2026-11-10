@@ -64,10 +64,15 @@ $legacyPlugins = [ordered]@{
 
 $skills = $legacySkills
 $linkedPlugins = $legacyPlugins
+$npmPlugins = @()
 if ($manifest) {
   $skills = @($manifest.items | Where-Object { $_.kind -eq 'skill' -and ($_.frameworks -contains 'dsh') } | ForEach-Object { $_.id })
   $linkedPlugins = [ordered]@{}
+  $npmPlugins = @()
   foreach ($it in @($manifest.items | Where-Object { $_.kind -eq 'plugin' -and ($_.frameworks -contains 'dsh') })) {
+    $profs = @($it.profiles)
+    if ($profs.Count -gt 0 -and -not ($profs -contains $Profile)) { continue }
+    if ($it.install -and $it.install.mode -eq 'npm') { $npmPlugins += $it; continue }
     $linkedPlugins[$it.id] = (Split-Path $it.source -Leaf)
   }
 }
@@ -94,11 +99,11 @@ function Backup-And-Restore-File {
 
 function Install-LinkedPlugins {
   Write-Host ''
-  Write-Host "[$($label)] 插件轨：$($linkedPlugins.Count) 个 link 插件 -> ~/.dsh" -ForegroundColor Yellow
+  Write-Host "[$($label)] 插件轨：$($linkedPlugins.Count) 个 link + $($npmPlugins.Count) 个 npm -> profile=$Profile" -ForegroundColor Yellow
 
-  # 版本/约束断言（有 engines.dsh 的打印，未声明的提示补）
+  # 版本/约束断言（只看仓库内的 link 插件；npm 插件的版本由 manifest 钉死）
   if ($manifest) {
-    foreach ($it in @($manifest.items | Where-Object { $_.kind -eq 'plugin' -and ($_.frameworks -contains 'dsh') })) {
+    foreach ($it in @($manifest.items | Where-Object { $_.kind -eq 'plugin' -and ($_.frameworks -contains 'dsh') -and $_.source -notlike 'npm:*' })) {
       $pj = Join-Path $repoRoot (Join-Path $it.source 'package.json')
       if (-not (Test-Path $pj)) { Write-Host "    [FAIL] $($it.id) 缺 package.json" -ForegroundColor Red; continue }
       $actual = Get-Content $pj -Raw | ConvertFrom-Json
@@ -144,6 +149,32 @@ function Install-LinkedPlugins {
   else {
     Set-Content -Path $pkgPath -Value $pkgText -Encoding utf8
     Write-Host '    重接 package.json 的 link 插件路径' -ForegroundColor Green
+  }
+
+  # npm 分发的外部插件（manifest: install.mode = npm）：pnpm add 固定版本 + 追加 bundle
+  if ($npmPlugins.Count -gt 0) {
+    $pnpmCmd = (Get-Command pnpm -ErrorAction SilentlyContinue)
+    if (-not $pnpmCmd) {
+      Write-Host '    x 找不到 pnpm，跳过 npm 分发插件（先装 pnpm 再跑）' -ForegroundColor Red
+    } else {
+      foreach ($it in $npmPlugins) {
+        $spec = "$($it.package)@$($it.version)"
+        Write-Host "    [npm] $spec（$($it.note)）" -ForegroundColor DarkGray
+        if ($DryRun) { Write-Host "      [DRY] pnpm add $spec；并追加 bundle $($it.package)" -ForegroundColor Yellow; continue }
+        Push-Location (Split-Path $pkgPath -Parent)
+        try { & $pnpmCmd.Source add $spec --ignore-scripts 2>&1 | Out-Null } finally { Pop-Location }
+        if ($LASTEXITCODE -ne 0) { Write-Host "      [FAIL] pnpm add 退出码 $LASTEXITCODE" -ForegroundColor Red; continue }
+        $j = Get-Content $pkgPath -Raw | ConvertFrom-Json
+        $bs = @($j.dsh.profile.bundles)
+        if ($bs -notcontains $it.package) {
+          $j.dsh.profile.bundles = @($bs + $it.package)
+          ($j | ConvertTo-Json -Depth 10) | Set-Content $pkgPath -Encoding utf8
+          Write-Host "      已装并注册 bundle $($it.package)" -ForegroundColor Green
+        } else {
+          Write-Host "      已装；bundle 已存在 $($it.package)" -ForegroundColor DarkGray
+        }
+      }
+    }
   }
 
   $otherLinks = [regex]::Matches($pkgText, '"([^"]+)"\s*:\s*"link:[^"]*"') | ForEach-Object { $_.Groups[1].Value } | Where-Object { $linkedPlugins.Keys -notcontains $_ }
