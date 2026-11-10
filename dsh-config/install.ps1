@@ -22,6 +22,7 @@ param(
   [string]$Source = 'github',
   [ValidateSet('web', 'desktop')]
   [string]$Profile = 'web',
+  [string[]]$Only = @(),
   [switch]$SkipSkills,
   [switch]$SkipConfig,
   [switch]$PluginsOnly,
@@ -66,6 +67,7 @@ $legacyPlugins = [ordered]@{
 $skills = $legacySkills
 $linkedPlugins = $legacyPlugins
 $npmPlugins = @()
+$onlyIds = @($Only | Where-Object { $_ })
 if ($manifest) {
   $skills = @($manifest.items | Where-Object { $_.kind -eq 'skill' -and ($_.frameworks -contains 'dsh') } | ForEach-Object { $_.id })
   $linkedPlugins = [ordered]@{}
@@ -73,6 +75,7 @@ if ($manifest) {
   foreach ($it in @($manifest.items | Where-Object { $_.kind -eq 'plugin' -and ($_.frameworks -contains 'dsh') })) {
     $profs = @($it.profiles)
     if ($profs.Count -gt 0 -and -not ($profs -contains $Profile)) { continue }
+    if ($onlyIds.Count -gt 0 -and -not ($onlyIds -contains $it.id)) { continue }
     if ($it.install -and $it.install.mode -eq 'npm') { $npmPlugins += $it; continue }
     $linkedPlugins[$it.id] = (Split-Path $it.source -Leaf)
   }

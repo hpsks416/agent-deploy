@@ -20,6 +20,7 @@ param(
   [string]$Repo = $PSScriptRoot,
   [ValidateSet('web', 'desktop')]
   [string]$Profile = 'web',
+  [switch]$SkipProfileChecks,
   [switch]$Json
 )
 
@@ -173,7 +174,8 @@ foreach ($d in $dirs) {
 }
 
 # manifest 里 npm 分发的外部插件（不在 dsh-config/ 下）：检查目标 profile 装没装、版本对不对
-if ($manifest) {
+# CI/无 profile 环境用 -SkipProfileChecks 跳过（这些插件装在本机 profile 里，仓库侧只能核对声明）
+if ($manifest -and -not $SkipProfileChecks) {
   foreach ($it in @($manifest.items | Where-Object { $_.kind -eq 'plugin' -and $_.install -and $_.install.mode -eq 'npm' })) {
     $issues = New-Object System.Collections.ArrayList
     $profs = @($it.profiles)

@@ -26,6 +26,7 @@ param(
   [string]$Profile = 'web',
   [ValidateSet('skills', 'plugins', 'all')]
   [string]$Track = 'skills',
+  [string[]]$Only = @(),
   [switch]$SkipSkills,
   [switch]$SkipConfig,
   [switch]$Rollback,
@@ -117,6 +118,14 @@ if ($manifest) {
   }
 }
 
+# ---------- 2.5 -Only：只装指定 id（skills 按 name，plugins 按 id） ----------
+$onlyIds = @($Only | Where-Object { $_ })
+if ($onlyIds.Count -gt 0) {
+  $before = $skills.Count
+  $skills = @($skills | Where-Object { $onlyIds -contains $_.name })
+  Write-Host ("  [only] 限定 id: {0} | skills {1} -> {2}" -f ($onlyIds -join ','), $before, $skills.Count) -ForegroundColor Cyan
+}
+
 # ---------- 3. 目标目录映射 ----------
 switch ($Framework) {
   'codex'  { $skillsDir = Join-Path $homeDir '.codex\skills';  $instrPath = Join-Path $homeDir '.codex\AGENTS.md';   $cfgPath = Join-Path $homeDir '.codex\config.toml' }
@@ -170,6 +179,12 @@ if ($doSkills) {
 if ($doPlugins) {
   Write-Host ''
   $pluginItems = Get-ManifestItems 'plugin' 'dsh'
+  if ($onlyIds.Count -gt 0) {
+    $pb = $pluginItems.Count
+    $pluginItems = @($pluginItems | Where-Object { $onlyIds -contains $_.id })
+    Write-Host ("  [only] 限定 id: {0} | plugins {1} -> {2}" -f ($onlyIds -join ','), $pb, $pluginItems.Count) -ForegroundColor Cyan
+    if ($pluginItems.Count -eq 0) { Write-Host '  x -Only 没匹配到任何插件（检查 id 拼写 / profile 归属）' -ForegroundColor Red; $pluginOk = $false }
+  }
   Write-Host "[2/3] plugins 轨：$($pluginItems.Count) 个插件（link + profile bundles；profile=$Profile）" -ForegroundColor Yellow
 
   # 版本/约束断言与安装都在 dsh-config/install.ps1 的单一实现里（-PluginsOnly），此处只做委托。
@@ -197,6 +212,7 @@ if ($doPlugins) {
     $pluginOk = $false
   } else {
     $plArgs = @{ PluginsOnly = $true; Source = $Source; Profile = $Profile }
+    if ($onlyIds.Count -gt 0) { $plArgs.Only = $onlyIds }
     if ($DryRun) { $plArgs.DryRun = $true }
     & $installScript @plArgs
     $pluginExit = $LASTEXITCODE
