@@ -86,3 +86,15 @@ jobs:
             echo "存在 with-skill 未通过或 lift<0 的 skill（明细见上方各段 JSON 与 stderr 失败明细）"
             exit 1
           fi
+
+  plugin-contract:
+    # 插件契约：检查 dsh-config/ 下每个插件的包形态、注册 patch、版本声明、files、license。
+    # npm 轨插件（dsh-marktext）装在本机 profile，CI 里用 -SkipProfileChecks 跳过安装态校验。
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: 插件契约检查（web + desktop）
+        shell: pwsh
+        run: |
+          ./check-plugin-contract.ps1 -Profile web -SkipProfileChecks
+          ./check-plugin-contract.ps1 -Profile desktop -SkipProfileChecks
