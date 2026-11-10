@@ -43,3 +43,18 @@ description: 城市轨道交通客流预测（MindSpore 全栈）的模型机制
 - MindSpore CPU 不支持 Einsum，GAT 邻居聚合用 transpose+reshape+batch matmul。
 - Seq2Seq 多层时 h.squeeze(0) 会崩，改 h[-1]。
 - 子进程写工作区会被 DSH 沙箱拦（.ckpt/.json 追加写），结果先写临时目录再拷回。
+
+## 演示平台（ECharts GL 3D）实战要点
+> 静态离线 demo（`work/web`）：ECharts 5.5.1 + echarts-gl 2.0.9 + MapLibre 3.6.2，全 vendored。
+- **ECharts 6 与 echarts-gl 2.0.x 不兼容**，必须降到 5.5.1。
+- `zlevel` 分层解决覆盖：经纬网放高 zlevel、点/标签再高一层；同一层内 `z` 排序不够（热力光斑的 shadowBlur 会压过细线）。
+- **`markLine` 挂在空 series 上会退化成「贴网格边框的矩形」**——series 要给 2 个锚点数据才有坐标系范围；更稳的做法是直接用坐标轴 `splitLine` 画经纬网。
+- 更新数据只 `setOption(..., false)` + **按 series `id` merge**，不要每次 `notMerge=true` 重建，否则相机/`dataZoom` 会被重置；拖动/缩放后不要重设 `viewControl`。
+- 3D 俯视 = `viewControl alpha≈89.5, beta=180, projection:'orthographic'`（正 90° 会前后轴重叠）；用户拖拽后 ECharts 不回调状态，需自己监听 mousedown/mousemove 推断「已离开俯视」并复位按钮。
+- 「分界」不要用占位柱（吃掉一格导致不连续）：用零宽度 `line3D` 线框 + 地面线；曲线两段（上下文→输入、历史→预测）要手动加「连接锚点」，否则分界处断一格、信息不连贯。
+- 纵轴分两种策略：2D 曲线可随峰值自适应（niceCeil 分档）；3D 热力应**全局定标**（扫全部窗口取峰值），仿真中不变，否则比例尺一直变无法观察。
+- 时间轴按数据真实结构：北京数据是 **72 步/天（05:00–22:45）**；补夜间 0 要扩成 **96 步/天**，且模型输入窗口必须 > 夜间步数（夜间 24 → 输入 36），否则清晨窗口全是 0、吃不到前一天尾部。
+- **未运营时段预测为 0 靠「掩码解码」而非加权损失**：加权 MSE 只把夜间均值从 82 压到 69；把运营时刻表当硬约束乘到解码输出（`out * is_operating_mask`）后夜间均值/ RMSE 严格 0，整体 RMSE 还降 8.6%。
+- WSL matplotlib 缺中文字体：拷 `C:\Windows\Fonts\simhei.ttf` 到 `/usr/share/fonts/truetype/custom/`，脚本里 `fm.fontManager.addfont(path)` + `rcParams['font.sans-serif']=['SimHei',...]`；只改 rcParams 不生效。
+- ST 变体「Seq2Seq 最好」结论强度有限（共用超参、单次、无 STGCN/DCRNN 基线）；下「架构最优」结论需独立调参 + 3 种子 + 显著性检验。
+
