@@ -8,6 +8,7 @@
 # 用法（在本仓库根目录运行）：
 #   pwsh dsh-config/install.ps1                     # 配置 + skill + 插件（全量）
 #   pwsh dsh-config/install.ps1 -PluginsOnly        # 只装/重接插件（deploy.ps1 -Track plugins 用）
+#   pwsh dsh-config/install.ps1 -PluginsOnly -Profile desktop   # 桌面 profile（app 管理，仅重接 link）
 #   pwsh dsh-config/install.ps1 -DryRun             # 只预览
 #   pwsh dsh-config/install.ps1 -SkipSkills         # 只恢复配置
 #   pwsh dsh-config/install.ps1 -SkipConfig         # 只装 skill
@@ -19,6 +20,8 @@
 param(
   [ValidateSet('github', 'gitee')]
   [string]$Source = 'github',
+  [ValidateSet('web', 'desktop')]
+  [string]$Profile = 'web',
   [switch]$SkipSkills,
   [switch]$SkipConfig,
   [switch]$PluginsOnly,
@@ -108,7 +111,7 @@ function Install-LinkedPlugins {
     }
   }
 
-  $pkgPath = Join-Path $dshHome 'profiles\web\package.json'
+  $pkgPath = Join-Path $dshHome "profiles\$Profile\package.json"
   if (-not (Test-Path $pkgPath)) {
     Write-Host "    x 缺 $pkgPath（先恢复 profile-web 配置）" -ForegroundColor Red
     return
@@ -156,12 +159,20 @@ if ($PluginsOnly) {
   $label = '1/1'
   Write-Host ''
   Write-Host '============================================================' -ForegroundColor Cyan
-  Write-Host " DSH 插件轨（manifest: $(if ($manifest) { 'framework-manifest.json' } else { 'legacy' })）" -ForegroundColor Cyan
+  Write-Host " DSH 插件轨（manifest: $(if ($manifest) { 'framework-manifest.json' } else { 'legacy' })）profile=$Profile" -ForegroundColor Cyan
   if ($DryRun) { Write-Host ' [DRY RUN] 只预览，不写入' -ForegroundColor Yellow }
   Write-Host '============================================================' -ForegroundColor Cyan
+  if ($Profile -eq 'desktop') {
+    Write-Host ' 注意：desktop profile 由桌面 app 管理（Plugins 面板/插件市场），这里只重接 link；' -ForegroundColor Yellow
+    Write-Host '       装/卸插件请优先用 app 的 Plugins 面板，改完需重启 app。' -ForegroundColor Yellow
+  }
   Install-LinkedPlugins
   Write-Host ''
-  Write-Host '下一步（必须）：cd ~/.dsh/profiles/web; pnpm install; 重启 DSH' -ForegroundColor Yellow
+  if ($Profile -eq 'web') {
+    Write-Host '下一步（必须）：cd ~/.dsh/profiles/web; pnpm install; 重启 DSH' -ForegroundColor Yellow
+  } else {
+    Write-Host '下一步（必须）：重启桌面 app（desktop profile 由 app 加载）' -ForegroundColor Yellow
+  }
   Write-Host '若启动失败，日志：~/.dsh/logs/startup-*.log / ~/.dsh/storages/session_projcache/sessions/session-*.json' -ForegroundColor DarkGray
   exit 0
 }
@@ -185,10 +196,10 @@ if (-not $SkipConfig) {
 
   Backup-And-Restore-File (Join-Path $scriptRoot 'AGENTS.md') (Join-Path $dshHome 'AGENTS.md')
   Backup-And-Restore-File (Join-Path $scriptRoot 'settings.yaml') (Join-Path $dshHome 'settings.yaml')
-  Backup-And-Restore-File (Join-Path $scriptRoot 'profile-web\cordis.patch.yml') (Join-Path $dshHome 'profiles\web\cordis.patch.yml')
-  Backup-And-Restore-File (Join-Path $scriptRoot 'profile-web\cordis.yml') (Join-Path $dshHome 'profiles\web\cordis.yml')
-  Backup-And-Restore-File (Join-Path $scriptRoot 'profile-web\pnpm-workspace.yaml') (Join-Path $dshHome 'profiles\web\pnpm-workspace.yaml')
-  Backup-And-Restore-File (Join-Path $scriptRoot 'profile-web\package.json') (Join-Path $dshHome 'profiles\web\package.json')
+  Backup-And-Restore-File (Join-Path $scriptRoot 'profile-web\cordis.patch.yml') (Join-Path $dshHome "profiles\$Profile\cordis.patch.yml")
+  Backup-And-Restore-File (Join-Path $scriptRoot 'profile-web\cordis.yml') (Join-Path $dshHome "profiles\$Profile\cordis.yml")
+  Backup-And-Restore-File (Join-Path $scriptRoot 'profile-web\pnpm-workspace.yaml') (Join-Path $dshHome "profiles\$Profile\pnpm-workspace.yaml")
+  Backup-And-Restore-File (Join-Path $scriptRoot 'profile-web\package.json') (Join-Path $dshHome "profiles\$Profile\package.json")
 
   $label = '1/3'
   Install-LinkedPlugins
@@ -239,7 +250,11 @@ Write-Host '  3. ~/.dsh/dsh-skill-studio/extractor.json —— 提取器 LLM 配
 Write-Host '  4. secrets.cmd（推送 GitHub/Gitee 用，若需双推）' -ForegroundColor White
 Write-Host ''
 Write-Host '恢复完成后：' -ForegroundColor Yellow
-Write-Host '  cd ~/.dsh/profiles/web  &&  pnpm install  &&  重启 DSH' -ForegroundColor White
+if ($Profile -eq 'web') {
+  Write-Host '  cd ~/.dsh/profiles/web  &&  pnpm install  &&  重启 DSH' -ForegroundColor White
+} else {
+  Write-Host '  重启桌面 app（desktop profile 由 app 加载；装/卸插件优先用 Plugins 面板）' -ForegroundColor White
+}
 Write-Host '  启动失败日志：~/.dsh/logs/startup-*.log / ~/.dsh/sessions/<工作区>/<session-id>/session.v3.jsonl.zstd' -ForegroundColor DarkGray
 Write-Host ''
 Write-Host '============================================================' -ForegroundColor Cyan

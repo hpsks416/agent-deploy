@@ -52,6 +52,11 @@
 ```
 
 - `kind` 决定走哪条轨；`frameworks` 决定铺给谁（plugins 只有 `dsh`）。
+- `profiles` 决定插件装进哪个 DSH profile：本机有**两条运行时**——
+  - **web**（`dsh web` / CLI，`@deepseek-ai/dsh-base 0.1.5-rc.2`）：`deploy.ps1 -Track plugins` 默认写这里；
+  - **desktop**（桌面 app，`0.2.2-rc.1`）：由 app 的 Plugins 面板/插件市场管理，`install.ps1 -Profile desktop` 只能重接 link。
+  同一个插件可能在两个 profile 里都注册（如 `dsh-retrieval-guard`、`dsh-secure-push-guard`、`dsh-session-sync-flush`），
+  所以 manifest 里写明 `profiles: ["web","desktop"]`，避免"改了 web 以为全改了"。
 - `coupling` 沿用 `core-skills.txt` 的四档（none/light/env/hardcode），由 `deploy.ps1` 末尾打印提醒。
 - 加一条 `engines.dsh` 就能让装插件前做版本断言（见下）。
 
@@ -67,8 +72,11 @@ pwsh deploy.ps1 -Framework dsh -Track all
 # 只铺 skill（老行为，默认值）
 pwsh deploy.ps1 -Framework codex -Track skills
 
-# 只装/重接插件（= 委托 dsh-config/install.ps1 -PluginsOnly）
+# 只装/重接插件（= 委托 dsh-config/install.ps1 -PluginsOnly，默认 profile=web）
 pwsh deploy.ps1 -Framework dsh -Track plugins
+
+# 桌面 profile（app 管理：只重接 link，装/卸请用 app 的 Plugins 面板）
+pwsh deploy.ps1 -Framework dsh -Track plugins -Profile desktop -DryRun
 
 # 回滚最近一次（删本次新建的 skill/插件目录，恢复备份的指令与配置）
 pwsh deploy.ps1 -Rollback
@@ -95,7 +103,8 @@ pwsh dsh-config/install.ps1 -Source gitee
 
 ## 6. 限制与下一步（本轮不做）
 
-1. **版本断言只打印不阻断**：本机 DSH 是 `0.1.5-rc.2`；`dsh-*` 五个插件里只有 `dsh-goat-vision` 声明了 `engines.dsh`，其余四个未声明（建议逐个补）。
-2. **插件轨尚未 npm 化**：现在仍是「复制目录 + link」，不是 `dsh plugin add` 的正式分发；要正式化需给每个插件补 `engines.dsh` 与发布流程。
-3. **回滚不覆盖「被覆盖的已有文件」之外的内容**：只删本次新建目录 + 恢复备份文件；如果本次覆盖了已有插件目录，备份在 `~/.dsh/_backup_<ts>/`，需手动确认。
-4. **文档计数待统一**：README/FRAMEWORK/COMPARISON 里的「36」与 manifest 的 37 不一致，建议下一次统一改文档（本轮不动文档，避免与代码改动混在一个提交里）。
+1. **两条运行时要分开看**：本机 `web` profile / `dsh` CLI 是 `0.1.5-rc.2`，桌面 app 是 `0.2.2-rc.1`。插件轨默认写 `web`；`desktop` 由 app 管（本机 desktop 里已注册 `dsh-retrieval-guard`、`dsh-secure-push-guard`、`dsh-session-sync-flush`，另有本仓未收录的 `dsh-context-guard`）。**生态里要求 DSH ≥0.2.1 的插件（如 `dsh-marktext`）只能在 desktop 装，web 装不了。**
+2. **版本断言只打印不阻断**：`dsh-goat-vision` 有 `engines.dsh`，其余四个插件没有——建议逐个补 `engines.dsh`，再把断言升级为阻断。
+3. **插件尚未 npm 化**：仍是「复制目录 + link」，不是 `dsh plugin add` / 插件市场的正式分发；正式化需补发布流程。
+4. **回滚不覆盖「被覆盖的已有文件」之外的内容**：只删本次新建目录 + 恢复备份文件；覆盖的已有插件目录备份在 `~/.dsh/_backup_<ts>/`，需手动确认。
+5. **文档计数待统一**：README/FRAMEWORK/COMPARISON 写「36」，manifest 实际 37——本轮不动文档，避免与代码改动混在一个提交。

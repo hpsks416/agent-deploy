@@ -29,7 +29,21 @@
         "pnpm install（在 ~/.dsh/profiles/web）",
         "重启 DSH"
       ],
-      "idempotent": "复制插件目录 + 重接 link，profile package.json 先备份"
+      "idempotent": "复制插件目录 + 重接 link，profile package.json 先备份",
+      "profiles": {
+        "web": {
+          "manager": "cli/install.ps1",
+          "dshBase": "0.1.5-rc.2",
+          "target": "~/.dsh/profiles/web/package.json",
+          "note": "dsh web / CLI 管理的 profile；deploy.ps1 -Track plugins 默认写这里"
+        },
+        "desktop": {
+          "manager": "desktop app (Plugins 面板 / 插件市场)",
+          "dshBase": "0.2.2-rc.1",
+          "target": "~/.dsh/profiles/desktop/package.json",
+          "note": "桌面 app 管理；install.ps1 -Profile desktop 仍可重接 link，但装/卸以 app 的 Plugins 面板为准"
+        }
+      }
     }
   },
   "items": [
@@ -529,7 +543,10 @@
       },
       "peerDependencies": [],
       "link": true,
-      "note": "DSH 插件：宿主进程内加载，注册到 profile bundles"
+      "note": "DSH 插件：宿主进程内加载，注册到 profile bundles",
+      "profiles": [
+        "web"
+      ]
     },
     {
       "id": "dsh-retrieval-guard",
@@ -543,7 +560,11 @@
       "engines": {},
       "peerDependencies": [],
       "link": true,
-      "note": "DSH 插件：宿主进程内加载，注册到 profile bundles"
+      "note": "DSH 插件：宿主进程内加载，注册到 profile bundles",
+      "profiles": [
+        "web",
+        "desktop"
+      ]
     },
     {
       "id": "dsh-secure-push-guard",
@@ -557,7 +578,11 @@
       "engines": {},
       "peerDependencies": [],
       "link": true,
-      "note": "DSH 插件：宿主进程内加载，注册到 profile bundles"
+      "note": "DSH 插件：宿主进程内加载，注册到 profile bundles",
+      "profiles": [
+        "web",
+        "desktop"
+      ]
     },
     {
       "id": "dsh-session-sync-flush",
@@ -571,7 +596,11 @@
       "engines": {},
       "peerDependencies": [],
       "link": true,
-      "note": "DSH 插件：宿主进程内加载，注册到 profile bundles"
+      "note": "DSH 插件：宿主进程内加载，注册到 profile bundles",
+      "profiles": [
+        "web",
+        "desktop"
+      ]
     },
     {
       "id": "dsh-skill-studio",
@@ -597,7 +626,10 @@
         "react-dom"
       ],
       "link": true,
-      "note": "DSH 插件：宿主进程内加载，注册到 profile bundles"
+      "note": "DSH 插件：宿主进程内加载，注册到 profile bundles",
+      "profiles": [
+        "web"
+      ]
     }
   ]
 }

@@ -9,6 +9,7 @@
 # 用法（在 agent-deploy 仓库根目录运行）：
 #   pwsh deploy.ps1 -Framework dsh -Track all                     # 双轨都铺
 #   pwsh deploy.ps1 -Framework dsh -Track plugins -DryRun         # 只预览插件轨
+#   pwsh deploy.ps1 -Framework dsh -Track plugins -Profile desktop -DryRun   # 桌面 profile（app 管理）
 #   pwsh deploy.ps1 -Framework codex -Track skills                # 只铺 skill（老行为）
 #   pwsh deploy.ps1 -Rollback                                     # 回滚最近一次
 #   pwsh deploy.ps1 -Framework codex -Provider commandcode -Source gitee   # 换源
@@ -21,6 +22,8 @@ param(
   [string]$Model = '',
   [ValidateSet('github', 'gitee')]
   [string]$Source = 'github',
+  [ValidateSet('web', 'desktop')]
+  [string]$Profile = 'web',
   [ValidateSet('skills', 'plugins', 'all')]
   [string]$Track = 'skills',
   [switch]$SkipSkills,
@@ -136,7 +139,7 @@ if ($manifest) {
   Write-Host ' 清单 : core-skills.txt（旧）' -ForegroundColor DarkGray
 }
 Write-Host " skill 目录 : $skillsDir" -ForegroundColor DarkGray
-Write-Host " 插件目标   : $homeDir\.dsh（仅 DSH）" -ForegroundColor DarkGray
+Write-Host " 插件目标   : $homeDir\.dsh\profiles\$Profile（仅 DSH；desktop 由 app 管理）" -ForegroundColor DarkGray
 if ($DryRun) { Write-Host ' [DRY RUN] 只预览，不实际写入' -ForegroundColor Yellow }
 Write-Host '============================================================' -ForegroundColor Cyan
 
@@ -166,14 +169,14 @@ if ($doSkills) {
 if ($doPlugins) {
   Write-Host ''
   $pluginItems = Get-ManifestItems 'plugin' 'dsh'
-  Write-Host "[2/3] plugins 轨：$($pluginItems.Count) 个插件（link + profile bundles）" -ForegroundColor Yellow
+  Write-Host "[2/3] plugins 轨：$($pluginItems.Count) 个插件（link + profile bundles；profile=$Profile）" -ForegroundColor Yellow
 
   # 版本/约束断言与安装都在 dsh-config/install.ps1 的单一实现里（-PluginsOnly），此处只做委托。
   $installScript = Join-Path $scriptRoot 'dsh-config\install.ps1'
   if (-not (Test-Path $installScript)) {
     Write-Host '  x 缺 dsh-config/install.ps1，无法安装插件' -ForegroundColor Red
   } else {
-    $plArgs = @{ PluginsOnly = $true; Source = $Source }
+    $plArgs = @{ PluginsOnly = $true; Source = $Source; Profile = $Profile }
     if ($DryRun) { $plArgs.DryRun = $true }
     & $installScript @plArgs
     if ($LASTEXITCODE -ne 0) { Write-Host "  ! 插件安装返回 $LASTEXITCODE" -ForegroundColor Yellow }
@@ -313,5 +316,8 @@ if (-not $coupled) {
 Write-Host ''
 Write-Host '============================================================' -ForegroundColor Cyan
 Write-Host " 完成。（备份目录: $backupRoot，如有旧文件）" -ForegroundColor Cyan
-if ($doPlugins) { Write-Host ' 插件轨下一步：cd ~/.dsh/profiles/web; pnpm install; 重启 DSH' -ForegroundColor Yellow }
+if ($doPlugins) {
+  if ($Profile -eq 'web') { Write-Host ' 插件轨下一步：cd ~/.dsh/profiles/web; pnpm install; 重启 DSH' -ForegroundColor Yellow }
+  else { Write-Host ' 插件轨下一步：重启桌面 app（desktop profile 由 app 加载）' -ForegroundColor Yellow }
+}
 Write-Host '============================================================' -ForegroundColor Cyan
