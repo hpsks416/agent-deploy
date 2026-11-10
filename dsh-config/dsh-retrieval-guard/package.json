@@ -2,6 +2,7 @@
   "name": "dsh-retrieval-guard",
   "version": "0.1.0",
   "description": "DSH 插件：写代码/装依赖前，要求本轮已检索（web_search/open-source-scout），未检索弹确认框。",
+  "license": "MIT",
   "type": "module",
   "main": "lib/index.js",
   "exports": {

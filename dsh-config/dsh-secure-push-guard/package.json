@@ -2,6 +2,7 @@
   "name": "dsh-secure-push-guard",
   "version": "0.1.0",
   "description": "DSH 插件：git push 前要求已跑 secret-scan 安检、且未直接读 token 文件，未满足弹确认框。",
+  "license": "MIT",
   "type": "module",
   "main": "lib/index.js",
   "exports": {

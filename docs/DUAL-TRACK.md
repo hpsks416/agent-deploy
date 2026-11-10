@@ -60,7 +60,38 @@
 - `coupling` 沿用 `core-skills.txt` 的四档（none/light/env/hardcode），由 `deploy.ps1` 末尾打印提醒。
 - 加一条 `engines.dsh` 就能让装插件前做版本断言（见下）。
 
-## 4. 运行手册
+## 4. 插件契约清单（Phase 1：先跟进契约）
+
+> 顺序：**先把插件轨做成契约合规（本节）→ 再谈跨平台迁移（§8）**。
+> 契约事实来自本机实测：`dsh plugin` 只是把参数转发给 profile 目录里的 pnpm（`dsh plugin --profile web add <pkg>` = `pnpm add`）；
+> 插件靠 `dsh.bundle.patch` 注册、靠 `dsh.compatibility`/`engines.dsh` 声明版本、靠 `dsh.client.inject` 声明客户端依赖。
+
+一个 DSH 插件要算「契约合规」，逐条：
+
+| # | 检查项 | 依据 | 现状 |
+|---|---|---|---|
+| 1 | `package.json` 可解析，有 `name`/`version` | pnpm 包基本要求 | ✅ 全部 |
+| 2 | `type: module` + `main`/`exports['.']` 指向真实 `lib/index.js` | 实测 5/5 均如此 | ✅ 全部 |
+| 3 | `dsh.bundle.patch` 指向存在的 `cordis.patch.yml`，且内含 `- insert:` | 注册进 profile bundles 的唯一入口 | ✅ 全部 |
+| 4 | `files` 包含 `cordis.patch.yml` | 否则 npm 打包会漏，装完起不来 | ✅ 全部 |
+| 5 | 版本声明 `engines.dsh` 或 `dsh.compatibility.dsh`（含 `dshReleases`） | 实测两种写法都在用 | ✅ 全部（本轮修了 1 处错位） |
+| 6 | 声明的范围覆盖目标 profile 版本（web 0.1.5-rc.2 / desktop 0.2.2-rc.1） | 跨 profile 时最容易翻车 | ⚠️ 3 个守卫插件只声明 `^0.1.5-rc.2` |
+| 7 | 有 `lib/client.js` 就必须有 `dsh.client.inject`（+ `platform`） | 客户端插件注入契约 | ✅ skill-studio 合规 |
+| 8 | `license` / `description` / `keywords`（分发元数据） | npm 可见性 | ✅ 本轮补齐 license |
+
+**检查器**：`pwsh check-plugin-contract.ps1 [-Profile web|desktop] [-Json]`，只读、有退出码（0=无 FAIL），可直接进 CI。
+
+基线（修之前）→ 修复后：
+
+```
+修复前 web: PASS 0 | WARN 5 | FAIL 0     # 3 个缺 license、1 个版本写在 dsh.engines、goat-vision 范围判断误报
+修复后 web: （见仓库实际输出）
+```
+
+本轮只做**可安全修复**的四项：补 `license: MIT`（repo LICENSE 是 MIT）、把 skill-studio 的 `dsh.engines.dsh` 提到顶层 `engines.dsh`、检查器支持 `>=` 覆盖判断、加契约检查器。
+**不在本轮改**：`dsh.compatibility.dshReleases` 是否要加 `0.2.2-rc.1`（web 侧插件在 desktop 里也注册着，但没在 desktop 上逐个验证过——改了等于替真实兼容性背书）。
+
+## 5. 运行手册
 
 ```powershell
 # 预览（不写盘）
@@ -92,7 +123,7 @@ pwsh dsh-config/install.ps1 -Source gitee
 **插件轨装完必须**：`cd ~/.dsh/profiles/web; pnpm install; 重启 DSH`。
 启动失败看日志：`~/.dsh/logs/startup-*.log`、`~/.dsh/sessions/<工作区>/<session-id>/session.v3.jsonl.zstd`。
 
-## 5. 本次顺带修掉的漂移
+## 6. 本次顺带修掉的漂移
 
 | 漂移 | 之前 | 之后 |
 |---|---|---|
@@ -101,10 +132,30 @@ pwsh dsh-config/install.ps1 -Source gitee
 | 插件不在主部署器 | 装插件要另跑 `install.ps1` 且无版本断言 | `deploy.ps1 -Track plugins` 一个入口；有 `engines.dsh` 就打印约束，未声明的告警 |
 | 无回滚 | 只有 `~/.dsh/_backup_<ts>` 手工恢复 | `-Rollback` 读状态文件自动删/恢复 |
 
-## 6. 限制与下一步（本轮不做）
+## 7. 跨平台迁移（Phase 2：契约稳了再做）
+
+插件轨的能力天然绑 DSH。要「迁移到跨平台」，先按**能力半径**把 5 个插件分三类，别整包搬：
+
+| 插件 | 干的事 | 可移植形态 |
+|---|---|---|
+| `dsh-retrieval-guard` | 写代码前要求先检索，未检索弹确认框 | 能力本质是**规程 + 一次阻断**：规程已在 `AGENTS.md`/`iron-law-retrieval-first`；阻断可退化为「skill 里的证据门」或 MCP 侧校验 |
+| `dsh-secure-push-guard` | 推送前强制 secret-scan | 已是 `secure-push-workflow` skill 的编排；跨平台直接用 skill 版（无需插件） |
+| `dsh-session-sync-flush` | 会话落盘同步 | 纯宿主生命周期钩子，**不可移植**；跨平台等价物是各框架的会话落盘机制 |
+| `dsh-skill-studio` | CTX 面板里可视化/编辑 skill | UI 面板不可移植；但「skill 提取」逻辑可做成 **MCP server**（跨 agent 通用） |
+| `dsh-goat-vision` | 给纯文本模型装眼睛（识图路由） | LLM provider 适配层，**不可移植**；跨平台靠各框架自己的 provider 配置 |
+
+迁移判据（三条，按顺序）：
+1. **能做成 MCP 的优先做成 MCP**（MCP 是三个框架都认的通用面），skill 只留规程；
+2. 只能靠宿主钩子的（会话落盘、写盘拦截、面板）→ **在插件轨保留**，不同步到 codex/claude，并在 manifest 标 `portable: false`；
+3. 纯提示词能力 → 落 skill，天然跨框架。
+
+Phase 2 第一件事不是写代码，而是给 manifest 的每个插件补 `portable` 与 `migration` 两个字段（`mcp` / `skill` / `none`），让「哪些能力跨得过去」可被查询。
+
+## 8. 限制与下一步（本轮不做）
 
 1. **两条运行时要分开看**：本机 `web` profile / `dsh` CLI 是 `0.1.5-rc.2`，桌面 app 是 `0.2.2-rc.1`。插件轨默认写 `web`；`desktop` 由 app 管（本机 desktop 里已注册 `dsh-retrieval-guard`、`dsh-secure-push-guard`、`dsh-session-sync-flush`，另有本仓未收录的 `dsh-context-guard`）。**生态里要求 DSH ≥0.2.1 的插件（如 `dsh-marktext`）只能在 desktop 装，web 装不了。**
 2. **版本断言只打印不阻断**：`dsh-goat-vision` 有 `engines.dsh`，其余四个插件没有——建议逐个补 `engines.dsh`，再把断言升级为阻断。
 3. **插件尚未 npm 化**：仍是「复制目录 + link」，不是 `dsh plugin add` / 插件市场的正式分发；正式化需补发布流程。
 4. **回滚不覆盖「被覆盖的已有文件」之外的内容**：只删本次新建目录 + 恢复备份文件；覆盖的已有插件目录备份在 `~/.dsh/_backup_<ts>/`，需手动确认。
 5. **文档计数待统一**：README/FRAMEWORK/COMPARISON 写「36」，manifest 实际 37——本轮不动文档，避免与代码改动混在一个提交。
+

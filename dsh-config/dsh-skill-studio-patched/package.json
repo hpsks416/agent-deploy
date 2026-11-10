@@ -13,9 +13,6 @@
     "bundle": {
       "patch": "./cordis.patch.yml"
     },
-    "engines": {
-      "dsh": ">=0.1.5-rc.1"
-    },
     "client": {
       "inject": [
         "@deepseek-ai/dsh-client-runtime",
@@ -56,7 +53,8 @@
     "url": "git+https://github.com/zhengjy01/dsh-skill-studio.git"
   },
   "engines": {
-    "node": "^22.19.0 || >=24.0.0"
+    "node": "^22.19.0 || >=24.0.0",
+    "dsh": ">=0.1.5-rc.1"
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": "^4.0.1",

@@ -2,6 +2,7 @@
   "name": "dsh-session-sync-flush",
   "version": "0.1.0",
   "description": "DSH 插件：关键会话事件后立即 flush 日志，减少崩溃时丢对话。",
+  "license": "MIT",
   "type": "module",
   "main": "lib/index.js",
   "exports": {
