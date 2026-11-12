@@ -82,3 +82,4 @@
 1. CI 结果出来后修剩余脆 evals（优先 `acp-studio/success-gate-scan-first`；让用例真正区分 with/without skill，而不是靠字面词命中）。
 2. dual-track 后续：补 `-Only <id>` 单装、把 `check-plugin-contract.ps1` 接进 CI、在 desktop 真机验证 `compatibility.dshReleases` 后再扩 web/desktop 声明。
 3. 实测守卫插件拦截行为（可选）：`dsh-retrieval-guard` 用一个「未检索就要造轮子」的请求触发一次，看是否弹 `ask`。
+

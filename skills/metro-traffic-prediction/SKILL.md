@@ -43,6 +43,12 @@ description: 城市轨道交通客流预测（MindSpore 全栈）的模型机制
 - MindSpore CPU 不支持 Einsum，GAT 邻居聚合用 transpose+reshape+batch matmul。
 - Seq2Seq 多层时 h.squeeze(0) 会崩，改 h[-1]。
 - 子进程写工作区会被 DSH 沙箱拦（.ckpt/.json 追加写），结果先写临时目录再拷回。
+- **MindSpore 2.2 的 `ops.split` 签名是 `split(x, split_size, axis)`**，写 `ops.split(x, axis, num)` 会解包出错（"too many values to unpack"）或维度错乱；GLU/GRU 里的通道切分直接用切片 `y[:, :half]`。
+- **`RUN_MODE=GRAPH` 下动态 batch 形状**（reshape 依赖运行时 B*T）会报 `MatMul input dimensions must be equal`；STGCN/DCRNN 这类自定义块先用 PYNATIVE 跑通，再考虑图模式。
+- **PowerShell 向 `wsl bash -c` 传含 `$m` 的 for 循环会丢变量**（ps 里显示 `=== ===`、参数为空，等于反复跑默认模型）；把循环写进工作区 `.sh` 文件再 `wsl bash file.sh` 驱动。
+- 多任务共用 GPU 时先 `ps -eo etimes,args | grep st_` 确认没有孤儿进程，杀任务用 `pkill -9 -f 脚本名`，否则旧进程会继续吃显存。
+- 基线实现（STGCN/DCRNN）未调参时不宜与调过参的 ST 变体直接比；结论要标注「统一超参/单次运行」限定。
+
 
 ## 演示平台（ECharts GL 3D）实战要点
 > 静态离线 demo（`work/web`）：ECharts 5.5.1 + echarts-gl 2.0.9 + MapLibre 3.6.2，全 vendored。
