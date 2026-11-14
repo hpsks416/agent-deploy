@@ -5,6 +5,7 @@
 
 ## 一、当前状态
 
+- **2026-11-15 新仓库 `secure-push-kit` 已三平台发布**：整合 secrets-link（token 加密链 + 多工作区面板）+ 打包/安检/推送四件套（github-ready-packager / secret-scan / acp-studio / secure-push-workflow）；GitHub/Gitee `hpsks416/secure-push-kit`、AtomGit `qq_60289026/secure-push-kit`，HEAD `d238f19`，三端 `ls-remote` 一致、匿名页 200；README / LICENSE(MIT) / .gitignore 齐备，真实 `links.json` / `secrets.cmd` 未入库。同源改进已回写本仓 `skills/acp-studio/scripts/`：新增 `push_all.py`（`http.extraheader` Basic 认证、免 shell helper），`push-secure.cmd` 补 `atomgit` 目标与 `SECRETS_CMD`/`GIT_HTTP_PROXY` 覆盖；`SKILL.md` 记「沙箱 `sh.exe` 建信号管道失败 → 改用 push_all.py」与「Gitee 空仓库先推 commit 再转公开」两条坑。
 - **HANDOFF 已纳入版本控制（2026-11-10 22:45）**：本文件为唯一事实源，随 `agent-deploy` 仓库三目标同步（GitHub/Gitee/GitCode）；旧的 `G:\CodexDS\DSH\INTRO\HANDOFF.md` 已改为指针；`sync_framework.ps1` 与 `build_kb.py` 的 KB 源路径同步切换。
 - **2026-11-14 DSH 桌面端升到 0.2.2-rc.3**（rc.1→rc.3，跨过 rc.2 的全部迁移项）：`app.asar` 内 333 个官方包全为 rc.3，会话格式**仍是 v4**；desktop profile 的 `@deepseek-ai/dsh-experimental-agent-team-profile` 被官方 `RETIRED_BUNDLES` **自动摘除**（AgentTeam 能力已并入 core：`agent-team` / `tool-agent-team` 均 `fiberPhase=active`），9 个第三方插件全部 `active`（审计 0 红 5 黄 13 绿，黄仅为元数据锁旧版本线）；升前 15 个配置/凭据文件已备份到 `~/.dsh/profile-backups/pre-rc3-20261114`（SHA256 15/15 校验一致）；`framework-manifest.json` 的 desktop `dshBase` 已改为 rc.3、`dsh-upgrade-ops` 补「两条轨」与 rc.3 版本矩阵、`DUAL-TRACK.md` 版本号同步。
 - 仓库：`G:\CodexDS\DSH\INTRO\agent-deploy`（本地有 .git；云端基线曾追平 `8cac86f`，之后为本地提交）。
@@ -17,6 +18,8 @@
 - **dual-track 重构已收口（2026-11-10 22:30）**：`framework-manifest.json`（**37 skills / 7 plugins**）取代 `core-skills.txt` 与 `install.ps1` 硬编码清单；`deploy.ps1`（`-Track/-Profile/-Rollback`）与 `dsh-config/install.ps1`（`-PluginsOnly/-Profile/-DryRun`、npm 轨、按 profile 过滤）已在**假 HOME 沙箱实测**：安装 37/37 skill + 5 插件、回滚删净并恢复 profile `package.json`、失败路径 exit 2。`core-skills.txt` 降级为人类可读摘要/兜底（头注释已写明）。契约检查器 `check-plugin-contract.ps1`：web PASS5/WARN2、desktop PASS5/WARN2（WARN 均为 profile 归属）。`dsh-marktext@0.1.13`（desktop，npm 轨）与 `dsh-context-guard`（随仓分发，3.4KB）已收进；随仓 6 插件 engines.dsh/license 全覆盖。剩余子项：`-Only` 单装、npm 化发布、CI 接检查器、compatibility 真机验证。
 
 ## 二、已完成（本轮 = 2026-11-10 待办处理）
+
+- **2026-11-15 `secure-push-kit` 发布 + acp-studio 推送脚本回写**：新仓库收纳 secrets-link 面板/三层加密链 + 两个推送脚本 + 三个 skill；`push_all.py` 用 `http.extraheader=Authorization: Basic` 绕开沙箱内 `credential.helper=!shell` 的 `sh.exe` 管道失败；Gitee 建库实测「空仓库不能直接设公开 → 先推首个 commit 再 PATCH `private=false`」。三平台推送均 `ls-remote` 校验一致。
 
 - **2026-11-14 npm scoped 化（选定 @hpsks416/*）**：6 个随仓插件改名 `@hpsks416/dsh-*`（package.json + cordis.patch.yml insert name + manifest.package 同步）；`install.ps1` link 轨改为 scoped 依赖并**自动迁移旧短名**（dependencies + bundles）；契约检查器同时认 package/id；`tools/publish-plugins.ps1`（-DryRun 预检 / 正式发布，token 走 secrets-link）；`dsh-skill-studio-patched/NOTICE.md` 标 fork 归属。
 - **2026-11-14 收尾批（S1 + Phase1 + Phase2 启动）**：

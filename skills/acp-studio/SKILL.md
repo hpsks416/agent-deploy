@@ -60,7 +60,8 @@ quirks worth handling in the push command:
 
 - Proxy: GitHub needs `-c http.proxy=http://127.0.0.1:7897` (real proxy, registry `ProxyEnable=1`); Gitee connects directly. A legacy `127.0.0.1:9` proxy note is stale — ignore it.
 - Use `-c http.sslBackend=openssl`; the default schannel backend can fail with `SEC_E_NO_CREDENTIALS`.
-- **push 一律走 `scripts/push-secure.cmd`**（内部 `call secrets.cmd` → 环境变量 → inline auth），agent 不直接 `Get-Content G:\KEY\*.txt` 读 token 明文；token 只进脚本进程环境变量、不进 agent 上下文。用法：`push-secure.cmd <Repo路径> <RepoName> github|gitee|atomgit [Branch]`。
+- **push 一律走 `scripts/push-secure.cmd`**（内部 `call secrets.cmd` → 环境变量 → inline auth），agent 不直接 `Get-Content G:\KEY\*.txt` 读 token 明文；token 只进脚本进程环境变量、不进 agent 上下文。用法：`push-secure.cmd <Repo路径> <RepoName> github|gitee|atomgit [Branch]`（`SECRETS_CMD` 可覆盖 secrets.cmd 路径，`GIT_HTTP_PROXY` 只对 GitHub 生效）。
+- **受限/沙箱环境起不了 POSIX shell 时**（典型报错 `sh.exe: fatal error - couldn't create signal pipe, Win32 error 5` → `could not read Username`），`credential.helper=!shell` 必失败 → 改用 `scripts/push_all.py`（`http.extraheader=Authorization: Basic <base64>`，无子 shell、无交互提示、输出脱敏）：`python push_all.py <repo路径> <repo名> --targets github,gitee,atomgit --atomgit-user <AtomGit用户> --proxy http://127.0.0.1:7897`。
 - Prefer inline auth `https://<github_user>:<GITHUB_TOKEN>@github.com/<owner>/<repo>.git`, plus
   `-c credential.helper=` so git never opens an interactive prompt.
 - Never write the token into repo config; read it from `secrets.cmd` / `GITHUB_TOKEN` and redact it from output.
@@ -136,7 +137,7 @@ When creating or initializing a repository without a specified license, default 
 - Never force-push (`--force`, `-f`) unless the user explicitly asked.
 - Never commit secrets, `.env`, credentials, or large binaries; report them instead.
 - Credentials come from `GITEE_USERNAME`/`GITEE_TOKEN` and `GITHUB_TOKEN` (or `gh auth token`); never write them into repo config, and redact them from output.
-- **Gitee create-repo API 的 `public` 字段不接受布尔值** — 显式传 `public: true` 会返回 HTTP 400 `"public" is invalid`；正确做法是**省略 `public` 字段**创建（返回 201）。**但 Gitee 默认建库是 private（不是 public）**，建完要转公开：`PATCH /api/v5/repos/{owner}/{repo}` body 带 `name=<repo>&private=false`（**必须带 name 参数，否则报 "name is missing"**）。
+- **Gitee create-repo API 的 `public` 字段不接受布尔值** — 显式传 `public: true` 会返回 HTTP 400 `"public" is invalid`；正确做法是**省略 `public` 字段**创建（返回 201）。**但 Gitee 默认建库是 private（不是 public）**，建完要转公开：`PATCH /api/v5/repos/{owner}/{repo}` body 带 `name=<repo>&private=false`（**必须带 name 参数，否则报 "name is missing"**）。**空仓库不能直接转公开**：对还没有 commit 的仓库 PATCH 会返回 `422 空仓库不支持设置为公开仓库` → 先推首个 commit，再 PATCH（建 `secure-push-kit` 实测顺序）。
 - **Deleting a GitHub repo needs `delete_repo` scope** — a classic PAT with only `repo` scope returns `403 Must have admin rights` on `DELETE /repos/{owner}/{repo}`. Delete requires a PAT with `delete_repo` (plus `repo` for push). Gitee delete (`DELETE /repos/{owner}/{repo}`) works with the normal token. Deleting is irreversible — confirm the exact repo before running.
 - The sync script is fast-forward only and never force-pushes; diverged branches are reported and skipped.
 - Sync is one-way by default (`github-to-gitee`); choose `gitee-to-github` for the reverse direction, or `both` to run the two one-way directions in one pass.
