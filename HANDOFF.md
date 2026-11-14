@@ -18,6 +18,11 @@
 
 ## 二、已完成（本轮 = 2026-11-10 待办处理）
 
+- **2026-11-14 开源热榜第三批 P0-P3**：
+  - `UPDATE/research/dsh-loading-chain.md`：bundle→patch→apply 三层对照 NamiDSH 源码；`dsh --profile web --dump-config` 实测 20572B/165 条目，我方插件行号（skill-studio 587、goat-vision 596、retrieval 651、secure-push 654、session-sync 657）；**desktop profile 不能被 CLI dump**（Electron 独占，exit 1）。
+  - `local-tool-mcp-exposure` 增「工具集分层与进程生命周期」：Essentials 默认 + 按需工具集（`list_toolsets`/`enable_toolset`）、模式切换连带重启 MCP 进程（1–2s 重同步）、重启兜底 SIGTERM→1.5s SIGKILL→3s 强退、`<server>_status` 自检工具。
+  - `CARTOON/产出规范-风格目录.md` + `CARTOON/styles/`（3 类：表情包/角色完整动作/场景短片；每类 STYLE.md 固定 6 段模板：案例表/怎么做/可直接这样说/具体做法/交付物）。
+  - `design-qa` 增「文本模式（text）」：Pass 1 = 26 条 AI tells（分组 A–F，逐条改法）；Pass 2 = STE80 结构 S1–S15 的 80% 摘要；保真铁律（事实/数字/引号不动、不确定度不减、不加新事实、代码/U­RL 不碰）+ 何时不做（合同/代码/诗/品牌稿）。
 - **2026-11-14 开源热榜 P0-P3（两批各 4 项）**：
   - **批一（11-14 报告）**：`MUSICAL/offline-pipeline/`（离线语音翻译：faster-whisper → Ollama → SRT，本机 CPU 实跑通；CUDA 缺 `cublas64_12.dll` 待修）｜`CAD/threert-eval.md`（ThreeRT 仅 macOS/iOS 客户端 → 不可用，替代 A+C：three.js WebGPU + Blender Cycles）｜`UPDATE/research/gpucanvas-feasibility.md`（依赖 Chrome 157 实验 API → 只借「agent 可读可指」语义层思想）｜`_collect.py` 刷星黑名单（实测过滤 4 条，含 1210★ 重打包仓库）。
   - **批二（11-12 报告）**：`UPDATE/research/lotmap-feasibility.md`（事件源 `ctx.on("session/event")` 有生产实证；面板走 webServer+SSE 最薄，右栏 tab 为二期）｜`skills/web-3d-asset-pipeline` 增「Texture Generation (AI PBR forge)」段（ai-texture-forge 是 Blender GUI add-on，非 CLI）｜`UPDATE/research/minimax-h3-image-decision.md`（权重 204GB + 许可排除欧/英/韩/美 → 走 API，不本地部署）｜`thirdparty-gate.ps1` 第三方插件门禁（SkillSpector 契约：exit 0/1/2、`risk_recommendation`、`is_complete`；Windows 不能 `--output`；超时 fail-closed；实测自有插件 PASS、marktext 90s 超时 BLOCK）。
@@ -70,6 +75,7 @@
 
 ## 五、已知坑（复用，勿重踩）
 
+- **`dsh --dump-config` 只对 web profile 可用**：desktop profile 报 `error: profile "desktop" is managed exclusively by the Electron application`（exit 1）；desktop 插件要验证加载，走 app 的 Plugins 面板或插件自带的 `/api/diag` 类只读端点（marktext 已验证）。
 - **SkillSpector 用法（P6 门禁）**：Windows 下**不能传 `--output`**（平台不支持安全落盘），必须省略并抓 stdout；OSV 联网查询在无网/慢网会长时间挂住 → 门禁必须带 `-TimeoutSec` 兜底；插件目录（非 skill 目录）静态扫描 `is_complete=false` 属常态，默认只 WARN，`-StrictIncomplete` 才拦。
 - **多会话并发会互相踩**：本轮 `git add -A` 把另一会话正在做的 dual-track 未提交改动（manifest/deploy.ps1/install.ps1/DUAL-TRACK.md）一并提交推上云端。多会话时用定向 `git add`，并先 `git status` 看有没有别人的改动。
 - **Gitee PATCH 仓库必须带 `name`**：`PATCH /api/v5/repos/{owner}/{repo}` 不带 `name` 报 `{"messages":["name is missing"]}`；带 `name` + `description` 才能改描述。Gitee 没有 archive API（只能改描述/README 标废弃）。

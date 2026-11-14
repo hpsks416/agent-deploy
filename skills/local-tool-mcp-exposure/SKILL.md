@@ -25,6 +25,36 @@ description: 把本地工具/脚本/项目做成「agent 可全权驱动」—�
 4. 写根 `llms.txt`（见 `templates/llms.txt`），给出 MCP 连接命令。
 5. 验证：`claude mcp add --transport http <name> http://127.0.0.1:<port>/mcp`，让 agent 读 skill 后跑一个最小任务。
 
+## 工具集分层与进程生命周期（借 craft-anything）
+
+工具一多（几十上百个）就会吃掉上下文、也被误调用。参考 `dsh-craft-anything` 的接入层设计，把「暴露多少」和「进程怎么活」做成显式契约：
+
+### 1. 分层暴露（Essentials + 按需工具集）
+
+- 默认只暴露 **Essentials**（约 30 个高频工具），命名统一 `<server>__<tool>`（如 `mcp__craft__core_target_open`）。
+- 深层能力按**工具集**分组（browser / android / java / formats / native …），运行时按需开启：
+  - `<server>__list_toolsets` —— 列出可用工具集与工具数；
+  - `<server>__enable_toolset <name>` —— 开启一个工具集（或整体切「深度模式」）。
+- **能力发现做成工具，不要写成文档**：agent 用 `list_toolsets` 自己查，比在 SKILL.md 里列 162 个工具更省 token、更不会过期。
+
+### 2. 模式切换要连带重启服务进程
+
+- 模式开关（净室 / 深度）写到 `mode.json`，然后**重启 MCP 子进程**让新工具表生效。
+- 依赖宿主 MCP client 的自动重连：重启后 1–2 秒内工具列表重新同步，调用方不需要知道重启发生过。
+- 不要试图热改工具表——协议层没有增量注册，重启是最稳的。
+
+### 3. 重启必须带兜底，别拖住宿主
+
+进程不响应 SIGTERM 时按阶梯处理，绝不无限等：
+
+1. 发 `SIGTERM`；
+2. 等 1.5s 仍未退出 → `SIGKILL`；
+3. 再等 3s → 强制退出并向宿主报告失败（宿主继续可用）。
+
+### 4. 给一个状态工具
+
+`<server>_status` 一次返回：CLI 路径与版本、是否 portable、当前模式、工具集与工具数、可用引擎（chromium/gdb/java…）、依赖是否就绪。排障时先看它，不猜。
+
 ## 参考
 
 - YuE2-Studio：162 个 MCP 工具（分组）；`studio://skill` 资源 + `studio` prompt；根 llms.txt；把「写作规则 + 官方示例」随服务下发，agent 自己写 style/lyrics。
