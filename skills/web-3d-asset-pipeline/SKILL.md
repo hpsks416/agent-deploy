@@ -32,6 +32,16 @@ This guidance is engine-agnostic and can serve Three.js, React Three Fiber, Baby
 5. Add collision proxies, LOD strategy, and baked-lighting assumptions as needed.
 6. Ship the optimized asset and load it with engine-native GLTF support.
 
+## Texture Generation (AI PBR forge)
+
+When the asset needs textures rather than geometry, generate the PBR set instead of hand-authoring it:
+
+1. Use `ai-texture-forge` (Blender 4.2+ add-on, Windows, MIT) inside the same Blender session: type a prompt in the N-panel, enable **Seamless**, and get color / roughness / normal maps wired into the material in one pass.
+2. Settings that matter: Provider (Local GPU or Cloud API), Model, Resolution (default 1024), Steps (30), Seed (fix it to iterate on the same look), Seamless (on for tiling), Depth strength (≈0.6 for scene-wide projection).
+3. Feed the result back into the pipeline: material maps → GLB per **Format Rules**; compress with KTX2/Basis afterwards if the web budget needs it.
+4. Batch / headless: this is a **GUI add-on inside Blender** — do not assume a CLI. Automation is either a `bpy` call into its operators (unverified) or a manual generation pass with naming conventions recorded beside the asset.
+5. Validate before shipping: 2×2 tiling seam check with Seamless on, normal-map tangent space matches the export convention, and texture budget stays within the plan (≤2K per material unless it is a hero close-up).
+
 ## Format Rules
 
 - Default shipping format: GLB or glTF 2.0.

@@ -175,3 +175,27 @@ Phase 2 第一件事不是写代码，而是给 manifest 的每个插件补 `por
 4. **回滚不覆盖「被覆盖的已有文件」之外的内容**：只删本次新建目录 + 恢复备份文件；覆盖的已有插件目录备份在 `~/.dsh/_backup_<ts>/`，需手动确认。
 5. **文档计数待统一**：README/FRAMEWORK/COMPARISON 写「36」，manifest 实际 37——本轮不动文档，避免与代码改动混在一个提交。
 
+## 9. 第三方插件门禁（P6，fail-closed）
+
+**为什么加**：DSH「破甲」插件连续 4 天出现（`dsh-jailbreak-workflow` → `fujiang-pojia` → `dsh-purge` → `dsh-purge-safe`）。第三方插件是**执行代码**，不是提示词。
+
+**契约**（SkillSpector v2.12.0，来自其 `docs/DEVELOPMENT.md`）：
+
+- 退出码：`0` = 扫描完成且 `risk_score <= 50`；`1` = `risk_score > 50`；`2` = 出错。
+- JSON 字段：`findings` / `filtered_findings` / `risk_score` / `risk_severity`（LOW|MEDIUM|HIGH|CRITICAL）/ `risk_recommendation`（SAFE|CAUTION|DO_NOT_INSTALL）/ `analysis_completeness.is_complete` / `execution_successful`。
+- **Windows 不能传 `--output`**（平台不支持安全落盘）——必须省略，改为抓 stdout。
+
+**门禁脚本** `thirdparty-gate.ps1`（仓库根）：
+
+- 只读扫描一个目录，输出 `[PASS]/[BLOCK]/[ERROR]` 与一行证据（score/severity/findings 数/完整性）；
+- 拦截条件：`DO_NOT_INSTALL`、`HIGH|CRITICAL`、`exit 1`、分析不完整（可用 `-AllowIncomplete` 明确放行）、扫描器缺失或出错；
+- 退出码：`0` 通过 / `3` 拦截 / `4` 扫描器缺失或出错（同样不通过）。
+
+**接入点**：`dsh-config/install.ps1` 的 npm 轨（外部插件）在 `pnpm add` 之后、注册 `dsh.profile.bundles` **之前**强制扫描；未通过则不注册 bundle 并 `exit 2`。绕过只能显式 `-SkipSupplyChain`（日志留痕）。
+
+**手动用法**：
+
+```powershell
+pwsh thirdparty-gate.ps1 -Path <插件目录>          # 通过=0 / 拦截=3 / 工具错误=4
+pwsh thirdparty-gate.ps1 -Path <目录> -Json        # 机器可读
+```

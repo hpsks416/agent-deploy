@@ -26,6 +26,7 @@ param(
   [switch]$SkipSkills,
   [switch]$SkipConfig,
   [switch]$PluginsOnly,
+  [switch]$SkipSupplyChain,
   [switch]$DryRun
 )
 
@@ -165,10 +166,30 @@ function Install-LinkedPlugins {
       foreach ($it in $npmPlugins) {
         $spec = "$($it.package)@$($it.version)"
         Write-Host "    [npm] $spec（$($it.note)）" -ForegroundColor DarkGray
-        if ($DryRun) { Write-Host "      [DRY] pnpm add $spec；并追加 bundle $($it.package)" -ForegroundColor Yellow; continue }
+        if ($DryRun) { Write-Host "      [DRY] pnpm add $spec → 跑 thirdparty-gate（供应链扫描）→ 追加 bundle $($it.package)" -ForegroundColor Yellow; continue }
         Push-Location (Split-Path $pkgPath -Parent)
         try { & $pnpmCmd.Source add $spec --ignore-scripts 2>&1 | Out-Null } finally { Pop-Location }
         if ($LASTEXITCODE -ne 0) { Write-Host "      [FAIL] pnpm add 退出码 $LASTEXITCODE" -ForegroundColor Red; continue }
+
+        # 第三方插件装前门禁：SkillSpector 供应链扫描（fail-closed，P6）
+        if (-not $SkipSupplyChain) {
+          $gate = Join-Path (Split-Path $scriptRoot -Parent) 'thirdparty-gate.ps1'
+          $instDir = Join-Path (Split-Path $pkgPath -Parent) ("node_modules\" + $it.package)
+          if (-not (Test-Path $gate)) {
+            Write-Host "      [BLOCK] 缺门禁脚本 thirdparty-gate.ps1（fail-closed，不注册 bundle）" -ForegroundColor Red
+            $script:pluginOk = $false
+            continue
+          }
+          & $gate -Path $instDir
+          $gateCode = $LASTEXITCODE
+          if ($gateCode -ne 0) {
+            Write-Host "      [BLOCK] 供应链扫描未通过（exit $gateCode）→ 不注册 bundle；确认可信后重跑加 -SkipSupplyChain" -ForegroundColor Red
+            $script:pluginOk = $false
+            continue
+          }
+        } else {
+          Write-Host '      ! 已跳过供应链扫描（-SkipSupplyChain，风险自负）' -ForegroundColor Yellow
+        }
         $j = Get-Content $pkgPath -Raw | ConvertFrom-Json
         $bs = @($j.dsh.profile.bundles)
         if ($bs -notcontains $it.package) {
