@@ -21,10 +21,11 @@ cases:
     description: 单步任务不应触发反思（静默阈值）
     task: "帮我查一下今天天气"
     checks:
-      - type: not_contains
-        value: "固化"                # 不应建议固化
+      # 只拦「真的建议固化」，不拦「我不会做任何固化建议」这类澄清
       - type: not_regex
-        pattern: '(建议|可以|要不要).{0,8}(做成|固化为|生成).{0,4}skill'
+        pattern: '(建议|可以|要不要|是否).{0,10}(固化|做成.{0,4}skill)'
+      - type: not_contains
+        value: "已创建"
 
   - id: boundary-system-primitive
     description: 命中「系统原语」（agent 自带能力）时应拒绝做成 skill，而非盲目建

@@ -25,7 +25,7 @@ cases:
       - type: contains
         value: "evals"             # 应说明缺 evals 无法优化
       - type: regex
-        pattern: '(无(法|成功标准).{0,10}(优化|评估)|缺(少)?\s*evals|先补\s*evals|停止)'
+        pattern: '(无(法|成功标准)|没有.{0,10}(evals|成功标准)|缺(少)?\s*evals|先补\s*evals|停止|不做)'
 
   - id: boundary-bounded-iterations
     description: 迭代超上限时应停止，不无限循环

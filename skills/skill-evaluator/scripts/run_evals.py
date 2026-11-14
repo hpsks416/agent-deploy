@@ -58,6 +58,14 @@ MOCK_SEARCH_RESULT = (
     "markitdown (https://github.com/microsoft/markitdown, MIT, Microsoft)."
 )
 
+# 没有任何工具时的显式约束：CI 的 A/B 只判「最终答复」。
+# 不声明这句时，flash 这类模型会输出 tool_calls 伪代码块（本环境根本无法执行），
+# 导致断言检不到任何结论 —— 那不是 skill 质量问题，是评测环境问题。
+NO_TOOLS_SYSTEM = (
+    "本评测环境没有任何可用工具（无 shell / 文件读取 / 网络 / skill 管理工具）。"
+    "不要输出 tool_calls、伪代码调用或 <invoke> 块；请直接用文字给出最终答复。"
+)
+
 # 退出码：0=通过 / 1=真失败（lift 闸门）/ 2=跳过（缺 key 或余额不足，fork 友好）
 SKIP = 2
 
@@ -117,9 +125,10 @@ def run_checks(text, checks, tool_calls=None):
         elif t == "not_contains":
             passed = c.get("value", "") not in text
         elif t == "regex":
-            passed = bool(re.search(c.get("pattern", ""), text))
+            # 答复是多行文本：`.` 默认不跨行，用 DOTALL 让 `.{0,40}` 这类窗口能跨段落
+            passed = bool(re.search(c.get("pattern", ""), text, re.S))
         elif t == "not_regex":
-            passed = not re.search(c.get("pattern", ""), text)
+            passed = not re.search(c.get("pattern", ""), text, re.S)
         elif t == "json_schema":
             try:
                 obj = json.loads(text)
@@ -165,13 +174,14 @@ def main():
             checks = case.get("checks", [])
             tools = MOCK_TOOLS if use_tools else None
 
-            with_calls, with_text = run_conversation(base_url, api_key, model, [
-                {"role": "system", "content": f"你是一个编码 agent，必须遵守以下 skill 正文：\n\n{skill_md}"},
-                {"role": "user", "content": task},
-            ], tools=tools)
-            without_calls, without_text = run_conversation(base_url, api_key, model, [
-                {"role": "user", "content": task},
-            ], tools=tools)
+            with_sys = f"你是一个编码 agent，必须遵守以下 skill 正文：\n\n{skill_md}"
+            if tools is None:
+                with_sys += "\n\n" + NO_TOOLS_SYSTEM
+            with_messages = [{"role": "system", "content": with_sys}, {"role": "user", "content": task}]
+            without_messages = ([{"role": "system", "content": NO_TOOLS_SYSTEM}] if tools is None else []) + \
+                               [{"role": "user", "content": task}]
+            with_calls, with_text = run_conversation(base_url, api_key, model, with_messages, tools=tools)
+            without_calls, without_text = run_conversation(base_url, api_key, model, without_messages, tools=tools)
 
             with_pass, with_checks = run_checks(with_text, checks, with_calls)
             without_pass, without_checks = run_checks(without_text, checks, without_calls)

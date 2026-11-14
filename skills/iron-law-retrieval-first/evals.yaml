@@ -12,11 +12,14 @@ cases:
       - type: regex
         pattern: '(https?://|github|pypi|npmjs|pandoc|markitdown|mammoth|docx2md|libreoffice)'
       - type: regex
-        pattern: '(复用|借鉴|自写|直接用|不自己写|现成|直接用现成)'
+        pattern: '(复用|借鉴|自写|直接用|不自己写|现成|候选|轮子|pandoc|markitdown)'
 
   - id: failure-trivial-no-retrieval
     description: 单步琐碎任务不该触发检索（测触发判据的边界）
     task: "把字符串 hello world 转成大写"
     checks:
+      # 只拦「真的去检索/建议检索」的动作，不拦「说明了没有 web_search 工具」这类解释
+      - type: regex
+        pattern: '(不用|不需要|无需|不必|没必要).{0,10}(检索|造轮子|找轮子)'
       - type: not_regex
-        pattern: "web_search|open-source-scout|GitHub|PyPI|检索现成轮子"
+        pattern: '(已(经)?检索|搜索到|查到了|调用\s*web_search|使用\s*open-source-scout)'

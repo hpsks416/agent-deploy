@@ -58,7 +58,7 @@ jobs:
         env:
           EVAL_BASE_URL: https://api.deepseek.com
           EVAL_API_KEY: ${{ secrets.deepseekv4pro }}
-          EVAL_MODEL: deepseek-v4-pro
+          EVAL_MODEL: deepseek-flash
         run: |
           set +e   # 单个 skill 失败不中断整轮（默认 shell 带 -e，会吞掉后续 skill 的结论）
           failed=0
