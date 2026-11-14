@@ -11,12 +11,14 @@
 - **37 个 skill 全部并入仓库**（原 25 个 + 11 个 live-only + 1 个新增），`core-skills.txt` 同步为 37 行；live `~/.dsh/skills` 与仓库 `skills/` **内容零差异**（按行尾归一化比对）。
 - **常驻铁律 = 三条**（铁律一 先检索 / 铁律二 收尾反思 / 铁律三 调用框架·SKILL 前先查 framework-kb）：`agent-deploy/AGENTS.md`、`agent-deploy/dsh-config/AGENTS.md`、live `~/.dsh/AGENTS.md` **三处完全一致**。
 - 三云同步：GitHub `hpsks416/agent-deploy` = Gitee `hpsks416/agent-deploy` = GitCode `qq_60289026/agent-deploy`（= `1df4b9c`）；`agent-deployed` 与 `HASHRAP` 同样三目标一致。
-- 知识库：`agent-deployed` 仓库只含框架本体（铁律/画像/偏离日志/HANDOFF/skill 及其 references），**KB chunks: 753 / 源: 79**；构建产物 `framework_kb.sqlite3` **已入库**，journal 用 DELETE（非 WAL）。
+- 知识库：`agent-deployed` 仓库只含框架本体（铁律/画像/偏离日志/HANDOFF/skill 及其 references），**KB chunks: 754 / 源: 79**；构建产物 `framework_kb.sqlite3` **已入库**，journal 用 DELETE（非 WAL）。
 - 守卫插件 3 个全注册（`dsh-retrieval-guard` + `dsh-context-guard` + `dsh-secure-push-guard`）：bundle 已在 profile `package.json`，DSH 进程已重启（Web 端口 55900 → 57594 → 62497），判定已加载；实际拦截行为可择机实测。
 - **framework-kb 检索链路可用**：正确调用 = `framework-kb\.uv-python\...\python.exe` + `PYTHONPATH=framework-kb\pylibs`（误用 runtime python 会 ImportError / `unable to open database file`，不是库坏）。
 - **dual-track 重构已收口（2026-11-10 22:30）**：`framework-manifest.json`（**37 skills / 7 plugins**）取代 `core-skills.txt` 与 `install.ps1` 硬编码清单；`deploy.ps1`（`-Track/-Profile/-Rollback`）与 `dsh-config/install.ps1`（`-PluginsOnly/-Profile/-DryRun`、npm 轨、按 profile 过滤）已在**假 HOME 沙箱实测**：安装 37/37 skill + 5 插件、回滚删净并恢复 profile `package.json`、失败路径 exit 2。`core-skills.txt` 降级为人类可读摘要/兜底（头注释已写明）。契约检查器 `check-plugin-contract.ps1`：web PASS5/WARN2、desktop PASS5/WARN2（WARN 均为 profile 归属）。`dsh-marktext@0.1.13`（desktop，npm 轨）与 `dsh-context-guard`（随仓分发，3.4KB）已收进；随仓 6 插件 engines.dsh/license 全覆盖。剩余子项：`-Only` 单装、npm 化发布、CI 接检查器、compatibility 真机验证。
 
 ## 二、已完成（本轮 = 2026-11-10 待办处理）
+
+- **2026-11-14 修 10 个脆 evals（CI dynamic-evals）**：根因两类——① CI 的 A/B harness **没有 exec/文件工具**，要求「真跑脚本」的用例必然红（`agent-instruction-supply-chain-scan` / `secret-scan` / `github-ready-packager` / `resume-conversation-brief`）；② 用 `not_contains` 判「不许出现某词」，模型正确回答「不会 force-push」「不应标记为 blocked」「与材质无关」时被误判。修法：用例改成**可判定问法**（问流程/给示例，不依赖工具）+ 否定式判据换**正向断言**（覆盖同义说法）；`run_evals.py` 加 `temperature=0`（消除随机 flaky）与 UTF-8 输出（修 Windows GBK 下 emoji 崩溃）。10 个 skill 本地全绿：acp-studio / agent-instruction-supply-chain-scan / agent-workflow-orchestration / github-ready-packager / iron-law-retrieval-first / long-sentence-structurizer / resume-conversation-brief / secret-scan / skill-lifecycle-manager / skill-optimizer。
 
 - **2026-11-10 dual-track 重构 + 插件契约 Phase 1（另一会话，本机提交 1df4b9c→77d9221）**：`8e26390` 清理误提交备份目录；`f021ecc` 双 profile（web 0.1.5-rc.2 / desktop 0.2.2-rc.1）；`c46f738` 契约检查器 + 元数据归位；`92bdfd7` engines.dsh 补全 + marktext 纳入 npm 轨；`7e3b7f6` 实测收口（失败可见/回滚修对/core-skills 归属）；`77d9221` 收进 dsh-context-guard。
 - **2026-11-10 待办四项**：
@@ -45,7 +47,7 @@
 
 ## 三、待办 / 未完成
 
-1. **确认 CI 重跑结果**（`run 42827274271`）：新日志会列全部 FAIL skill + 失败 check + 答复预览；首轮已知 `acp-studio` 的 `success-gate-scan-first` 两臂都不过（该用例区分度不足，可能需换成 `tool_called`/更稳的判定）。修 evals 不削闸门。
+1. **确认 CI 结果**（commit `13cd5b1` 触发的 run）：本地 10 个已全绿；还要看另外 8 个原本 OK 的 skill 是否被 `temperature=0` 影响。若仍有红，按 `run_evals.py` 输出的「失败 check + 答复预览」修用例，不削闸门。
 2. ~~确认 dual-track 重构收口~~ → **已完成（2026-11-10 22:30）**：沙箱实测安装/回滚通过、契约检查器双 profile 通过。剩余子项：`-Only <id>` 单装、5 插件 npm 化、CI 接检查器、compatibility 真机验证。
 3. CubeMX 已是 **6.18.1 正式版**（内部构建号 `6.18.1-RC2` 是 ST 命名习惯），无需换版本；若后续要汉化，先确认补丁的目标构建号与本机一致。
 4. CubeMX 联网下载（固件包/更新）如需可用：开代理后写 `updater.ini` 的 `[Proxy]`，或在 `Application\STM32CubeMX.l4j.ini` 加 `-Dhttps.proxyHost/-Dhttps.proxyPort`；否则走镜像下载 zip + `From Local` 导入。
