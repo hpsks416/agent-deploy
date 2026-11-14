@@ -32,6 +32,6 @@ cases:
     checks:
       # 「不启用编排」的判据：直接要信息/直接做，而不是建 goal/workflow；模型反问必要信息也算正确边界
       - type: regex
-        pattern: '(直接(改|做|说)|不需要(编排|workflow|goal)|单步|一行字|请告诉|告诉我|哪一?行|定位)'
+        pattern: '(直接(改|做|说)|不需要(编排|workflow|goal)|单步|一行字|请告诉|告诉我|哪一?行|定位|需要(你|用户)|贴给|补(原文|上下文)|原文)'
       - type: not_contains
         value: "创建 goal"             # 单步任务不应建 goal

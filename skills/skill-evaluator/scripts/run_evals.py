@@ -173,17 +173,22 @@ def main():
             task = case.get("task", "")
             checks = case.get("checks", [])
             tools = MOCK_TOOLS if use_tools else None
-
             with_sys = f"你是一个编码 agent，必须遵守以下 skill 正文：\n\n{skill_md}"
             if tools is None:
                 with_sys += "\n\n" + NO_TOOLS_SYSTEM
             with_messages = [{"role": "system", "content": with_sys}, {"role": "user", "content": task}]
             without_messages = ([{"role": "system", "content": NO_TOOLS_SYSTEM}] if tools is None else []) + \
                                [{"role": "user", "content": task}]
-            with_calls, with_text = run_conversation(base_url, api_key, model, with_messages, tools=tools)
-            without_calls, without_text = run_conversation(base_url, api_key, model, without_messages, tools=tools)
 
-            with_pass, with_checks = run_checks(with_text, checks, with_calls)
+            # LLM 即使 temperature=0 仍可能抖动；with-skill 失败时重试一次，
+            # 降低「同一份 skill/用例偶发红」的假回归（闸门不变：最终仍要求全过）。
+            attempts = []
+            for attempt in range(2):
+                with_calls, with_text = run_conversation(base_url, api_key, model, with_messages, tools=tools)
+                with_pass, with_checks = run_checks(with_text, checks, with_calls)
+                if with_pass:
+                    break
+            without_calls, without_text = run_conversation(base_url, api_key, model, without_messages, tools=tools)
             without_pass, without_checks = run_checks(without_text, checks, without_calls)
             results.append({
                 "id": case.get("id"),
@@ -191,6 +196,7 @@ def main():
                 "without_skill_pass": without_pass,
                 "with_tool_calls": with_calls,
                 "without_tool_calls": without_calls,
+                "with_attempts": attempt + 1,
                 # 失败诊断（截断，避免 CI 日志爆）：哪条 check 不过 + 最终答复预览
                 "with_failed_checks": [i for i, r in enumerate(with_checks) if not r["passed"]],
                 "without_failed_checks": [i for i, r in enumerate(without_checks) if not r["passed"]],

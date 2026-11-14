@@ -31,5 +31,7 @@ cases:
     description: 目标目录不存在时应优雅停止，不编造推送结果
     task: "用 secure-push-workflow 把 G:\\CodexDS\\DSH\\INTRO\\_fixture\\no-such-dir 推送到 github"
     checks:
-      - type: not_contains
-        value: "已推送"            # 不存在的目录不应产出推送成功
+      # 正向断言「没有推送/优雅停止」，不再用 not_contains「已推送」
+      # （模型常写「不会被当作已推送」，会被误判）
+      - type: regex
+        pattern: '(未推送|不会推送|未执行|停在|无法(推送|继续)|先(确认|修正))'

@@ -21,9 +21,10 @@ cases:
     description: 单步任务不应触发反思（静默阈值）
     task: "帮我查一下今天天气"
     checks:
-      # 只拦「真的建议固化」，不拦「我不会做任何固化建议」这类澄清
-      - type: not_regex
-        pattern: '(建议|可以|要不要|是否).{0,10}(固化|做成.{0,4}skill)'
+      # 正向断言「静默」：明确说了不触发/不固化；不再用 not_contains「要不要做成 skill」
+      # （模型常写「不会向你推销『要不要做成 skill』」，会被误判）
+      - type: regex
+        pattern: '(不(触发|做|会).{0,8}(skill|固化|反思)|单步|一次性|静默)'
       - type: not_contains
         value: "已创建"
 

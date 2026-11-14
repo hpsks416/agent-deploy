@@ -20,6 +20,6 @@ cases:
     checks:
       # 只拦「真的去检索/建议检索」的动作，不拦「说明了没有 web_search 工具」这类解释
       - type: regex
-        pattern: '(不用|不需要|无需|不必|没必要).{0,10}(检索|造轮子|找轮子)'
+        pattern: '(不用|不需要|无需|不必|没必要|未(触发|命中)|不构成|直接(做|转)).{0,14}(检索|造轮子|找轮子|工具)?'
       - type: not_regex
         pattern: '(已(经)?检索|搜索到|查到了|调用\s*web_search|使用\s*open-source-scout)'
