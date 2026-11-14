@@ -8,7 +8,7 @@ version: 1
 cases:
   - id: success-path
     description: 应产出「继续对话」和「完整性检查」两类提示词
-    task: "为 G:\\CodexDS\\DSH\\MAIN\\CAD 领域生成开场提示词"
+    task: "不要调用任何工具，直接用文字回答。为 G:\\CodexDS\\DSH\\MAIN\\CAD 领域生成开场提示词；该领域 conversations 目录里实际有这些文件：conversations\\CAD-2026-09-01.md、conversations\\CAD-2026-10-12.md。请按 skill 要求给出两类提示词。"
     checks:
       - type: contains
         value: "继续对话"              # 必须含两类提示词之一
