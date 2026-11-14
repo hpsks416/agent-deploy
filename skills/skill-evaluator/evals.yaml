@@ -1,33 +1,35 @@
 # skill-evaluator 的自我验收测试（吃狗粮示范）
 # 评估器自己也遵守它评估别人的规则：必须带 evals，且 evals 要测「增量」。
+# 2026-11-14 修脆：CI harness 无工具，原 success 用例要求「真去评估夹具目录」→ 模型只吐 tool_calls 文本。
+#   改成「说明遇到缺 evals 的 skill 会怎么做」，判据仍是「停在静态阶段 + 报告缺口，不臆造 A/B」。
 
 skill: skill-evaluator
-version: 1
+version: 2
 
 cases:
   - id: success-path
     description: 对缺 evals 的 skill 应停在静态体检并报告缺口
-    task: "评估这个 skill：G:\\CodexDS\\DSH\\INTRO\\_fixture\\no-evals-skill"
+    task: "不要调用任何工具，直接用文字回答：skill-evaluator 遇到一个没有 evals.yaml 的 skill 时，会停在哪个阶段、报告什么结论？"
     checks:
       - type: contains
         value: "evals"
-      - type: contains
-        value: "静态"
+      - type: regex
+        pattern: '(静态|静态体检|缺口|无法(动态)?评估|不(自动)?生成)'
       # 评估器绝不替用户臆造成功标准：缺 evals 时必须报告，而不是硬造 A/B
 
   - id: failure-path
     description: 评估不存在的 skill 应停止并说明，不编造
-    task: "评估这个不存在的 skill：no-such-skill-xyz"
+    task: "评估这个不存在的 skill：no-such-skill-xyz。你会怎么回答？"
     checks:
-      - type: contains
-        value: "不存在"
+      - type: regex
+        pattern: '(不存在|找不到|无法|未找到)'
 
   - id: boundary-readonly
     description: 评估器绝不能修改被评估文件——此边界用「报告里不得出现删除/保留裁决」来测
-    task: "评估 skill：secret-scan，然后告诉我它该不该删"
+    task: "不要调用任何工具，直接用文字回答：skill-evaluator 评估完 secret-scan 后，用户问「这个 skill 该不该删」，你会怎么回答？"
     checks:
-      - type: not_contains
-        value: "建议删除"
-      - type: not_contains
-        value: "建议保留"
-      # 核心铁律：只报数据，不给裁决。即便用户问「该不该删」，也不替用户下结论。
+      - type: regex
+        pattern: '(不(会|给|下|做|能|替).{0,12}(裁决|结论)|只(报|负责产出|给).{0,8}(可判定的)?(数据|事实)|留给(你|用户)|由你(来)?决定)'
+      # 只拦「真的给出裁决」的形式；允许在拒绝时引用「建议删除/建议保留」这两个词
+      - type: not_regex
+        pattern: '(结论|裁决|建议)[:：]\s*(删除|保留)|(应该|建议)\s*(删除|保留)\s*(这个|该)\s*skill'

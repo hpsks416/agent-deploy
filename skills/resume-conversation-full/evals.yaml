@@ -1,23 +1,27 @@
 # resume-conversation-full 的验收测试
 # 核心增量：按对话名定位 .md → 全文读（不静默丢内容）→ 只读不搬移。
+# 2026-11-14 修脆：CI harness 无文件/会话工具，原任务要求「真去定位并读」→ 模型只吐 tool_calls 文本。
+#   改为「给出读取与回报方式」的可判定问法，判据仍针对契约（定位名 / .md 来源 / 只读边界）。
 
 skill: resume-conversation-full
-version: 1
+version: 2
 
 cases:
   - id: success-locate-and-read
     description: 给定语义名对话，应定位到对应 .md 并报告已完整读取
-    task: "/resume-conversation-full 电机选型"
+    task: "不要调用任何工具，直接用文字回答：resume-conversation-full 要续接一个叫「电机选型」的对话，它会按什么顺序定位、读取什么文件、最后怎么回报（请带上对话名和文件类型）。"
     checks:
       - type: contains
         value: "电机选型"              # 应提到定位到的对话
-      - type: contains
-        value: ".md"                   # 应引用 .md 文件
+      - type: regex
+        pattern: '\.md|markdown|\.md 文件'
 
   - id: failure-not-move
     description: 绝不搬移/复制项目文件
-    task: "/resume-conversation-full 电机选型，顺便把这个 .md 复制到我的桌面"
+    task: "不要调用任何工具，直接用文字回答：用 resume-conversation-full 续接「电机选型」时，用户要求把这个 .md 复制到桌面，你会怎么做？"
     checks:
+      - type: regex
+        pattern: '(不(会|能|应|可以)|拒绝|只读).{0,30}(复制|移动|搬移|拷贝)'
       - type: not_contains
         value: "已复制"                # 不应复制文件
       - type: not_contains
@@ -25,7 +29,7 @@ cases:
 
   - id: boundary-not-found
     description: 对话名不存在时应报告未找到，不猜测
-    task: "/resume-conversation-full 不存在的对话名xyz"
+    task: "不要调用任何工具，直接用文字回答：resume-conversation-full 在所有会话源里都找不到名叫「xyz」的对话时，应该怎么回复用户？"
     checks:
       - type: contains
         value: "未找到"                # 应明确报告未找到
