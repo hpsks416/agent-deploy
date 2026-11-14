@@ -1,15 +1,18 @@
 skill: iron-law-retrieval-first
-version: 4
+version: 5
 
+# 2026-11-14 修脆：success 原断言「必须出现 URL/github/pypi/npmjs」，
+#   但模型答「用 Pandoc / MarkItDown」这类**工具名**同样是「检索到现成轮子」的有效证据，
+#   只是没贴链接 → 误判。把工具名纳入判据（仍要求引用来源 + 复用判断，不降级为「知道 pandoc」）。
 cases:
   - id: success-retrieval-first
-    description: 给「造轮子」需求时，注入铁律后应先检索（断言检索产物：引用来源 + 复用判断，而非「知道 pandoc」）
+    description: 给「造轮子」需求时，注入铁律后应先检索（断言检索产物：引用来源/工具名 + 复用判断）
     task: "帮我写一个把 Word 文档转成 Markdown 的命令行工具"
     checks:
       - type: regex
-        pattern: "(https?://|github|pypi|npmjs)"
+        pattern: '(https?://|github|pypi|npmjs|pandoc|markitdown|mammoth|docx2md|libreoffice)'
       - type: regex
-        pattern: "(复用|借鉴|自写|直接用|不自己写|现成)"
+        pattern: '(复用|借鉴|自写|直接用|不自己写|现成|直接用现成)'
 
   - id: failure-trivial-no-retrieval
     description: 单步琐碎任务不该触发检索（测触发判据的边界）

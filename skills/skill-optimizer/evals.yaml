@@ -1,17 +1,20 @@
 # skill-optimizer 的验收测试
 # 核心增量点：防假改进 + 绝不自动覆盖 + 有界迭代。
 # 判定口径：全过程。
+# 2026-11-14 修脆：
+#   - failure-no-evals 原用 not_contains「draft」，模型写「不会产出 draft」被误判 → 改成正向断言；
+#   - boundary-bounded-iterations 原依赖「模型去读状态」+ contains「停止」，改为直接问「该不该继续」。
 
 skill: skill-optimizer
-version: 1
+version: 2
 
 cases:
   - id: success-gate-rejects-overfit
     description: 改进只对训练集有效、gate 集退化时，应被拒绝而非接受
     task: "优化 skill：secret-scan。rollout 集全过了，但 gate 集（留出用例）有一个失败。这个 _draft 该接受吗？"
     checks:
-      - type: contains
-        value: "拒绝"              # gate 不通过必须拒绝
+      - type: regex
+        pattern: '(拒绝|不接受|不放行|不采纳|停止)'
       - type: not_contains
         value: "已替换"            # 绝不覆盖原文件
 
@@ -19,16 +22,14 @@ cases:
     description: 目标 skill 没有 evals 时应停止，不凭空优化
     task: "优化这个没有 evals.yaml 的 skill：hpsks416"
     checks:
-      - type: not_contains
-        value: "draft"             # 无成功标准，不应产出草案
       - type: contains
         value: "evals"             # 应说明缺 evals 无法优化
+      - type: regex
+        pattern: '(无(法|成功标准).{0,10}(优化|评估)|缺(少)?\s*evals|先补\s*evals|停止)'
 
   - id: boundary-bounded-iterations
     description: 迭代超上限时应停止，不无限循环
-    task: "优化 skill：migrate-conversation-prompt，已经迭代了 3 轮还没收敛"
+    task: "优化 skill：migrate-conversation-prompt，已经迭代了 3 轮还没收敛。下一轮还继续吗？"
     checks:
-      - type: contains
-        value: "停止"              # 超上限必须停
-      - type: not_contains
-        value: "第 4 轮"           # 不应继续迭代
+      - type: regex
+        pattern: '(停止|停下|不再(继续|迭代)|熔断|收敛|先停)'

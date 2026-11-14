@@ -63,7 +63,9 @@ SKIP = 2
 
 
 def post_chat(base_url, api_key, model, messages, tools=None):
-    payload = {"model": model, "messages": messages}
+    # temperature=0：A/B 判据靠字面/正则命中，随机性会直接变成 flaky。
+    # 固定为 0 让「同一输入同一答案」，evals 才是可回归的（否则一跑绿一跑红）。
+    payload = {"model": model, "messages": messages, "temperature": 0}
     if tools:
         payload["tools"] = tools
     req = urllib.request.Request(
@@ -227,4 +229,10 @@ def main():
 
 
 if __name__ == "__main__":
+    # Windows 控制台默认 GBK：输出里的 emoji（✅/🚨/🎯）会让 print 抛 UnicodeEncodeError，
+    # 本地跑 evals 会「假崩溃」。强制 UTF-8，CI（Linux）与本地行为一致。
+    if hasattr(sys.stdout, "reconfigure"):
+        sys.stdout.reconfigure(encoding="utf-8")
+    if hasattr(sys.stderr, "reconfigure"):
+        sys.stderr.reconfigure(encoding="utf-8")
     sys.exit(main())

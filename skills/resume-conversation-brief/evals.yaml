@@ -1,31 +1,35 @@
 # resume-conversation-brief 的验收测试
 # 核心增量：定位 .md → map-reduce 精炼 → 快照每结论引用来源 → 只读不搬移。
+# 2026-11-14 修脆：CI harness 无文件/会话工具，原任务「真去续接」→ 模型只会吐 tool_calls 文本。
+#   改为「给出快照骨架 + 说明可追溯与边界」，判据仍针对契约（结构/引用/边界）。
 
 skill: resume-conversation-brief
-version: 1
+version: 2
 
 cases:
   - id: success-traceable-snapshot
     description: 快照应含结构化主干且每结论标注来源
-    task: "/resume-conversation-brief 3D管线"
+    task: "假设 resume-conversation-brief 已经定位到名为「3D管线」的对话。请给出它会产出的「主干快照」示例骨架，并说明每一条结论如何标注来源。"
     checks:
       - type: contains
-        value: "3D管线"                # 定位到对话
-      - type: contains
-        value: "待办"                  # 快照结构含待办
-      - type: contains
-        value: "据"                    # 结论引用来源（每结论可追溯）
+        value: "3D管线"
+      - type: regex
+        pattern: '(待办|下一步|进行中)'
+      - type: regex
+        pattern: '(来源|出处|引用|据|source)'
 
   - id: failure-not-full-detail
     description: 主干版不应输出完整细节，应提示用 full 版
-    task: "/resume-conversation-brief 3D管线"
+    task: "resume-conversation-brief（主干版）和 resume-conversation-full（完整版）有什么区别？主干版该不该给全细节？"
     checks:
       - type: contains
-        value: "resume-conversation-full"   # 应提示细节版入口
+        value: "resume-conversation-full"
+      - type: regex
+        pattern: '(主干|概要|精炼|不(要|应)?给全|细节.{0,6}(另|换|用))'
 
   - id: boundary-not-found
     description: 对话名不存在时报告未找到
-    task: "/resume-conversation-brief 不存在的对话名xyz"
+    task: "用 resume-conversation-brief 找名叫「不存在的对话名xyz」的对话，找不到时你会怎么回答？"
     checks:
       - type: contains
         value: "未找到"

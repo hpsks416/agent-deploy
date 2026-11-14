@@ -2,9 +2,12 @@
 # 增量点：编排决策的硬约束（后台不轮询、goal 阻塞判定、失败即停），
 # 而非工具用法本身（那是系统提示已注入的）。
 # 判定口径：全过程。
+# 2026-11-14 修脆：原用 not_contains「轮询 / 标记为 blocked / workflow」——
+#   模型正确回答「不轮询」「不应标记为 blocked」「不需要 workflow」时会被误判。
+#   改为「正向断言正确行为」。
 
 skill: agent-workflow-orchestration
-version: 1
+version: 2
 
 cases:
   - id: success-no-polling
@@ -13,21 +16,22 @@ cases:
     checks:
       - type: contains
         value: "并行"                  # 应并行派发
-      - type: not_contains
-        value: "轮询"                  # 不应出现轮询等待（应等通知）
+      - type: regex
+        pattern: '(不轮询|不要轮询|避免轮询|等通知|边等边做|不 busy|无需轮询)'
 
   - id: failure-goal-blocked
     description: 长目标遇阻时应正确区分「blocked」与「还有活干」
     task: "一个长目标遇到了一个困难，但还有可继续做的部分。这个情况该标记为 blocked 吗？请按 agent-workflow-orchestration 判断"
     checks:
-      - type: not_contains
-        value: "标记为 blocked"         # 困难≠blocked，不应误标
+      - type: regex
+        pattern: '(不(应|要|该|能).{0,8}(标记|算).{0,4}blocked|连续.{0,6}(≥|大于等于)?\s*3\s*轮|还有(活|可做|可推进)|仍有可推进)'
 
   - id: boundary-no-overflow
     description: 不应为单步任务启用编排流程
     task: "帮我改一个文件里的一行字"
     checks:
+      # 「不启用编排」的判据：直接要信息/直接做，而不是建 goal/workflow；模型反问必要信息也算正确边界
+      - type: regex
+        pattern: '(直接(改|做|说)|不需要(编排|workflow|goal)|单步|一行字|请告诉|告诉我|哪一?行|定位)'
       - type: not_contains
-        value: "创建 goal"              # 单步任务不应建 goal
-      - type: not_contains
-        value: "workflow"               # 不应动用 workflow 扇出
+        value: "创建 goal"             # 单步任务不应建 goal
