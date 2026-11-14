@@ -18,6 +18,9 @@
 
 ## 二、已完成（本轮 = 2026-11-10 待办处理）
 
+- **2026-11-14 开源热榜 P0-P3（两批各 4 项）**：
+  - **批一（11-14 报告）**：`MUSICAL/offline-pipeline/`（离线语音翻译：faster-whisper → Ollama → SRT，本机 CPU 实跑通；CUDA 缺 `cublas64_12.dll` 待修）｜`CAD/threert-eval.md`（ThreeRT 仅 macOS/iOS 客户端 → 不可用，替代 A+C：three.js WebGPU + Blender Cycles）｜`UPDATE/research/gpucanvas-feasibility.md`（依赖 Chrome 157 实验 API → 只借「agent 可读可指」语义层思想）｜`_collect.py` 刷星黑名单（实测过滤 4 条，含 1210★ 重打包仓库）。
+  - **批二（11-12 报告）**：`UPDATE/research/lotmap-feasibility.md`（事件源 `ctx.on("session/event")` 有生产实证；面板走 webServer+SSE 最薄，右栏 tab 为二期）｜`skills/web-3d-asset-pipeline` 增「Texture Generation (AI PBR forge)」段（ai-texture-forge 是 Blender GUI add-on，非 CLI）｜`UPDATE/research/minimax-h3-image-decision.md`（权重 204GB + 许可排除欧/英/韩/美 → 走 API，不本地部署）｜`thirdparty-gate.ps1` 第三方插件门禁（SkillSpector 契约：exit 0/1/2、`risk_recommendation`、`is_complete`；Windows 不能 `--output`；超时 fail-closed；实测自有插件 PASS、marktext 90s 超时 BLOCK）。
 - **2026-11-14 修 10 个脆 evals（CI dynamic-evals）**：根因两类——① CI 的 A/B harness **没有 exec/文件工具**，要求「真跑脚本」的用例必然红（`agent-instruction-supply-chain-scan` / `secret-scan` / `github-ready-packager` / `resume-conversation-brief`）；② 用 `not_contains` 判「不许出现某词」，模型正确回答「不会 force-push」「不应标记为 blocked」「与材质无关」时被误判。修法：用例改成**可判定问法**（问流程/给示例，不依赖工具）+ 否定式判据换**正向断言**（覆盖同义说法）；`run_evals.py` 加 `temperature=0`（消除随机 flaky）与 UTF-8 输出（修 Windows GBK 下 emoji 崩溃）。10 个 skill 本地全绿：acp-studio / agent-instruction-supply-chain-scan / agent-workflow-orchestration / github-ready-packager / iron-law-retrieval-first / long-sentence-structurizer / resume-conversation-brief / secret-scan / skill-lifecycle-manager / skill-optimizer。
 
 - **2026-11-10 dual-track 重构 + 插件契约 Phase 1（另一会话，本机提交 1df4b9c→77d9221）**：`8e26390` 清理误提交备份目录；`f021ecc` 双 profile（web 0.1.5-rc.2 / desktop 0.2.2-rc.1）；`c46f738` 契约检查器 + 元数据归位；`92bdfd7` engines.dsh 补全 + marktext 纳入 npm 轨；`7e3b7f6` 实测收口（失败可见/回滚修对/core-skills 归属）；`77d9221` 收进 dsh-context-guard。
@@ -67,6 +70,7 @@
 
 ## 五、已知坑（复用，勿重踩）
 
+- **SkillSpector 用法（P6 门禁）**：Windows 下**不能传 `--output`**（平台不支持安全落盘），必须省略并抓 stdout；OSV 联网查询在无网/慢网会长时间挂住 → 门禁必须带 `-TimeoutSec` 兜底；插件目录（非 skill 目录）静态扫描 `is_complete=false` 属常态，默认只 WARN，`-StrictIncomplete` 才拦。
 - **多会话并发会互相踩**：本轮 `git add -A` 把另一会话正在做的 dual-track 未提交改动（manifest/deploy.ps1/install.ps1/DUAL-TRACK.md）一并提交推上云端。多会话时用定向 `git add`，并先 `git status` 看有没有别人的改动。
 - **Gitee PATCH 仓库必须带 `name`**：`PATCH /api/v5/repos/{owner}/{repo}` 不带 `name` 报 `{"messages":["name is missing"]}`；带 `name` + `description` 才能改描述。Gitee 没有 archive API（只能改描述/README 标废弃）。
 - **GitHub Actions `run:` 默认 shell 带 `-e`**：`python ...; code=$?` 里前一条失败会直接中断，后面的 skill 全不跑——必须 `set +e` 或 `if ...; then`。
