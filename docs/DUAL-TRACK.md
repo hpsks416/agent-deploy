@@ -199,3 +199,17 @@ Phase 2 第一件事不是写代码，而是给 manifest 的每个插件补 `por
 pwsh thirdparty-gate.ps1 -Path <插件目录>          # 通过=0 / 拦截=3 / 工具错误=4
 pwsh thirdparty-gate.ps1 -Path <目录> -Json        # 机器可读
 ```
+
+## 10. 兼容性与打包验证（2026-11-14）
+
+**行为验证（context-guard，不需要起 app）**：用假 ctx 驱动 `tools/pre-execute` 瀑布，四档全 PASS——`0.50 pass` / `0.72 warn（只日志）` / `0.86 ask ⚠️ 接近上限` / `0.96 ask 🚨 即将爆窗`。脚本：`G:\DSH\CMAIN\UPDATE\research\context-guard-test.mjs`。
+
+**npm 打包验证**：`pnpm pack` 在 `dsh-config/dsh-retrieval-guard` 产出 `dsh-retrieval-guard-0.1.0.tgz`（6.4 KB），说明 6 个随仓插件具备打包成 npm 包的形态（含 `engines`/`license`/`files`）；**发布到 npm 未做**（缺账号与 2FA），分发目前仍是「复制目录 + link」。
+
+**Phase 2 落地字段**：manifest 每个插件已加 `portable` + `migration`：
+
+| 插件 | portable | migration |
+|---|---|---|
+| dsh-retrieval-guard / dsh-secure-push-guard / dsh-context-guard | true | skill（规程可写进 AGENTS/skill） |
+| dsh-skill-studio | false | mcp（提取逻辑拆 MCP server） |
+| dsh-goat-vision / dsh-session-sync-flush / dsh-marktext | false | none（宿主能力/UI，不可移植） |

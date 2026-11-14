@@ -18,6 +18,12 @@
 
 ## 二、已完成（本轮 = 2026-11-10 待办处理）
 
+- **2026-11-14 收尾批（S1 + Phase1 + Phase2 启动）**：
+  - **MUSICAL S1 完成**：CUDA 修好（`uv pip install --target _cuda nvidia-cublas-cu12 nvidia-cudnn-cu12` + **`os.add_dll_directory`**，只加 PATH 无效）；small.en 同一 wav：CPU int8 2.37s → GPU fp16 0.56s（**4.2×**）；`offline_pipeline.py` 已内置自动注册。
+  - **compatibility 真机验证**：`context-guard` 用假 ctx 驱动 `tools/pre-execute`，四档全 PASS（0.50 pass / 0.72 warn 日志 / 0.86 ask ⚠️ / 0.96 ask 🚨）；测试脚本 `UPDATE/research/context-guard-test.mjs`。
+  - **npm 化就绪**：6 个随仓插件补齐 `engines.node` / `keywords`；`pnpm pack` 实测产出 tarball（retrieval-guard 6.4KB）；发布到 npm 仍缺账号/2FA（未做）。
+  - **Phase2 启动**：manifest 每个插件补 `portable` + `migration`（mcp/skill/none）——retrieval/secure-push/context-guard 可迁移（skill），skill-studio 可拆 MCP，其余不可移植。
+  - **`sync_framework.ps1` 纳入版本控制**：真身进 `agent-deploy/tools/sync_framework.ps1`，`G:\CodexDS\DSH\INTRO\sync_framework.ps1` 改为转发包装。
 - **2026-11-14 开源热榜第三批 P0-P3**：
   - `UPDATE/research/dsh-loading-chain.md`：bundle→patch→apply 三层对照 NamiDSH 源码；`dsh --profile web --dump-config` 实测 20572B/165 条目，我方插件行号（skill-studio 587、goat-vision 596、retrieval 651、secure-push 654、session-sync 657）；**desktop profile 不能被 CLI dump**（Electron 独占，exit 1）。
   - `local-tool-mcp-exposure` 增「工具集分层与进程生命周期」：Essentials 默认 + 按需工具集（`list_toolsets`/`enable_toolset`）、模式切换连带重启 MCP 进程（1–2s 重同步）、重启兜底 SIGTERM→1.5s SIGKILL→3s 强退、`<server>_status` 自检工具。
@@ -75,6 +81,7 @@
 
 ## 五、已知坑（复用，勿重踩）
 
+- **Windows 上 Python 扩展模块的依赖 DLL 不走 PATH**：`ctranslate2`/`faster-whisper` 报 `Library cublas64_12.dll is not found` 时，装 `nvidia-cublas-cu12`/`nvidia-cudnn-cu12` 之后**必须**对每个 `nvidia\*\bin` 调 `os.add_dll_directory()`；只设 PATH 无效（ct2 4.8.2 wheel 自带 CUDA 支持，无需重编）。
 - **`dsh --dump-config` 只对 web profile 可用**：desktop profile 报 `error: profile "desktop" is managed exclusively by the Electron application`（exit 1）；desktop 插件要验证加载，走 app 的 Plugins 面板或插件自带的 `/api/diag` 类只读端点（marktext 已验证）。
 - **SkillSpector 用法（P6 门禁）**：Windows 下**不能传 `--output`**（平台不支持安全落盘），必须省略并抓 stdout；OSV 联网查询在无网/慢网会长时间挂住 → 门禁必须带 `-TimeoutSec` 兜底；插件目录（非 skill 目录）静态扫描 `is_complete=false` 属常态，默认只 WARN，`-StrictIncomplete` 才拦。
 - **多会话并发会互相踩**：本轮 `git add -A` 把另一会话正在做的 dual-track 未提交改动（manifest/deploy.ps1/install.ps1/DUAL-TRACK.md）一并提交推上云端。多会话时用定向 `git add`，并先 `git status` 看有没有别人的改动。

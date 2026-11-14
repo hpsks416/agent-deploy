@@ -546,7 +546,9 @@
       "note": "DSH 插件：宿主进程内加载，注册到 profile bundles",
       "profiles": [
         "web"
-      ]
+      ],
+      "portable": false,
+      "migration": "none"
     },
     {
       "id": "dsh-retrieval-guard",
@@ -564,7 +566,9 @@
       "profiles": [
         "web",
         "desktop"
-      ]
+      ],
+      "portable": true,
+      "migration": "skill"
     },
     {
       "id": "dsh-secure-push-guard",
@@ -582,7 +586,9 @@
       "profiles": [
         "web",
         "desktop"
-      ]
+      ],
+      "portable": true,
+      "migration": "skill"
     },
     {
       "id": "dsh-session-sync-flush",
@@ -600,7 +606,9 @@
       "profiles": [
         "web",
         "desktop"
-      ]
+      ],
+      "portable": false,
+      "migration": "none"
     },
     {
       "id": "dsh-skill-studio",
@@ -629,7 +637,9 @@
       "note": "DSH 插件：宿主进程内加载，注册到 profile bundles",
       "profiles": [
         "web"
-      ]
+      ],
+      "portable": false,
+      "migration": "mcp"
     },
     {
       "id": "dsh-marktext",
@@ -649,7 +659,9 @@
         "vendor": false
       },
       "link": false,
-      "note": "第三方插件（MarkText/muya 所见即所得编辑器进右侧栏）。要求 DSH>=0.2.1，只能装 desktop；不 vendor 源码（11MB/698 文件），按固定版本从 npm 装。"
+      "note": "第三方插件（MarkText/muya 所见即所得编辑器进右侧栏）。要求 DSH>=0.2.1，只能装 desktop；不 vendor 源码（11MB/698 文件），按固定版本从 npm 装。",
+      "portable": false,
+      "migration": "none"
     },
     {
       "id": "dsh-context-guard",
@@ -665,7 +677,9 @@
       "version": "0.1.0",
       "license": "MIT",
       "link": true,
-      "note": "上下文预算守卫：接近上限时拦截并强制交接提示。仅 desktop（0.2.2-rc.1）验证过；源码 3.4KB，随仓库分发。"
+      "note": "上下文预算守卫：接近上限时拦截并强制交接提示。仅 desktop（0.2.2-rc.1）验证过；源码 3.4KB，随仓库分发。",
+      "portable": true,
+      "migration": "skill"
     }
   ]
 }
