@@ -1,5 +1,5 @@
 {
-  "name": "dsh-retrieval-guard",
+  "name": "@hpsks416/dsh-retrieval-guard",
   "version": "0.1.0",
   "description": "DSH 插件：写代码/装依赖前，要求本轮已检索（web_search/open-source-scout），未检索弹确认框。",
   "license": "MIT",
@@ -9,8 +9,16 @@
     ".": "./lib/index.js",
     "./cordis.patch.yml": "./cordis.patch.yml"
   },
-  "keywords": ["dsh", "dsh-plugin", "deepseek-harness"],
-  "files": ["lib", "scripts", "cordis.patch.yml"],
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness"
+  ],
+  "files": [
+    "lib",
+    "scripts",
+    "cordis.patch.yml"
+  ],
   "engines": {
     "node": ">=22.19.0",
     "dsh": "^0.1.5-rc.2 || ^0.2.2-rc.1"

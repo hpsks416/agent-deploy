@@ -535,7 +535,7 @@
       "frameworks": [
         "dsh"
       ],
-      "package": "dsh-goat-vision",
+      "package": "@hpsks416/dsh-goat-vision",
       "version": "0.1.0",
       "engines": {
         "node": ">=22.19.0",
@@ -557,7 +557,7 @@
       "frameworks": [
         "dsh"
       ],
-      "package": "dsh-retrieval-guard",
+      "package": "@hpsks416/dsh-retrieval-guard",
       "version": "0.1.0",
       "engines": {},
       "peerDependencies": [],
@@ -577,7 +577,7 @@
       "frameworks": [
         "dsh"
       ],
-      "package": "dsh-secure-push-guard",
+      "package": "@hpsks416/dsh-secure-push-guard",
       "version": "0.1.0",
       "engines": {},
       "peerDependencies": [],
@@ -597,7 +597,7 @@
       "frameworks": [
         "dsh"
       ],
-      "package": "dsh-session-sync-flush",
+      "package": "@hpsks416/dsh-session-sync-flush",
       "version": "0.1.0",
       "engines": {},
       "peerDependencies": [],
@@ -617,7 +617,7 @@
       "frameworks": [
         "dsh"
       ],
-      "package": "dsh-skill-studio",
+      "package": "@hpsks416/dsh-skill-studio",
       "version": "0.2.1",
       "engines": {
         "node": "^22.19.0 || >=24.0.0"
@@ -673,7 +673,7 @@
       "profiles": [
         "desktop"
       ],
-      "package": "dsh-context-guard",
+      "package": "@hpsks416/dsh-context-guard",
       "version": "0.1.0",
       "license": "MIT",
       "link": true,

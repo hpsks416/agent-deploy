@@ -155,7 +155,7 @@ foreach ($d in $dirs) {
 
     # 与 manifest 一致性
     if ($manifest) {
-      $mit = @($manifest.items | Where-Object { $_.kind -eq 'plugin' -and $_.id -eq $j.name })
+      $mit = @($manifest.items | Where-Object { $_.kind -eq 'plugin' -and ($_.package -eq $j.name -or $_.id -eq $j.name -or $_.id -eq $d.Name) })
       if ($mit.Count -eq 0) { Note $issues 'WARN' "manifest 里没有这个插件（id=$($j.name)）" }
       elseif ($mit[0].version -ne $j.version) { Note $issues 'FAIL' "manifest 版本 $($mit[0].version) ≠ package.json $($j.version)" }
       if ($mit.Count -gt 0 -and $mit[0].profiles -and -not ($mit[0].profiles -contains $Profile)) {

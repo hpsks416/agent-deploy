@@ -78,7 +78,7 @@ if ($manifest) {
     if ($profs.Count -gt 0 -and -not ($profs -contains $Profile)) { continue }
     if ($onlyIds.Count -gt 0 -and -not ($onlyIds -contains $it.id)) { continue }
     if ($it.install -and $it.install.mode -eq 'npm') { $npmPlugins += $it; continue }
-    $linkedPlugins[$it.id] = (Split-Path $it.source -Leaf)
+    $linkedPlugins[$(if ($it.package) { $it.package } else { $it.id })] = (Split-Path $it.source -Leaf)
   }
 }
 
@@ -127,9 +127,7 @@ function Install-LinkedPlugins {
     $script:pluginOk = $false
     return
   }
-  $fsHome = $env:USERPROFILE.Replace('\', '/')
-  $pkgText = Get-Content $pkgPath -Raw
-
+  $linkDeps = [ordered]@{}
   foreach ($dep in $linkedPlugins.Keys) {
     $srcDir = $linkedPlugins[$dep]
     $src = Join-Path $scriptRoot $srcDir
@@ -147,14 +145,30 @@ function Install-LinkedPlugins {
     } else {
       Write-Host "    [DRY] Copy-Item $src -> $dstDir" -ForegroundColor Yellow
     }
-    # 重接 link 路径（字符串级，保留其它依赖不动）
-    $pkgText = $pkgText -replace ('"' + [regex]::Escape($dep) + '"\s*:\s*"link:[^"]*"'), ("`"$dep`": `"link:$fsHome/.dsh/$srcDir`"")
+    $linkDeps[$dep] = "link:" + ($env:USERPROFILE.Replace('\', '/')) + "/.dsh/" + $srcDir
   }
 
-  if ($DryRun) { Write-Host '    [DRY] 重接 profile-web/package.json 的 link 路径' -ForegroundColor Yellow }
-  else {
-    Set-Content -Path $pkgPath -Value $pkgText -Encoding utf8
-    Write-Host '    重接 package.json 的 link 插件路径' -ForegroundColor Green
+  if ($DryRun) {
+    Write-Host '    [DRY] 重写 profile package.json：scoped 依赖 + bundles（含旧名迁移）' -ForegroundColor Yellow
+  } else {
+    $j = Get-Content $pkgPath -Raw | ConvertFrom-Json
+    $deps = [ordered]@{}
+    foreach ($p in $j.dependencies.PSObject.Properties) { $deps[$p.Name] = $p.Value }
+    $bundles = @($j.dsh.profile.bundles)
+    foreach ($dep in $linkDeps.Keys) {
+      $legacy = ($dep -split '/')[-1]
+      if ($deps.Contains($legacy)) { $deps.Remove($legacy) }
+      $deps[$dep] = $linkDeps[$dep]
+      $nb = @($bundles | Where-Object { $_ -ne $legacy })
+      if ($nb -notcontains $dep) { $nb += $dep }
+      $bundles = $nb
+    }
+    $depObj = [ordered]@{}
+    foreach ($k in $deps.Keys) { $depObj[$k] = $deps[$k] }
+    $j.dependencies = [pscustomobject]$depObj
+    $j.dsh.profile.bundles = @($bundles)
+    ($j | ConvertTo-Json -Depth 12) | Set-Content -Path $pkgPath -Encoding utf8
+    Write-Host '    已重写 profile package.json（scoped 依赖 + bundles 迁移）' -ForegroundColor Green
   }
 
   # npm 分发的外部插件（manifest: install.mode = npm）：pnpm add 固定版本 + 追加 bundle

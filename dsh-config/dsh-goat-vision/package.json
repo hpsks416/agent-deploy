@@ -1,5 +1,5 @@
 {
-  "name": "dsh-goat-vision",
+  "name": "@hpsks416/dsh-goat-vision",
   "version": "0.1.0",
   "description": "GOAT-quota vision bridge for DeepSeek Harness: a new provider route that claims image input, transcribes attached images to text via deepseek/deepseek-v4.1-flash (same Command Code / GOAT endpoint), then delegates the text-only conversation to the wrapped pi-ai commandcode adapter (deepseek/deepseek-v4-pro brain).",
   "type": "module",

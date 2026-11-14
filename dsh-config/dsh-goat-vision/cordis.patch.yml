@@ -12,7 +12,7 @@
 # in the profile's cordis.patch.yml only to pin a literal key.
 - insert:
     - id: dsh-goat-vision
-      name: dsh-goat-vision
+      name: @hpsks416/dsh-goat-vision
       config:
         routes:
           - providerId: goat-vision

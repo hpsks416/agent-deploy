@@ -8,7 +8,7 @@
 #   dsh plugin --profile web add github:zhengjy01/dsh-skill-studio
 - insert:
     - id: skill-manager
-      name: dsh-skill-studio
+      name: @hpsks416/dsh-skill-studio
       config:
         announceToAgent: true   # 在系统提示中公告插件（工具 + 能力说明）
         enabled: true           # 插件总开关

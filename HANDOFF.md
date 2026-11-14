@@ -18,6 +18,7 @@
 
 ## 二、已完成（本轮 = 2026-11-10 待办处理）
 
+- **2026-11-14 npm scoped 化（选定 @hpsks416/*）**：6 个随仓插件改名 `@hpsks416/dsh-*`（package.json + cordis.patch.yml insert name + manifest.package 同步）；`install.ps1` link 轨改为 scoped 依赖并**自动迁移旧短名**（dependencies + bundles）；契约检查器同时认 package/id；`tools/publish-plugins.ps1`（-DryRun 预检 / 正式发布，token 走 secrets-link）；`dsh-skill-studio-patched/NOTICE.md` 标 fork 归属。
 - **2026-11-14 收尾批（S1 + Phase1 + Phase2 启动）**：
   - **MUSICAL S1 完成**：CUDA 修好（`uv pip install --target _cuda nvidia-cublas-cu12 nvidia-cudnn-cu12` + **`os.add_dll_directory`**，只加 PATH 无效）；small.en 同一 wav：CPU int8 2.37s → GPU fp16 0.56s（**4.2×**）；`offline_pipeline.py` 已内置自动注册。
   - **compatibility 真机验证**：`context-guard` 用假 ctx 驱动 `tools/pre-execute`，四档全 PASS（0.50 pass / 0.72 warn 日志 / 0.86 ask ⚠️ / 0.96 ask 🚨）；测试脚本 `UPDATE/research/context-guard-test.mjs`。
@@ -82,6 +83,7 @@
 
 ## 五、已知坑（复用，勿重踩）
 
+- **npm 发布坑**：`dsh-context-guard`（greenlv）与 `dsh-skill-studio`（zhengjunyao）在 npm 已被占用（后者是本仓 patched fork 的上游）→ 必须 scoped；scoped 包发布必须 `--access public`；发布不可逆（同版本不能再发）；Windows 上 `pnpm publish` 需要 `NODE_AUTH_TOKEN`（secrets-link 运行时解密）。
 - **Windows 上 Python 扩展模块的依赖 DLL 不走 PATH**：`ctranslate2`/`faster-whisper` 报 `Library cublas64_12.dll is not found` 时，装 `nvidia-cublas-cu12`/`nvidia-cudnn-cu12` 之后**必须**对每个 `nvidia\*\bin` 调 `os.add_dll_directory()`；只设 PATH 无效（ct2 4.8.2 wheel 自带 CUDA 支持，无需重编）。
 - **`dsh --dump-config` 只对 web profile 可用**：desktop profile 报 `error: profile "desktop" is managed exclusively by the Electron application`（exit 1）；desktop 插件要验证加载，走 app 的 Plugins 面板或插件自带的 `/api/diag` 类只读端点（marktext 已验证）。
 - **SkillSpector 用法（P6 门禁）**：Windows 下**不能传 `--output`**（平台不支持安全落盘），必须省略并抓 stdout；OSV 联网查询在无网/慢网会长时间挂住 → 门禁必须带 `-TimeoutSec` 兜底；插件目录（非 skill 目录）静态扫描 `is_complete=false` 属常态，默认只 WARN，`-StrictIncomplete` 才拦。

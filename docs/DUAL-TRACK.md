@@ -213,3 +213,23 @@ pwsh thirdparty-gate.ps1 -Path <目录> -Json        # 机器可读
 | dsh-retrieval-guard / dsh-secure-push-guard / dsh-context-guard | true | skill（规程可写进 AGENTS/skill） |
 | dsh-skill-studio | false | mcp（提取逻辑拆 MCP server） |
 | dsh-goat-vision / dsh-session-sync-flush / dsh-marktext | false | none（宿主能力/UI，不可移植） |
+
+## 11. npm 发布约定（@hpsks416/*，2026-11-14）
+
+**命名**：6 个随仓插件统一为 `@hpsks416/dsh-*`。原因（实测 npm registry）：`dsh-context-guard` 已被 `greenlv` 占用、`dsh-skill-studio` 已被上游作者 `zhengjunyao` 占用（本仓那份正是它的 patched fork，见 `NOTICE.md`）；其余 4 个名字无人占用，但统一 scope 归属更清楚。
+
+**发布前检查**：`pwsh tools/publish-plugins.ps1 -DryRun`
+- 逐包 `pnpm view <pkg> version` 看名称/版本是否已被占用
+- `pnpm pack` 出 tarball（发布物 = tarball，不是目录）
+- 发布不可逆：同名同版本发过就不能再发，必须先升版本
+
+**真正发布**：`pwsh tools/publish-plugins.ps1`
+- token 来自 secrets-link：`G:\KEY\NPM token\416.txt.zip`（运行时解密进 `NODE_AUTH_TOKEN`，不落盘）
+- scoped 包必须 `--access public`（否则默认私有、403）
+- **token 怎么加**（若还没有）：
+  1. npmjs.com 登录/注册（账号名建议 `hpsks416`）并开 2FA；
+  2. Access Tokens → **Granular Access Token**：名称 `dsh-plugins-publish`、过期 90 天、权限 **Read and write**、包范围 All；
+  3. 明文存临时文件 → `python <acp-studio>\scripts\secrets-link\encrypt-token.py "<明文>" "G:\KEY\NPM token\416.txt.zip"`（自动三层加密并删明文）；
+  4. `links.json` 加 `{ "var": "NPM_TOKEN", "file": "G:\\KEY\\NPM token\\416.txt.zip" }`。
+
+**迁移旧名**：已装过旧短名的 profile 在下次 `deploy.ps1 -Track plugins -Profile web|desktop` 时会自动把 `dependencies` 与 `dsh.profile.bundles` 里的旧短名改成 scoped 名（`install.ps1` 内置迁移），改完需重启对应运行时。
