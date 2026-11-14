@@ -6,12 +6,12 @@
 ## 一、当前状态
 
 - **HANDOFF 已纳入版本控制（2026-11-10 22:45）**：本文件为唯一事实源，随 `agent-deploy` 仓库三目标同步（GitHub/Gitee/GitCode）；旧的 `G:\CodexDS\DSH\INTRO\HANDOFF.md` 已改为指针；`sync_framework.ps1` 与 `build_kb.py` 的 KB 源路径同步切换。
-
+- **2026-11-14 DSH 桌面端升到 0.2.2-rc.3**（rc.1→rc.3，跨过 rc.2 的全部迁移项）：`app.asar` 内 333 个官方包全为 rc.3，会话格式**仍是 v4**；desktop profile 的 `@deepseek-ai/dsh-experimental-agent-team-profile` 被官方 `RETIRED_BUNDLES` **自动摘除**（AgentTeam 能力已并入 core：`agent-team` / `tool-agent-team` 均 `fiberPhase=active`），9 个第三方插件全部 `active`（审计 0 红 5 黄 13 绿，黄仅为元数据锁旧版本线）；升前 15 个配置/凭据文件已备份到 `~/.dsh/profile-backups/pre-rc3-20261114`（SHA256 15/15 校验一致）；`framework-manifest.json` 的 desktop `dshBase` 已改为 rc.3、`dsh-upgrade-ops` 补「两条轨」与 rc.3 版本矩阵、`DUAL-TRACK.md` 版本号同步。
 - 仓库：`G:\CodexDS\DSH\INTRO\agent-deploy`（本地有 .git；云端基线曾追平 `8cac86f`，之后为本地提交）。
 - **37 个 skill 全部并入仓库**（原 25 个 + 11 个 live-only + 1 个新增），`core-skills.txt` 同步为 37 行；live `~/.dsh/skills` 与仓库 `skills/` **内容零差异**（按行尾归一化比对）。
 - **常驻铁律 = 三条**（铁律一 先检索 / 铁律二 收尾反思 / 铁律三 调用框架·SKILL 前先查 framework-kb）：`agent-deploy/AGENTS.md`、`agent-deploy/dsh-config/AGENTS.md`、live `~/.dsh/AGENTS.md` **三处完全一致**。
 - 三云同步：GitHub `hpsks416/agent-deploy` = Gitee `hpsks416/agent-deploy` = GitCode `qq_60289026/agent-deploy`（= `1df4b9c`）；`agent-deployed` 与 `HASHRAP` 同样三目标一致。
-- 知识库：`agent-deployed` 仓库只含框架本体（铁律/画像/偏离日志/HANDOFF/skill 及其 references），**KB chunks: 774 / 源: 79**；构建产物 `framework_kb.sqlite3` **已入库**，journal 用 DELETE（非 WAL）。
+- 知识库：`agent-deployed` 仓库只含框架本体（铁律/画像/偏离日志/HANDOFF/skill 及其 references），**KB chunks: 777 / 源: 79**；构建产物 `framework_kb.sqlite3` **已入库**，journal 用 DELETE（非 WAL）。
 - 守卫插件 3 个全注册（`dsh-retrieval-guard` + `dsh-context-guard` + `dsh-secure-push-guard`）：bundle 已在 profile `package.json`，DSH 进程已重启（Web 端口 55900 → 57594 → 62497），判定已加载；实际拦截行为可择机实测。
 - **framework-kb 检索链路可用**：正确调用 = `framework-kb\.uv-python\...\python.exe` + `PYTHONPATH=framework-kb\pylibs`（误用 runtime python 会 ImportError / `unable to open database file`，不是库坏）。
 - **dual-track 重构已收口（2026-11-10 22:30）**：`framework-manifest.json`（**37 skills / 7 plugins**）取代 `core-skills.txt` 与 `install.ps1` 硬编码清单；`deploy.ps1`（`-Track/-Profile/-Rollback`）与 `dsh-config/install.ps1`（`-PluginsOnly/-Profile/-DryRun`、npm 轨、按 profile 过滤）已在**假 HOME 沙箱实测**：安装 37/37 skill + 5 插件、回滚删净并恢复 profile `package.json`、失败路径 exit 2。`core-skills.txt` 降级为人类可读摘要/兜底（头注释已写明）。契约检查器 `check-plugin-contract.ps1`：web PASS5/WARN2、desktop PASS5/WARN2（WARN 均为 profile 归属）。`dsh-marktext@0.1.13`（desktop，npm 轨）与 `dsh-context-guard`（随仓分发，3.4KB）已收进；随仓 6 插件 engines.dsh/license 全覆盖。剩余子项：`-Only` 单装、npm 化发布、CI 接检查器、compatibility 真机验证。

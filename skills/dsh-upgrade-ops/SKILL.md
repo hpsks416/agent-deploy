@@ -1,11 +1,28 @@
 ---
 name: dsh-upgrade-ops
-description: DSH 升级/闪退定位。升级必须同步「全局 CLI @deepseek-ai/dsh」与「profile 的 dsh-base/dsh-web-app」两处，否则 resolveBundleDir 优先加载旧 bundle 必闪退。含本机非标准 pnpm-global 路径、三 store 打架、插件 peer 失配等坑。触发词：升级 DSH、DSH 闪退、dsh web 启动失败、配置 dsh-mobile、版本错配。
+description: DSH 升级/闪退定位。先分清两条轨：desktop 轨走应用内自更新（不适用双处同步），web/CLI 轨必须同步「全局 CLI @deepseek-ai/dsh」与「profile 的 dsh-base/dsh-web-app」两处，否则 resolveBundleDir 优先加载旧 bundle 必闪退。含本机非标准 pnpm-global 路径、三 store 打架、插件 peer 失配、rc 版 retired bundle 自动摘除等坑。触发词：升级 DSH、DSH 闪退、dsh web 启动失败、配置 dsh-mobile、版本错配。
 ---
 
 # DSH 升级与运维
 
 > 与官方 DSH 升级文档的区别（防重复造轮子）：官方只讲通用升级，本 skill 记录**本机专属约定**——非标准 pnpm-global 路径、`resolveBundleDir` 导致「只升 profile 不升全局 CLI」必闪退、三个 pnpm store 打架、插件 peerDeps 锁旧版本线。环境专属踩坑清单，非官方文档的重复。
+
+## 两条轨：先分清要升哪一条（2026-11-14 实测）
+
+本机有两套 DSH，**升级姿势完全不同，别套错**：
+
+| 轨 | 装在哪 | 版本怎么变 | 本 skill 的「双处同步」适用吗 |
+|---|---|---|---|
+| **desktop 轨**（日常在用） | `G:\DSH\Application`（Electron 打包，bundle 全在 `app.asar` 内） | **应用内更新**（下载 installer → 重启安装） | ❌ 不适用：profile 里没有 `@deepseek-ai/*` 核心包，不存在「两处不同步」；**千万别**往 desktop profile 装官方 bundle，那会按 installAnchor 遮挡 app.asar 的新 bundle |
+| **web/CLI 轨**（旧的 `dsh web`） | pnpm-global + `profiles\web` | `dsh plugin add` + 全局 pnpm install | ✅ 就是下面「双处同步」那条铁律 |
+
+desktop 轨升级的验证点（0.2.2-rc.1 → rc.3 实跑过）：
+
+- 版本：`G:\DSH\Application\DeepSeek Harness.exe` 的 FileVersion + `resources\runtime\primary-runtime\runtime.json` 的 `desktopVersion`；
+- bundle 版本：`app.asar` 内 `dsh/node_modules/@deepseek-ai/*` 应**全部**等于新版本（解析 asar 头即可，勿解包）；
+- **官方会自己改 profile**：rc.3 起 `@deepseek-ai/dsh-official-bundles` 的 `RETIRED_BUNDLES` 含 `@deepseek-ai/dsh-experimental-agent-team-profile`，app-boot 启动时把它从 `dsh.profile.bundles` **自动删掉**——这不是坏了；AgentTeam 能力已并入 `dsh-base`（`dsh-agent-team` + `dsh-tool-agent-team`），升后确认 `plugin_manager list_plugins` 里 `agent-team` / `tool-agent-team` 为 `fiberPhase=active` 即可；
+- 插件是否真加载：`plugin_manager list_plugins` 看 `enabled=true` **且** `fiberPhase="active"`，只有 `enabled` 不算；
+- 沙箱内 `netstat` / `Get-NetTCPConnection` / `git config` / 子进程 stdout 会被拒（named pipe denied），端口与静态体检要在**提权会话或普通终端**跑。
 
 ## 对外接口 / 影响面 / 可验证项
 
@@ -56,6 +73,7 @@ DSH 有两处安装，**版本必须一致**：
 8. **端口 3080 EADDRINUSE → host-webserver 起不来 → 13 插件 pending → plugin tree 加载失败 → 闪退**：残留 DSH 实例占着 3080（重复双击桌面图标/反复重启攒下的僵尸 node）。判据：`netstat -ano | findstr :3080` 有 PID 处于 LISTENING，启动日志报 `listen EADDRINUSE: address already in use 127.0.0.1:3080`。修复：`taskkill /F /PID <占端口PID>` → 确认 `netstat -ano | findstr :3080` 无输出 → 再起 `dsh web`。**只开一个 DSH 实例，别重复双击**；重启走 `restart-dsh.ps1`（轮询等端口释放 + 验证绑定，见 `G:\CodexDS\DSH\INTRO\restart-dsh.ps1`）。
 9. **端口 3443 EADDRINUSE（dsh-mobile 移动网关 vs 桌面 DSH 内置移动网关）→ plugin tree 加载失败 → 闪退**：DSHWEB（0.1.5 + `dsh-mobile`）与桌面 DSH（0.2.1 内置移动网关）同时运行、共用 `~/.dsh/mobile-access/setup.json`，DSHWEB 去绑 `10.37.9.159:3443` 撞上桌面已占端口。判据：`netstat -ano | findstr :3443` 有桌面进程 LISTENING，启动日志报 `dsh-mobile: Error: listen EADDRINUSE: address already in use 10.37.9.159:3443`。修复：改 `~/.dsh/mobile-access/setup.json` 的 `listenPort` 3443→3444（或禁用 DSHSWEB profile 里的 dsh-mobile）。注意：setup.json 两实例共用，改端口后桌面下次重启也读 3444、手机移动访问需重配对（二维码带新端口）；另有 bonjour mDNS「Service name already in use」冲突，非致命，3080 直连不受影响。
 
+10. **桌面端「点更新没反应 / 装完版本没变」**：rc.2 时期官方承认的 Windows 应用内更新失败（rc.3 才修）。判据：更新包已在 `%LOCALAPPDATA%\@deepseek-aidsh-desktop-updater\pending\`，但版本不变。兜底：完全退出 DSH（任务管理器确认 `DeepSeek Harness.exe` 全退）→ 先核 `pending\update-info.json` 的 sha512，再手动运行 `pending\deepseek-harness-<ver>-win-x64.exe` → 装完**只开一个实例**（3080 EADDRINUSE 会假闪退）。
 ## 会话日志排障（DSH 崩溃 / agent 无法自述时）
 
 本地落盘位置 + 离线查看器，不依赖运行中的 DSH、不调 LLM API：
@@ -99,6 +117,7 @@ pnpm dlx dsh-replay --file <file> --stats                              # JSON �
 
 ## 已验证版本对
 
+- DSH 桌面端 `0.2.2-rc.3`（2026-11-14 实测）↔ 会话格式**仍是 v4**（官方 session-format-status：latestFinalized=4 / latestReleased=4，**无 v5**）↔ 第三方插件 10 个全 ctive（本次审计 0 红 5 黄 13 绿；黄=元数据锁旧版本线，非失效）↔ launch-dsh-replay 继续可用。
 - DSH 桌面端 `dsh-desktop 0.2.1-rc.5` ↔ 会话格式 **v4** ↔ 桌面移植项目 `launch-dsh-replay`（2026-11-04 实测：v4 会话可列/可渲染，v3 兼容）。
 - DSH `0.1.5-rc.2` ↔ 各插件 0.1.5 线（旧稳定组合）。
 - DSH `0.1.7-rc.2` ↔ `dsh-mobile@0.5.0` ↔ 全局 CLI `0.1.7-rc.2`（本次目标组合）。
