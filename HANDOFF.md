@@ -5,19 +5,27 @@
 
 ## 一、当前状态
 
+- **2026-11-18 DeepSeek 213 篇会话已成功搬到手机（chat-demo 自建站点）** 🎉：`https://dashing-malabi-00d45e.netlify.app`（Netlify Drop，官方 chat-demo v0.1.1 静态包），全量包 `deepseek_migrate\zips\deepseek_chatdemo_213.zip`（51.22 MiB / 509 条目 / SHA256 `9ba31ed0…`）导入成功，213 篇可在手机浏览器用，会话与图片存手机 IndexedDB（不依赖电脑开机）。**踩到的真坑是条目顺序**：chat-demo 的 `importArchive.ts` 是流式状态机，顺序必须是 `manifest.json → 全部 chat_sessions/<id>.json → chat_session_index.json → 全部图片`；index 若排在会话之前，后续会话全部落进 else-branch → `fail('backupIncomplete')`，界面只报"文件格式错误或旧版导出"。另两条 chat-demo 比 DSH 插件更严的规则：消息 id 必须是数字（不是 GUID）、角色必须交替且根为提问。四个离线自检脚本已留在 `deepseek_migrate\`：`zip_probe.ps1` / `zip_crc_check.ps1` / `verify_chatdemo.ps1` / `simulate_import.ps1`（按状态机走条目顺序）。
+
+- **2026-11-18 DeepSeek 长对话迁移落地（工作区 `MAIN\PARTNER`）**：官方导出 v3 已解包在 `MAIN\PARTNER\deepseek_data-2026-11-18`（213 篇 / 510 文件 / 87.13 MiB）。启用官方实验 bundle `@deepseek-ai/dsh-deepseek-chat-import 0.2.2-rc.3`（默认关闭 → 已开，`application: applied`）。配套脚本 `deepseek_migrate\{inventory,make_zip,convert_md}.ps1` 产出：`inventory.csv`（每篇轮次/正文字符/思考字符）、`zips\pilot_策略分析.zip`（5.15 MiB / 13 条目）、`zips\deepseek_export_full.zip`（54.25 MiB / 509 条目）、`conversations\` 213 篇 MD（28.86 MiB）+ `index.md`。实测：195 篇 <5 万字（可直接续聊），9 篇超长——最长《策略分析》1272 轮 / 273 万字 ≈ 170 万 token，**不可能原生续聊**。会话源注册表新增 **源 0 `deepseek-md`**（full/brief 两份 + live 已部署，`diff(live vs repo)=0`；KB 783 chunks / 79 源）。DSH 沙箱下 `python.exe`/`node.exe` 无法启动（命名管道被拒），全部改用 PowerShell + .NET 完成。
+
 - **2026-11-15 新仓库 `secure-push-kit` 已三平台发布**：整合 secrets-link（token 加密链 + 多工作区面板）+ 打包/安检/推送四件套（github-ready-packager / secret-scan / acp-studio / secure-push-workflow）；GitHub/Gitee `hpsks416/secure-push-kit`、AtomGit `qq_60289026/secure-push-kit`，HEAD `f265a3f`，三端 `ls-remote` 一致、匿名页 200；README / LICENSE(MIT) / .gitignore 齐备，真实 `links.json` / `secrets.cmd` 未入库。同源改进已回写本仓 `skills/acp-studio/scripts/`：新增 `push_all.py`（`http.extraheader` Basic 认证、免 shell helper），`push-secure.cmd` 补 `atomgit` 目标与 `SECRETS_CMD`/`GIT_HTTP_PROXY` 覆盖；`SKILL.md` 记「沙箱 `sh.exe` 建信号管道失败 → 改用 push_all.py」与「Gitee 空仓库先推 commit 再转公开」两条坑。
 - **HANDOFF 已纳入版本控制（2026-11-10 22:45）**：本文件为唯一事实源，随 `agent-deploy` 仓库三目标同步（GitHub/Gitee/GitCode）；旧的 `G:\CodexDS\DSH\INTRO\HANDOFF.md` 已改为指针；`sync_framework.ps1` 与 `build_kb.py` 的 KB 源路径同步切换。
 - **2026-11-14 DSH 桌面端升到 0.2.2-rc.3**（rc.1→rc.3，跨过 rc.2 的全部迁移项）：`app.asar` 内 333 个官方包全为 rc.3，会话格式**仍是 v4**；desktop profile 的 `@deepseek-ai/dsh-experimental-agent-team-profile` 被官方 `RETIRED_BUNDLES` **自动摘除**（AgentTeam 能力已并入 core：`agent-team` / `tool-agent-team` 均 `fiberPhase=active`），9 个第三方插件全部 `active`（审计 0 红 5 黄 13 绿，黄仅为元数据锁旧版本线）；升前 15 个配置/凭据文件已备份到 `~/.dsh/profile-backups/pre-rc3-20261114`（SHA256 15/15 校验一致）；`framework-manifest.json` 的 desktop `dshBase` 已改为 rc.3、`dsh-upgrade-ops` 补「两条轨」与 rc.3 版本矩阵、`DUAL-TRACK.md` 版本号同步。
 - 仓库：`G:\CodexDS\DSH\INTRO\agent-deploy`（本地有 .git；云端基线曾追平 `8cac86f`，之后为本地提交）。
-- **37 个 skill 全部并入仓库**（原 25 个 + 11 个 live-only + 1 个新增），`core-skills.txt` 同步为 37 行；live `~/.dsh/skills` 与仓库 `skills/` **内容零差异**（按行尾归一化比对）。
+- **38 个 skill 全部并入仓库**（原 25 个 + 11 个 live-only + 2 个新增），`core-skills.txt` 同步为 38 行，`framework-manifest.json` **46 items / 39 skills（38 入库 + 1 external）**；第 38 个是 2026-11-18 新增的 `deepseek-export-migration`。`answer-me-with-html` 已于 2026-11-23 定性为**外部技能**（manifest `source: external:market`、`portable:false`）：**不入库、不进 KB**，收口脚本与 KB 构建按 manifest 的 external 标记跳过，live 里存在属正常。
 - **常驻铁律 = 三条**（铁律一 先检索 / 铁律二 收尾反思 / 铁律三 调用框架·SKILL 前先查 framework-kb）：`agent-deploy/AGENTS.md`、`agent-deploy/dsh-config/AGENTS.md`、live `~/.dsh/AGENTS.md` **三处完全一致**。
 - 三云同步：GitHub `hpsks416/agent-deploy` = Gitee `hpsks416/agent-deploy` = GitCode `qq_60289026/agent-deploy`（= `1df4b9c`）；`agent-deployed` 与 `HASHRAP` 同样三目标一致。
-- 知识库：`agent-deployed` 仓库只含框架本体（铁律/画像/偏离日志/HANDOFF/skill 及其 references），**KB chunks: 779 / 源: 79**；构建产物 `framework_kb.sqlite3` **已入库**，journal 用 DELETE（非 WAL）。
+- 知识库：`agent-deployed` 仓库只含框架本体（铁律/画像/偏离日志/HANDOFF/skill 及其 references），**KB chunks: 801 / 源: 80**；构建产物 `framework_kb.sqlite3` **已入库**，journal 用 DELETE（非 WAL）。
 - 守卫插件 3 个全注册（`dsh-retrieval-guard` + `dsh-context-guard` + `dsh-secure-push-guard`）：bundle 已在 profile `package.json`，DSH 进程已重启（Web 端口 55900 → 57594 → 62497），判定已加载；实际拦截行为可择机实测。
 - **framework-kb 检索链路可用**：正确调用 = `framework-kb\.uv-python\...\python.exe` + `PYTHONPATH=framework-kb\pylibs`（误用 runtime python 会 ImportError / `unable to open database file`，不是库坏）。
 - **dual-track 重构已收口（2026-11-10 22:30）**：`framework-manifest.json`（**37 skills / 7 plugins**）取代 `core-skills.txt` 与 `install.ps1` 硬编码清单；`deploy.ps1`（`-Track/-Profile/-Rollback`）与 `dsh-config/install.ps1`（`-PluginsOnly/-Profile/-DryRun`、npm 轨、按 profile 过滤）已在**假 HOME 沙箱实测**：安装 37/37 skill + 5 插件、回滚删净并恢复 profile `package.json`、失败路径 exit 2。`core-skills.txt` 降级为人类可读摘要/兜底（头注释已写明）。契约检查器 `check-plugin-contract.ps1`：web PASS5/WARN2、desktop PASS5/WARN2（WARN 均为 profile 归属）。`dsh-marktext@0.1.13`（desktop，npm 轨）与 `dsh-context-guard`（随仓分发，3.4KB）已收进；随仓 6 插件 engines.dsh/license 全覆盖。剩余子项：`-Only` 单装、npm 化发布、CI 接检查器、compatibility 真机验证。
 
-## 二、已完成（本轮 = 2026-11-10 待办处理）
+## 二、已完成（本轮 = 2026-11-18 DeepSeek 会话迁移）
+
+- **2026-11-23 收口 11-18 遗留 WIP**：`deepseek-export-migration`（第 38 个 skill）连同 `core-skills.txt` / `framework-manifest.json` / 两份 `conversation-sources.md` / HANDOFF 一并提交；`answer-me-with-html` 定性为外部技能（manifest 登记 `external:market`，不入库/不进 KB）；`sync_framework.ps1` 与 `build_kb.py` 增加 **external 跳过逻辑**（检查输出改为「已知例外」，KB 重建时剔除其 28KB 正文与 references）；顺手把 CI 那条 `secure-push-workflow` 假阳性（`not_contains "已推送"` 命中拒绝措辞）改正向断言。
+
+- **2026-11-18 DeepSeek 超长会话迁移（PARTNER）**：先检索轮子后动手——结论是官方自带出口最合适：`@deepseek-ai/dsh-deepseek-chat-import`（app.asar 内含 0.2.2-rc.3，`MORE_BUNDLES` 里属实验性、默认关闭）+ 官网「导出所有历史对话」ZIP（`export_format_version: 3`）。逐条核实了三类第三方（DeepSeek2md / ceyaima 油猴 / py 版 conversations.json 转换器）：**它们的输入都是旧格式 `conversations.json`，都不吃 v3 ZIP**，所以没有再引第三方工具，改用 3 个本地 PowerShell 脚本（`make_zip` 重打包、`convert_md` 出 MD、`inventory` 出明细）。导入格式落到细节：ZIP 条目必须在根（`manifest.json` / `chat_session_index.json` / `chat_sessions/<id>.json` / `chat_sessions/<id>_files/*`），manifest 放第一个条目；子集 ZIP 靠过滤 index 实现（插件本身不支持挑篇）。框架侧登记 `deepseek-md` 会话源，`sync_framework.ps1 -Action skills -Direction repo2live` 部署后 diff 归零、KB 由 779→783 chunks。
 
 - **2026-11-15 `secure-push-kit` 发布 + acp-studio 推送脚本回写**：新仓库收纳 secrets-link 面板/三层加密链 + 两个推送脚本 + 三个 skill；`push_all.py` 用 `http.extraheader=Authorization: Basic` 绕开沙箱内 `credential.helper=!shell` 的 `sh.exe` 管道失败；Gitee 建库实测「空仓库不能直接设公开 → 先推首个 commit 再 PATCH `private=false`」。三平台推送均 `ls-remote` 校验一致。
 
@@ -65,6 +73,8 @@
 12. **STM32CubeMX 更新器处置（2026-11-08）**：`MultiScanPanel - Unable to refresh data` 与 `sw-center.st.com` 的 pdsc 大量 404 只是更新器数据刷新失败（本地 DB 正常：226 boards 已加载）；`Check Update Manager` 占着导致连续 5 次点 X 都无法退出（日志 21:44:23 才 `Starting shutdown procedure`）。修复：`%USERPROFILE%\.stm32cubemx\plugins\updater\updater.ini` 的 `CheckType: 1→0`、`LastCheckStamp` 回填当前时间；备份 `updater.ini.bak.20261108214559`。当前安装版本为 **6.18.1 官方正式版**（ST 把内部构建号/文件版本都写成 `6.18.1-RC2`，曾误判为「候选版」，已纠正）。
 
 ## 三、待办 / 未完成
+
+1. ~~DeepSeek 迁移~~ → **已完成（2026-11-18）**：① 超长会话"能不能续聊"已实测——桌面路由与 API 都是 1M 上下文，《策略分析》1,613,141 token 超限报 `CONTEXT_WINDOW_EXCEEDED`，其余 212 篇都能续；② 巨无霸方案已落地为"尾部 150 轮 + 40 段 map-reduce 接续摘要 + 合成 assistant 回执"，切片版 302 条消息 / 约 21 万 token；③ 手机侧走官方 chat-demo（不用 DSH Mobile、不装第三方插件），213 篇导入成功。**剩余可选**：把 212 篇也导入 DSH 工作区 `deepseek_pilot`（`zips\deepseek_export_212.zip`，格式已验，未做）。
 
 1. ~~确认 CI 结果~~ → **已完成（2026-11-14）：CI 全绿**（`static-check` / `plugin-contract` / `dynamic-evals` 三 job 全过，18/18 skill OK，run `43601959379`）。CI 的 evals 模型现为官方 `deepseek-flash`；若以后要换更强/更弱模型，需按 `run_evals.py` 的「失败 check + 答复预览」重新校准判据，**不削闸门**。
 2. ~~确认 dual-track 重构收口~~ → **已完成（2026-11-10 22:30）**：沙箱实测安装/回滚通过、契约检查器双 profile 通过。剩余子项：`-Only <id>` 单装、5 插件 npm 化、CI 接检查器、compatibility 真机验证。

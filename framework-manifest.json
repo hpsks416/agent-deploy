@@ -680,6 +680,29 @@
       "note": "上下文预算守卫：接近上限时拦截并强制交接提示。仅 desktop（0.2.2-rc.3）验证过；源码 3.4KB，随仓库分发。",
       "portable": true,
       "migration": "skill"
+    },
+    {
+      "id": "deepseek-export-migration",
+      "kind": "skill",
+      "source": "skills/deepseek-export-migration",
+      "frameworks": [
+        "dsh"
+      ],
+      "coupling": "env",
+      "note": "官网导出 v3 → DSH 插件 / chat-demo / 尾部切片 + 摘要；四个自检脚本硬编码在 MAIN\\PARTNER\\deepseek_migrate。",
+      "present": true
+    },
+    {
+      "id": "answer-me-with-html",
+      "kind": "skill",
+      "source": "external:market",
+      "frameworks": [
+        "dsh"
+      ],
+      "coupling": "env",
+      "note": "外部技能（随 DSH/市场分发）：把答复渲染成单页 HTML；自带 1.1MB minified scripts/am.mjs 与 OFL 字体，再分发许可未确认 → 不入库、不进 KB；live 里存在即视为正常（检查脚本按 external 跳过）。",
+      "portable": false,
+      "present": true
     }
   ]
 }

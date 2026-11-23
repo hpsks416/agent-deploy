@@ -1,5 +1,6 @@
-# AGENT 框架核心 skill 清单（共 37 个）—— **不是部署的事实源**
-# 部署唯一来源 = framework-manifest.json（37 skills / 6 plugins）；本文件保留为人类可读摘要 + 无 manifest 时的兜底。
+# AGENT 框架核心 skill 清单（共 38 个）—— **不是部署的事实源**
+# 部署唯一来源 = framework-manifest.json（38 skills + 1 external / 6 plugins）；本文件保留为人类可读摘要 + 无 manifest 时的兜底。
+# external 技能（answer-me-with-html）随 DSH/市场分发，不入库、不进本清单、不进 KB。
 # 改动请改 manifest；核对一致性：check-plugin-contract.ps1（插件）+ 本文件非注释行数 vs manifest skill 数。
 # 格式：<skill名> | <耦合等级> | <备注>
 # 耦合等级：none=框架无关 / light=轻耦合(改可插拔处) / env=环境硬编码 / hardcode=owner硬编码
@@ -41,3 +42,4 @@ rust-refactor-local-projects | none | 重构决策（profile 先行），框架�
 web-3d-asset-pipeline | none | GLB/glTF 资产流水线（框架无关）
 windows-node-spawn-cli | env | Windows .cmd/.ps1 shim 直调（环境相关）
 agent-instruction-supply-chain-scan | env | Windows 路径 + DSH 指令加载规则（dsh-agent-instructions）+ 本机 Downloads/.codex/.claude 布局
+deepseek-export-migration | env | 官网导出 v3 迁移：DSH 插件 / chat-demo / 尾部切片 + map-reduce 摘要；自检脚本与工作区路径硬编码在 MAIN\PARTNER\deepseek_migrate

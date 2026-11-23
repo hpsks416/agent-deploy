@@ -59,6 +59,15 @@ function Nrm($p) {
 function Get-Manifest {
   Get-Content "$Repo\core-skills.txt" | Where-Object { $_ -match '\|' -and -not $_.TrimStart().StartsWith('#') } | ForEach-Object { (($_ -split '\|')[0]).Trim() }
 }
+# manifest 里 source = external:* 的 skill：随 DSH/市场分发，不入库、不进 KB，live 里有属正常
+function Get-ExternalSkills {
+  $mf = Join-Path $Repo 'framework-manifest.json'
+  if (-not (Test-Path $mf)) { return @() }
+  try {
+    $j = Get-Content $mf -Raw | ConvertFrom-Json
+    return @($j.items | Where-Object { $_.kind -eq 'skill' -and "$($_.source)" -like 'external:*' } | ForEach-Object { $_.id })
+  } catch { return @() }
+}
 
 # ---------------- check ----------------
 function Invoke-Check {
@@ -76,11 +85,13 @@ function Invoke-Check {
 
   Say '=== 3. 清单一致性 ==='
   $manifest = @(Get-Manifest)
-  $liveNames = @(Get-ChildItem $Live -Directory | ForEach-Object { $_.Name } | Sort-Object)
+  $external = @(Get-ExternalSkills)
+  $liveNames = @(Get-ChildItem $Live -Directory | ForEach-Object { $_.Name } | Where-Object { $_ -notin $external } | Sort-Object)
   $repoNames = @(Get-ChildItem "$Repo\skills" -Directory | ForEach-Object { $_.Name } | Sort-Object)
   Say ("manifest=" + $manifest.Count + " live=" + $liveNames.Count + " repo=" + $repoNames.Count +
        " | live 缺清单项: " + (@($manifest | Where-Object { $_ -notin $liveNames }) -join ',') +
        " | 清单外 live: " + (@($liveNames | Where-Object { $_ -notin $manifest }) -join ','))
+  if ($external.Count -gt 0) { Say ("已知例外（external，不入库/不进 KB）: " + ($external -join ', ')) }
   Say ("AGENTS.md 一致: " + ((Nrm $LiveAgents) -eq (Nrm "$Repo\dsh-config\AGENTS.md")))
 
   if (-not $SkipStaticCheck) {
@@ -114,7 +125,9 @@ function Invoke-Check {
 # ---------------- live <-> repo 差异 ----------------
 function Get-SkillDiffs {
   $out = @()
+  $external = @(Get-ExternalSkills)
   foreach ($nm in (Get-ChildItem $Live -Directory | ForEach-Object { $_.Name })) {
+    if ($nm -in $external) { continue }   # external：随 DSH/市场分发，不入库属正常
     $lp = Join-Path $Live $nm
     $rp = Join-Path "$Repo\skills" $nm
     if (-not (Test-Path $rp)) { $out += "live-only: $nm"; continue }

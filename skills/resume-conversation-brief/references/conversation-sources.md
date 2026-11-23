@@ -13,6 +13,20 @@
 
 ## 已知会话源（按优先级从上到下）
 
+### 源 0：`deepseek-md` —— DeepSeek 官网导出的会话（.md）
+
+- **适用**：对话原本在 chat.deepseek.com（官方长对话限额后迁移过来的）。
+- **定位**：在归档目录里按文件名**前缀匹配**对话名（如「策略分析」→ `策略分析.md`）。文件名就是官网原会话标题；重名时带 `-<会话id 前 8 位>` 后缀。
+  - ⚠️ 别用 `glob`：Windows 绝对路径 + 反斜杠 + `**` 会静默返回空，改用 `pwsh Get-ChildItem -Recurse`。
+- **读取全文**：`.md` 普遍很大（最长 7.52 MiB / 77038 行）→ **必须**用 `read` 的 offset/limit 分段读完，单文件可达数万行，禁止一次性读入。
+- **读取主干**：先读归档目录的 `index.md`（含每篇的轮次/正文字符/思考字符/最后更新），按表定位目标；要细节再分段读该 `.md`（分段读 + 段摘要 + 合并）。
+- **格式**：YAML frontmatter（title / deepseek_conversation_id / created_at / updated_at / source）+ 每轮 `## 第 N 轮`，`**用户**` / `**DeepSeek**` 两段；思考为 `> [!Thinking]` 引用块，联网搜索与打开的网页为 `>` 引用行（`convert_md.ps1 -NoThink` 可出无思考版）。
+- **路径配置**（换机器改这里）：
+  - 归档目录：`G:\CodexDS\DSH\MAIN\PARTNER\deepseek_migrate\conversations`
+  - 索引文件：`G:\CodexDS\DSH\MAIN\PARTNER\deepseek_migrate\conversations\index.md`
+  - 原始导出：`G:\CodexDS\DSH\MAIN\PARTNER\deepseek_data-2026-11-18`（官方 v3 结构，213 篇）
+  - 转换脚本：`G:\CodexDS\DSH\MAIN\PARTNER\deepseek_migrate\convert_md.ps1`（只走 current_message_id 那条分支）
+
 ### 源 1：`codex-md` —— Codex 迁移的 .md 文件
 
 - **适用**：对话是从 Codex 迁移来的 `.md`（在迁移目录里）。
