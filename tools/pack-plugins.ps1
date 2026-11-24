@@ -46,21 +46,23 @@ foreach ($it in $targets) {
   Write-Host ("  -> {0}（{1} KB）" -f $tgz.Name, [math]::Round($tgz.Length / 1KB, 1)) -ForegroundColor Green
 }
 
-# 生成安装说明
+# 生成安装说明（用 [char]96 拼反引号，避免 PowerShell 转义吃掉字符）
+$bt = [string][char]96
+$fence = $bt * 3
 $md = @(
   "# 插件 tarball（$(Get-Date -Format 'yyyy-MM-dd HH:mm')）",
   "",
-  "本目录由 `tools/pack-plugins.ps1` 生成，**不提交到 git**。安装方式：",
+  "本目录由 $bt tools/pack-plugins.ps1 $bt 生成，**不提交到 git**。安装方式：",
   "",
-  "```powershell",
+  $fence + "powershell",
   "dsh plugin --profile web add file:<本目录绝对路径>\<包名>-<版本>.tgz",
   "# 桌面端：",
   "dsh plugin --profile desktop add file:<...>",
-  "```",
+  $fence,
   "",
   "## 包清单",
   ""
-) + ($rows | ForEach-Object { "- ``$_``" })
+) + ($rows | ForEach-Object { "- $bt$_$bt" })
 $md | Set-Content (Join-Path $out 'INSTALL.md') -Encoding utf8
 Write-Host ''
 Write-Host "输出目录：$out" -ForegroundColor Yellow
