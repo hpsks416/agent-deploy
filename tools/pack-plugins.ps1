@@ -46,24 +46,28 @@ foreach ($it in $targets) {
   Write-Host ("  -> {0}（{1} KB）" -f $tgz.Name, [math]::Round($tgz.Length / 1KB, 1)) -ForegroundColor Green
 }
 
-# 生成安装说明（用 [char]96 拼反引号，避免 PowerShell 转义吃掉字符）
+# 生成安装说明（单引号 here-string 模板 + 令牌替换，避开 PowerShell 反引号转义）
 $bt = [string][char]96
 $fence = $bt * 3
-$md = @(
-  "# 插件 tarball（$(Get-Date -Format 'yyyy-MM-dd HH:mm')）",
-  "",
-  "本目录由 $bt tools/pack-plugins.ps1 $bt 生成，**不提交到 git**。安装方式：",
-  "",
-  $fence + "powershell",
-  "dsh plugin --profile web add file:<本目录绝对路径>\<包名>-<版本>.tgz",
-  "# 桌面端：",
-  "dsh plugin --profile desktop add file:<...>",
-  $fence,
-  "",
-  "## 包清单",
-  ""
-) + ($rows | ForEach-Object { "- $bt$_$bt" })
-$md | Set-Content (Join-Path $out 'INSTALL.md') -Encoding utf8
+$tpl = @'
+# 插件 tarball（@@DATE@@）
+
+本目录由 @@BT@@tools/pack-plugins.ps1@@BT@@ 生成，**不提交到 git**。安装方式：
+
+@@FENCE@@powershell
+dsh plugin --profile web add file:<本目录绝对路径>\<包名>-<版本>.tgz
+# 桌面端：
+dsh plugin --profile desktop add file:<...>
+@@FENCE@@
+
+## 包清单
+
+@@ROWS@@
+'@
+
+$rowsMd = ($rows | ForEach-Object { "- $bt$_$bt" }) -join "`n"
+$md = $tpl.Replace('@@DATE@@', (Get-Date -Format 'yyyy-MM-dd HH:mm')).Replace('@@BT@@', $bt).Replace('@@FENCE@@', $fence).Replace('@@ROWS@@', $rowsMd)
+Set-Content -Path (Join-Path $out 'INSTALL.md') -Value $md -Encoding utf8
 Write-Host ''
 Write-Host "输出目录：$out" -ForegroundColor Yellow
 $rows | ForEach-Object { Write-Host "  $_" }
