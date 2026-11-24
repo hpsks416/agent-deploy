@@ -233,3 +233,18 @@ pwsh thirdparty-gate.ps1 -Path <目录> -Json        # 机器可读
   4. `links.json` 加 `{ "var": "NPM_TOKEN", "file": "G:\\KEY\\NPM token\\416.txt.zip" }`。
 
 **迁移旧名**：已装过旧短名的 profile 在下次 `deploy.ps1 -Track plugins -Profile web|desktop` 时会自动把 `dependencies` 与 `dsh.profile.bundles` 里的旧短名改成 scoped 名（`install.ps1` 内置迁移），改完需重启对应运行时。
+
+### 11.1 决策（2026-11-24）：**不发 npm**
+
+理由：这 6 个插件是我们的自用/内部分发件，装的人就是本机两个 profile；npm 带来的收益（一行 `install`、semver 解析）抵不上成本（token 托管、版本不可变、发错了要升版本重发、scoped 包公开即被镜像）。
+
+**现役分发路径（两条，都已验证）**：
+
+| 路径 | 命令 | 何时用 |
+|---|---|---|
+| link（默认） | `pwsh deploy.ps1 -Track plugins -Profile web\|desktop` | 本机开发：改代码即时生效 |
+| tarball | `pwsh tools/pack-plugins.ps1` → `dsh plugin add file:<tgz>` | 给别的机器/别人：可离线、可归档、版本固定 |
+
+**已验证证据**：`pnpm pack` 产出 6 个 tgz（1.5–34.7 KB），在空项目里 `pnpm add file:<tgz>` 成功装入 `node_modules/@hpsks416/dsh-retrieval-guard`（含 `lib/`、`cordis.patch.yml`）。
+
+**保留但不启用**：`tools/publish-plugins.ps1`（等有 npm token 才真正发布）与 scoped 包名 `@hpsks416/*`（避免将来发时撞名）。
