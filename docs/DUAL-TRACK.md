@@ -54,7 +54,7 @@
 - `kind` 决定走哪条轨；`frameworks` 决定铺给谁（plugins 只有 `dsh`）。
 - `profiles` 决定插件装进哪个 DSH profile：本机有**两条运行时**——
   - **web**（`dsh web` / CLI，`@deepseek-ai/dsh-base 0.1.5-rc.2`）：`deploy.ps1 -Track plugins` 默认写这里；
-  - **desktop**（桌面 app，`0.2.2-rc.3`）：由 app 的 Plugins 面板/插件市场管理，`install.ps1 -Profile desktop` 只能重接 link。
+  - **desktop**（桌面 app，`0.2.2-rc.5`）：由 app 的 Plugins 面板/插件市场管理，`install.ps1 -Profile desktop` 只能重接 link。
   同一个插件可能在两个 profile 里都注册（如 `dsh-retrieval-guard`、`dsh-secure-push-guard`、`dsh-session-sync-flush`），
   所以 manifest 里写明 `profiles: ["web","desktop"]`，避免"改了 web 以为全改了"。
 - `coupling` 沿用 `core-skills.txt` 的四档（none/light/env/hardcode），由 `deploy.ps1` 末尾打印提醒。
@@ -75,7 +75,7 @@
 | 3 | `dsh.bundle.patch` 指向存在的 `cordis.patch.yml`，且内含 `- insert:` | 注册进 profile bundles 的唯一入口 | ✅ 全部 |
 | 4 | `files` 包含 `cordis.patch.yml` | 否则 npm 打包会漏，装完起不来 | ✅ 全部 |
 | 5 | 版本声明 `engines.dsh` 或 `dsh.compatibility.dsh`（含 `dshReleases`） | 实测两种写法都在用 | ✅ 全部（本轮修了 1 处错位） |
-| 6 | 声明的范围覆盖目标 profile 版本（web 0.1.5-rc.2 / desktop 0.2.2-rc.3） | 跨 profile 时最容易翻车 | ✅ 3 个守卫插件已补 `engines.dsh = ^0.1.5-rc.2 \|\| ^0.2.2-rc.1` |
+| 6 | 声明的范围覆盖目标 profile 版本（web 0.1.5-rc.2 / desktop 0.2.2-rc.5） | 跨 profile 时最容易翻车 | ✅ 3 个守卫插件已补 `engines.dsh = ^0.1.5-rc.2 \|\| ^0.2.2-rc.1` |
 | 7 | 有 `lib/client.js` 就必须有 `dsh.client.inject`（+ `platform`） | 客户端插件注入契约 | ✅ skill-studio 合规 |
 | 8 | `license` / `description` / `keywords`（分发元数据） | npm 可见性 | ✅ 本轮补齐 license |
 
@@ -169,7 +169,7 @@ Phase 2 第一件事不是写代码，而是给 manifest 的每个插件补 `por
 
 ## 8. 限制与下一步（本轮不做）
 
-1. **两条运行时要分开看**：本机 `web` profile / `dsh` CLI 是 `0.1.5-rc.2`，桌面 app 是 `0.2.2-rc.3`。插件轨默认写 `web`；`desktop` 由 app 管（本机 desktop 里已注册 `dsh-retrieval-guard`、`dsh-secure-push-guard`、`dsh-session-sync-flush`，另有本仓未收录的 `dsh-context-guard`）。**生态里要求 DSH ≥0.2.1 的插件（如 `dsh-marktext`）只能在 desktop 装，web 装不了。**
+1. **两条运行时要分开看**：本机 `web` profile / `dsh` CLI 是 `0.1.5-rc.2`，桌面 app 是 `0.2.2-rc.5`。插件轨默认写 `web`；`desktop` 由 app 管（本机 desktop 里已注册 `dsh-retrieval-guard`、`dsh-secure-push-guard`、`dsh-session-sync-flush`，另有本仓未收录的 `dsh-context-guard`）。**生态里要求 DSH ≥0.2.1 的插件（如 `dsh-marktext`）只能在 desktop 装，web 装不了。**
 2. **版本断言只打印不阻断**：`dsh-goat-vision` 有 `engines.dsh`，其余四个插件没有——建议逐个补 `engines.dsh`，再把断言升级为阻断。
 3. **插件尚未 npm 化**：仍是「复制目录 + link」，不是 `dsh plugin add` / 插件市场的正式分发；正式化需补发布流程。
 4. **回滚不覆盖「被覆盖的已有文件」之外的内容**：只删本次新建目录 + 恢复备份文件；覆盖的已有插件目录备份在 `~/.dsh/_backup_<ts>/`，需手动确认。

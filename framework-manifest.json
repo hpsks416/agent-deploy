@@ -39,7 +39,7 @@
         },
         "desktop": {
           "manager": "desktop app (Plugins 面板 / 插件市场)",
-          "dshBase": "0.2.2-rc.3",
+          "dshBase": "0.2.2-rc.5",
           "target": "~/.dsh/profiles/desktop/package.json",
           "note": "桌面 app 管理；install.ps1 -Profile desktop 仍可重接 link，但装/卸以 app 的 Plugins 面板为准"
         }
@@ -677,7 +677,7 @@
       "version": "0.1.0",
       "license": "MIT",
       "link": true,
-      "note": "上下文预算守卫：接近上限时拦截并强制交接提示。仅 desktop（0.2.2-rc.3）验证过；源码 3.4KB，随仓库分发。",
+      "note": "上下文预算守卫：接近上限时拦截并强制交接提示。仅 desktop（0.2.2-rc.5）验证过；源码 3.4KB，随仓库分发。",
       "portable": true,
       "migration": "skill"
     },

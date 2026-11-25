@@ -16,7 +16,7 @@ description: DSH 升级/闪退定位。先分清两条轨：desktop 轨走应用
 | **desktop 轨**（日常在用） | `G:\DSH\Application`（Electron 打包，bundle 全在 `app.asar` 内） | **应用内更新**（下载 installer → 重启安装） | ❌ 不适用：profile 里没有 `@deepseek-ai/*` 核心包，不存在「两处不同步」；**千万别**往 desktop profile 装官方 bundle，那会按 installAnchor 遮挡 app.asar 的新 bundle |
 | **web/CLI 轨**（旧的 `dsh web`） | pnpm-global + `profiles\web` | `dsh plugin add` + 全局 pnpm install | ✅ 就是下面「双处同步」那条铁律 |
 
-desktop 轨升级的验证点（0.2.2-rc.1 → rc.3 实跑过）：
+desktop 轨升级的验证点（0.2.2-rc.1 → rc.3 → rc.5 实跑过）：
 
 - 版本：`G:\DSH\Application\DeepSeek Harness.exe` 的 FileVersion + `resources\runtime\primary-runtime\runtime.json` 的 `desktopVersion`；
 - bundle 版本：`app.asar` 内 `dsh/node_modules/@deepseek-ai/*` 应**全部**等于新版本（解析 asar 头即可，勿解包）；
@@ -117,10 +117,18 @@ pnpm dlx dsh-replay --file <file> --stats                              # JSON �
 
 ## 已验证版本对
 
-- DSH 桌面端 `0.2.2-rc.3`（2026-11-14 实测）↔ 会话格式**仍是 v4**（官方 session-format-status：latestFinalized=4 / latestReleased=4，**无 v5**）↔ 第三方插件 10 个全 ctive（本次审计 0 红 5 黄 13 绿；黄=元数据锁旧版本线，非失效）↔ launch-dsh-replay 继续可用。
+- DSH 桌面端 `0.2.2-rc.5`（2026-11-25 实测）↔ 会话格式**仍 v4** ↔ 11 个第三方插件 + `dsh-deepseek-chat-import` 全 `active`（含 game-studio 0.1.0-rc.6 / dsh-mobile 0.8.14）↔ 官方 rc.3↔rc.5 bundle 名单与 dsh-base 依赖集合**零差异**↔ 搜索默认路由变化已实测命中。
+- DSH 桌面端 `0.2.2-rc.3`（2026-11-14 实测）↔ 会话格式**仍是 v4**（官方 session-format-status：latestFinalized=4 / latestReleased=4，**无 v5**）↔ 第三方插件 11 个全 active（审计 0 红 5 黄 13 绿；黄=元数据锁旧版本线，非失效）↔ launch-dsh-replay 继续可用。
 - DSH 桌面端 `dsh-desktop 0.2.1-rc.5` ↔ 会话格式 **v4** ↔ 桌面移植项目 `launch-dsh-replay`（2026-11-04 实测：v4 会话可列/可渲染，v3 兼容）。
 - DSH `0.1.5-rc.2` ↔ 各插件 0.1.5 线（旧稳定组合）。
 - DSH `0.1.7-rc.2` ↔ `dsh-mobile@0.5.0` ↔ 全局 CLI `0.1.7-rc.2`（本次目标组合）。
+
+### rc.5 起网页搜索的默认路由（2026-11-25 实测）
+
+- 基础组合**不再设** `web.searchProvider`，由 `dsh-web` 按模型提供方路由选择：`deepseek-official` / `deepseek-account` 路由 → **服务端 Messages 搜索**（不按次收费、按 token 计费，会话日志追加 `web/deepseek-search-llm-request` 事件）；其他路由 → 仍 `deepseek-search-api`。
+- 端点**不跟随 provider baseURL**：`web-search-deepseek.baseURL` → `$DEEPSEEK_SEARCH_BASE_URL` → `https://api.deepseek.com/anthropic/v1`。网关/自定义 baseURL 场景按官方指南 `docs/upgrade-guide/v0.2.2-rc.4/web-search-deepseek-model-default` 步骤 2/3 处理（设置页「网页搜索提供方」选 Search API，或选服务端搜索并填网关 Anthropic base）。
+- 验证：用默认模型搜一次，会话日志出现 `web/deepseek-search-llm-request` 事件即为新路径生效（本机 2026-11-25 实测命中 1 条）。若搜索报错且无该事件：先查是否自定义了 `web.searchProvider` / `DSH_WEB_SEARCH_PROVIDER`，再查网关 baseURL。
+- 沙箱内 `session_event_search` 会报 `session history storage is unavailable`；要验证事件需逐帧解码 `session.v4.jsonl.zstd`（多 zstd frame 拼接，`zstdDecompressSync` 只解第一帧，要按 `28 B5 2F FD` 魔数切帧）。
 
 ## 多机部署场景（ABC）与三能力适配
 
